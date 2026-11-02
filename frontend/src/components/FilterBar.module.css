@@ -1,0 +1,52 @@
+@layer components {
+  .bar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+  }
+  .search {
+    flex: 1;
+    min-width: 180px;
+  }
+  .search > div,
+  .search > form {
+    width: 100%;
+  }
+  .options {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+  }
+  .options > select {
+    width: 180px;
+  }
+  .toggle {
+    display: none;
+  }
+  @media (max-width: 767px) {
+    .bar {
+      gap: 12px;
+    }
+    .search {
+      flex-basis: 100%;
+      min-width: 0;
+    }
+    .toggle {
+      display: inline-flex;
+    }
+    .options {
+      display: none;
+      width: 100%;
+      order: 1;
+    }
+    .options.open {
+      display: flex;
+    }
+    .options > select {
+      width: 100%;
+    }
+  }
+}

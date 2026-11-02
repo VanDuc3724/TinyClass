@@ -1,0 +1,57 @@
+name: tinyclass-local
+
+services:
+  mailpit:
+    image: axllent/mailpit:v1.32.0
+    ports:
+      - "127.0.0.1:${TINYCLASS_MAIL_PORT:-11025}:1025"
+      - "127.0.0.1:${TINYCLASS_MAIL_UI_PORT:-18025}:8025"
+    environment:
+      MP_MAX_MESSAGES: 200
+
+  mailpit-test:
+    image: axllent/mailpit:v1.32.0
+    profiles: ["test"]
+    ports:
+      - "127.0.0.1:11026:1025"
+      - "127.0.0.1:18026:8025"
+    environment:
+      MP_MAX_MESSAGES: 200
+
+  postgres:
+    image: postgres:17.11-alpine
+    environment:
+      POSTGRES_DB: ${TINYCLASS_DB_NAME:-tinyclass}
+      POSTGRES_USER: ${TINYCLASS_DB_USER:-tinyclass}
+      POSTGRES_PASSWORD: ${TINYCLASS_DB_PASSWORD:?Initialize the local .env file first}
+    ports:
+      - "127.0.0.1:${TINYCLASS_DB_PORT:-55432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+
+  postgres-test:
+    image: postgres:17.11-alpine
+    profiles: ["test"]
+    environment:
+      POSTGRES_DB: tinyclass_test
+      POSTGRES_USER: tinyclass_test
+      POSTGRES_PASSWORD: ${TINYCLASS_TEST_DB_PASSWORD:?Initialize the local .env file first}
+    ports:
+      - "127.0.0.1:${TINYCLASS_TEST_DB_PORT:-55433}:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+
+volumes:
+  postgres_data:

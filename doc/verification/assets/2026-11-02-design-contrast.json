@@ -1,0 +1,100 @@
+[
+  {
+    "fg": "text",
+    "bg": "surface",
+    "ratio": 17.01,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "fg": "text-muted",
+    "bg": "surface",
+    "ratio": 5.35,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "fg": "text-muted",
+    "bg": "canvas",
+    "ratio": 5.22,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "fg": "primary",
+    "bg": "primary-soft",
+    "ratio": 7,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "fg": "on-primary",
+    "bg": "primary",
+    "ratio": 8.07,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "fg": "accent",
+    "bg": "accent-soft",
+    "ratio": 4.88,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "fg": "success",
+    "bg": "success-soft",
+    "ratio": 4.85,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "fg": "info",
+    "bg": "info-soft",
+    "ratio": 5.14,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "fg": "warning",
+    "bg": "warning-soft",
+    "ratio": 4.82,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "fg": "danger",
+    "bg": "danger-soft",
+    "ratio": 4.72,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "fg": "control-border",
+    "bg": "surface",
+    "ratio": 3.37,
+    "min": 3,
+    "pass": true
+  },
+  {
+    "fg": "focus",
+    "bg": "surface",
+    "ratio": 5.7,
+    "min": 3,
+    "pass": true
+  },
+  {
+    "fg": "on-primary",
+    "bg": "sidebar-start active (white 20%)",
+    "ratio": 5.21,
+    "min": 4.5,
+    "pass": true
+  },
+  {
+    "fg": "on-primary",
+    "bg": "sidebar-end active (white 20%)",
+    "ratio": 5.91,
+    "min": 4.5,
+    "pass": true
+  }
+]
