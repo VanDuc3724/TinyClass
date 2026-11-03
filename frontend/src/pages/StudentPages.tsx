@@ -252,6 +252,13 @@ export function StudentDetailPage() {
           </p>
         </div>
         <div className="detail-actions">
+          <Link
+            className="button button-primary"
+            to={`/teacher/students/${id}/progress`}
+          >
+            <Icon name="leaf" />
+            Nhận xét & tiến bộ
+          </Link>
           {student.status === "ACTIVE" && (
             <Link
               to={`/teacher/students/${id}/edit`}

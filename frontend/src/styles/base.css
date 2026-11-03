@@ -666,6 +666,9 @@ a.library-card:hover {
   flex: 1;
   min-width: 0;
 }
+.family-profile-heading > div:nth-child(2) {
+  flex: 1 1 160px;
+}
 .detail-actions {
   flex-wrap: wrap;
 }

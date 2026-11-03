@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
+    "pretest:e2e": "npm run build",
     "test:e2e": "playwright test"
   },
   "dependencies": {

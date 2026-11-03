@@ -55,4 +55,4 @@ Tài liệu được phép tải hiện đường tải riêng. File xem/tải �
 
 ## Giới hạn hiện tại
 
-Drive, upload/nộp/duyệt sản phẩm, nhận xét, lịch/điểm danh và học phí theo [backlog](plan/02-backlog.md). Kho hiện chưa tự dọn tệp rời lâu ngày hoặc có giao diện xóa tệp; giữ metadata FAILED để theo dõi lỗi upload. Mất byte trong ổ lưu trả STORAGE_UNAVAILABLE, không xóa metadata hay tự đổi kho.
+Nộp/duyệt sản phẩm đã có trong [hướng dẫn riêng](09-san-pham-va-phan-hoi.md); lịch dạy tại [hướng dẫn lịch](10-lich-day.md). Drive, điểm danh/bù, nhận xét định kỳ, học phí và thông báo theo [backlog](plan/02-backlog.md). Kho hiện chưa tự dọn tệp rời lâu ngày hoặc có giao diện xóa tệp; giữ metadata FAILED để theo dõi lỗi upload. Mất byte trong ổ lưu trả STORAGE_UNAVAILABLE, không xóa metadata hay tự đổi kho.

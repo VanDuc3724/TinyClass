@@ -1,0 +1,13 @@
+# TC-025 — Tổng quan và hoàn thiện trải nghiệm
+
+Trạng thái **DONE**, ngày **03/11/2026**. Thực hiện theo yêu cầu tiếp tục/hoàn thiện sau TC-024; dùng [Design.md](../../frontend/Design.md). Google thật, Drive và học bù tiếp tục hoãn theo phạm vi hiện tại.
+
+- Giữ các số lớp/bé/lịch/điểm danh thật. Bổ sung cho cô: phiếu ISSUED còn phải thu, quá hạn, tổng còn lại và tổng khoản RECORDED theo paidAt trong tháng Việt Nam; các phiếu cần xem và cập nhật cá nhân theo đúng lớp đang lọc. Nháp/hủy/VOIDED không tạo khoản phải thu hoặc tiền đã nhận giả.
+- Tổng VND nhiều phiếu dùng số nguyên dạng chuỗi trong JSON, React dùng BigInt/Intl để tránh mất chính xác khi cộng vượt miền số nguyên an toàn JavaScript. Không đổi kiểu tiền trên từng phiếu. Quá hạn là dueOn trước ngày nghiệp vụ và còn tiền; hạn hôm nay không quá hạn.
+- Liên kết từ số liệu dẫn tới danh sách/lịch đã lọc; bổ sung bộ lọc OPEN/OVERDUE/SETTLED cho phiếu. Thao tác nhanh chỉ điều hướng, không tự tạo/giao/thu tiền. Có nút cập nhật và lỗi/thử lại, giữ phạm vi lớp qua URL.
+- Gia đình có tổng quan tài khoản với cập nhật theo quyền hiện tại và tổng quan từng bé: bài đang mở/chờ mở, số bài bắt buộc đã xong/còn lại (không 0/0), lối tiếp tục hoạt động, lịch sắp tới, phản hồi gần đây, học phí và bảng tin. Dùng lại điều kiện quyền ở module nguồn; không trả dữ liệu riêng hoặc count của bé khác.
+- Rời lớp/lưu trữ dừng bài/lịch/bảng tin; giữ phí và sản phẩm đã gửi theo chính sách nguồn khi guardian còn hiệu lực. Thu hồi guardian chặn tổng quan bé ở yêu cầu tiếp theo. Đổi bé hoặc mất quyền bỏ dữ liệu cũ; hộp cập nhật tài khoản nói rõ bao gồm mọi bé còn quyền.
+- Hoàn thiện đường vào các module, trạng thái rỗng/loading/lỗi, nhãn tiến độ và mobile/bàn phím theo thành phần hiện có. Giữ bản nhập ở các luồng đã có; không thêm thao tác reload làm mất nháp sản phẩm.
+- Không cần migration dữ liệu mới nếu chỉ bổ sung read model. Kiểm tra tổng phí/miền số/thời gian/phạm vi, source quyền hiện tại/đọc sau rời lớp/thu hồi, full verify, build/lint và E2E trên database riêng; bổ sung OpenAPI, hướng dẫn và ảnh trước DONE. Không coi TC-025 là nghiệm thu Google/Drive/SMTP ngoài/backup hoặc phát hành toàn bộ hệ thống.
+
+Kết quả: **196 backend test** (12 DashboardTests, 10 migration), **44 E2E Edge**, build/lint đạt. Không migration mới; V1–V17 giữ nguyên. OpenAPI **0.0.15**, 157 path/186 operation/272 schema/2.339 tham chiếu hợp lệ. Đã kiểm tra tiền tổng 9.007.199.254.740.993 VND giữ đúng chuỗi, khoảng tháng Việt Nam theo paidAt, lớp/bé và quyền nguồn trước count/limit, rỗng/lỗi/đổi bé/rời/lưu trữ/thu hồi. Xem [hướng dẫn](../17-tong-quan-va-trai-nghiem.md) và [báo cáo/ảnh](../verification/2026-11-03-dashboard.md). G4/tích hợp thật/vận hành tiếp tục theo backlog.

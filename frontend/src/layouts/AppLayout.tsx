@@ -20,6 +20,7 @@ import { api } from "../lib/api";
 import { useResource } from "../lib/hooks";
 import { trapDialogFocus } from "../lib/accessibility";
 import styles from "./AppLayout.module.css";
+import NotificationBell from "../components/NotificationBell";
 
 export function RequireAccount({ role }: { role: "TEACHER" | "PARENT" }) {
   const auth = useAuth(),
@@ -154,7 +155,7 @@ export default function AppLayout() {
   function changeChild(id: string) {
     setRememberedChild(id);
     navigate(
-      `/family/children/${id}${location.pathname.includes("/learning") ? "/learning" : ""}`,
+      `/family/children/${id}${location.pathname.includes("/learning") ? "/learning" : location.pathname.includes("/schedule") ? "/schedule" : location.pathname.includes("/attendance") ? "/attendance" : location.pathname.includes("/progress") ? "/progress" : location.pathname.includes("/tuition") ? "/tuition" : location.pathname.includes("/invoices") ? "/invoices" : location.pathname.includes("/announcements") ? "/announcements" : ""}`,
     );
   }
   const navigation = (
@@ -209,16 +210,86 @@ export default function AppLayout() {
               <Icon name="arrow" />
               Giao bài
             </NavLink>
+            <NavLink to="/teacher/reviews">
+              <Icon name="check" />
+              Phản hồi
+            </NavLink>
+            <NavLink to="/teacher/schedule">
+              <Icon name="calendar" />
+              Lịch dạy
+            </NavLink>
+            <NavLink to="/teacher/attendance">
+              <Icon name="check" />
+              Điểm danh
+            </NavLink>
+            <NavLink to="/teacher/invoices">
+              <Icon name="book" />
+              Phiếu học phí
+            </NavLink>
           </>
         ) : (
-          <NavLink
-            to={learningLink}
-            className={location.pathname.includes("/learning") ? "active" : ""}
-          >
-            <Icon name="book" />
-            Bài của con
-          </NavLink>
+          <>
+            <NavLink
+              to={learningLink}
+              className={
+                location.pathname.includes("/learning") ? "active" : ""
+              }
+            >
+              <Icon name="book" />
+              Bài của con
+            </NavLink>
+            <NavLink
+              to={
+                selectedChild
+                  ? `/family/children/${selectedChild}/schedule`
+                  : "/family"
+              }
+            >
+              <Icon name="calendar" />
+              Lịch học
+            </NavLink>
+            {selectedChild && (
+              <NavLink to={`/family/children/${selectedChild}/attendance`}>
+                <Icon name="check" />
+                Điểm danh của bé
+              </NavLink>
+            )}
+            {selectedChild && (
+              <NavLink to={`/family/children/${selectedChild}/progress`}>
+                <Icon name="leaf" />
+                Nhận xét & tiến bộ
+              </NavLink>
+            )}
+            {selectedChild && (
+              <NavLink to={`/family/children/${selectedChild}/tuition`}>
+                <Icon name="book" />
+                Điều kiện học phí
+              </NavLink>
+            )}
+            {selectedChild && (
+              <NavLink to={`/family/children/${selectedChild}/invoices`}>
+                <Icon name="book" />
+                Phiếu học phí
+              </NavLink>
+            )}
+          </>
         )}
+        <NavLink
+          to={
+            teacher
+              ? "/teacher/announcements"
+              : selectedChild
+                ? `/family/children/${selectedChild}/announcements`
+                : "/family"
+          }
+        >
+          <Icon name="bell" />
+          Thông báo lớp
+        </NavLink>
+        <NavLink to={`${root}/updates`}>
+          <Icon name="clock" />
+          Cập nhật của bạn
+        </NavLink>
       </nav>
       <div className={styles.sidebarBottom}>
         <div className={styles.mascot}>
@@ -315,6 +386,9 @@ export default function AppLayout() {
             )}
           </div>
           <div className={styles.topbarRight}>
+            {(teacher || verified) && (
+              <NotificationBell key={accountId} root={root} />
+            )}
             <span className={styles.date}>
               <Icon name="calendar" />
               {new Intl.DateTimeFormat("vi-VN", {
@@ -389,6 +463,12 @@ export default function AppLayout() {
             <Icon name="book" />
             <span>Bài của con</span>
           </NavLink>
+          {selectedChild && (
+            <NavLink to={`/family/children/${selectedChild}/schedule`}>
+              <Icon name="calendar" />
+              <span>Lịch học</span>
+            </NavLink>
+          )}
           <NavLink to="/family/account">
             <Icon name="user" />
             <span>Tài khoản</span>

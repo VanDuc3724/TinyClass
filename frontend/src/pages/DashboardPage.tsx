@@ -11,9 +11,14 @@ import {
 } from "../components/ui";
 import { api } from "../lib/api";
 import { useResource } from "../lib/hooks";
+import { SessionCard } from "./ScheduleParts";
+import type { TeachingSession } from "../lib/schedule";
+import scheduleStyles from "./Schedule.module.css";
 import { dateLabel, dateTimeLabel } from "../lib/format";
 import type { Classroom } from "../lib/types";
 import styles from "./DashboardPage.module.css";
+import { BillingOverviewPanel, UpdatesOverviewPanel } from "./DashboardParts";
+import type { BillingOverview, DashboardUpdates } from "../lib/dashboard";
 
 interface Dashboard {
   classOptions: Pick<Classroom, "id" | "name" | "status">[];
@@ -21,9 +26,15 @@ interface Dashboard {
   businessDate: string;
   students: number;
   activeClasses: number;
+  presentToday: number;
   publishedLessons: number;
   publishedAssignments: number;
+  pendingSubmissions: number;
+  todaySessionCount: number;
+  todaySessions: TeachingSession[];
   recentClasses: Pick<Classroom, "id" | "name" | "status" | "activeStudents">[];
+  billing: BillingOverview;
+  updates: DashboardUpdates;
   activity: {
     id: string;
     title: string;
@@ -55,10 +66,19 @@ export default function DashboardPage() {
         title={`Xin chào, ${account!.displayName}!`}
         description="Cùng chuẩn bị một ngày nhiều khám phá cho lớp nhỏ."
         action={
-          <Link className="button button-primary" to="/teacher/classes/new">
-            <Icon name="plus" />
-            Tạo lớp học
-          </Link>
+          <div className={styles.headerActions}>
+            <button
+              className="button button-ghost"
+              disabled={resource.loading}
+              onClick={resource.reload}
+            >
+              Cập nhật tổng quan
+            </button>
+            <Link className="button button-primary" to="/teacher/classes/new">
+              <Icon name="plus" />
+              Tạo lớp học
+            </Link>
+          </div>
         }
       />
       <div className={styles.scopeRow}>
@@ -115,29 +135,25 @@ export default function DashboardPage() {
                     note: "Bé đang tham gia lớp đang dạy",
                   },
                   {
-                    label: "Lớp đang dạy",
-                    value: data.activeClasses,
-                    icon: "classes",
+                    label: "Bé có mặt hôm nay",
+                    value: data.presentToday,
+                    icon: "check",
                     tone: "green",
-                    note: classId
-                      ? "Trong lớp đã chọn"
-                      : "Sẵn sàng đón các bé mỗi ngày",
+                    note: "Có mặt hoặc đi muộn · Mỗi bé tính một lần",
                   },
                   {
-                    label: "Lần giao bài",
-                    value: data.publishedAssignments,
-                    icon: "arrow",
+                    label: "Sản phẩm chờ duyệt",
+                    value: data.pendingSubmissions,
+                    icon: "check",
                     tone: "pink",
-                    note: "Đã xuất bản, chưa thu hồi",
+                    note: "Gia đình đã gửi, chờ cô xem",
                   },
                   {
-                    label: classId ? "Bài đã chia sẻ" : "Bài đã xuất bản",
-                    value: data.publishedLessons,
-                    icon: "book",
+                    label: "Buổi học hôm nay",
+                    value: data.todaySessionCount,
+                    icon: "calendar",
                     tone: "blue",
-                    note: classId
-                      ? "Bài riêng biệt đã giao cho lớp"
-                      : "Trong thư viện của bạn",
+                    note: "Theo lịch, không gồm buổi đã hủy",
                   },
                 ] as const
               ).map((stat) => (
@@ -152,15 +168,80 @@ export default function DashboardPage() {
                   <span className={styles.statLabel}>{stat.label}</span>
                   <strong>{stat.value.toLocaleString("vi-VN")}</strong>
                   <p>{stat.note}</p>
+                  <Link
+                    className={styles.statLink}
+                    to={
+                      stat.label === "Sản phẩm chờ duyệt"
+                        ? `/teacher/reviews?status=SUBMITTED${classId ? `&classId=${classId}` : ""}`
+                        : stat.label === "Học sinh đang học"
+                          ? classId
+                            ? `/teacher/classes/${classId}`
+                            : "/teacher/students"
+                          : `/teacher/schedule?week=${data.businessDate}${classId ? `&classId=${classId}` : ""}`
+                    }
+                  >
+                    {stat.label === "Học sinh đang học"
+                      ? classId
+                        ? "Xem danh sách lớp"
+                        : "Quản lý hồ sơ bé"
+                      : `Xem ${stat.label.toLocaleLowerCase("vi-VN")}`}{" "}
+                    →
+                  </Link>
                 </section>
               ))}
             </div>
             <p className={styles.scopeNote}>
               Mỗi bé chỉ được tính một lần trong số học sinh.{" "}
               {classId
-                ? "Học liệu chỉ tính các lần giao trực tiếp cho lớp đã chọn."
-                : "Học liệu gồm toàn bộ thư viện và các lần giao bài của bạn."}
+                ? "Các số liệu thuộc lớp đã chọn."
+                : "Các số liệu thuộc toàn bộ lớp học của bạn."}
             </p>
+            {!!resource.error && (
+              <p className="info-notice">
+                Đang hiển thị số liệu đã tải trước đó. Cập nhật tổng quan để thử
+                lại.
+              </p>
+            )}
+            <section className="panel">
+              <div className="section-heading">
+                <div>
+                  <h2>Lịch dạy hôm nay</h2>
+                  <p className="muted">
+                    {data.todaySessionCount} buổi theo lịch · Giờ Việt Nam
+                  </p>
+                </div>
+                <Link
+                  className="text-link"
+                  to={`/teacher/schedule?week=${data.businessDate}${classId ? `&classId=${classId}` : ""}`}
+                >
+                  Xem lịch tuần
+                  <Icon name="arrow" />
+                </Link>
+              </div>
+              {data.todaySessions.length ? (
+                <div
+                  className={`${scheduleStyles.sessionGrid} ${scheduleStyles.dashboardSessions}`}
+                >
+                  {data.todaySessions.map((session) => (
+                    <SessionCard key={session.id} session={session} teacher />
+                  ))}
+                </div>
+              ) : (
+                <EmptyState
+                  title="Hôm nay chưa có buổi trong lịch"
+                  icon="calendar"
+                >
+                  Cô có thể tạo lịch tuần cho lớp hoặc thêm một buổi học riêng.
+                </EmptyState>
+              )}
+            </section>
+            <BillingOverviewPanel data={data.billing} classId={classId} />
+            <UpdatesOverviewPanel
+              key={classId || "all"}
+              data={data.updates}
+              root="/teacher"
+              onRefresh={resource.reload}
+            />
             <div className={styles.columns}>
               <section className="panel">
                 <div className="section-heading">
@@ -254,6 +335,27 @@ export default function DashboardPage() {
                       "arrow",
                       "blue",
                       `/teacher/assignments/new${classId && selectedClass?.status === "ACTIVE" ? `?classId=${classId}` : ""}`,
+                    ],
+                    [
+                      "Điểm danh",
+                      "Chọn buổi trong lịch rồi ghi nhận các bé",
+                      "check",
+                      "green",
+                      `/teacher/schedule${classId ? `?classId=${classId}` : ""}`,
+                    ],
+                    [
+                      "Phiếu học phí",
+                      "Theo dõi các phiếu còn phải thu",
+                      "book",
+                      "pink",
+                      `/teacher/invoices?collection=OPEN${classId ? `&classId=${classId}` : ""}`,
+                    ],
+                    [
+                      "Thông báo lớp",
+                      "Xem và soạn thông tin cho gia đình",
+                      "bell",
+                      "purple",
+                      `/teacher/announcements${classId ? `?classId=${classId}` : ""}`,
                     ],
                   ] as const
                 ).map(([title, description, icon, tone, to]) => (

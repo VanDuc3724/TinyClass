@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { lazy, Suspense, useCallback, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { ActionModal } from "../components/ActionModal";
 import type { ActionRequest } from "../components/ActionModal";
@@ -18,11 +18,24 @@ import { api, query } from "../lib/api";
 import { useResource } from "../lib/hooks";
 import type { Classroom, Enrollment, History, Student } from "../lib/types";
 export { ClassFormPage, ClassListPage } from "./ClassListAndForm";
+const ClassTuitionPanel = lazy(() =>
+  import("./TuitionPages").then((module) => ({
+    default: module.ClassTuitionPanel,
+  })),
+);
 
 export function ClassDetailPage() {
   const { id } = useParams();
   const [params, setParams] = useSearchParams();
-  const [tab, setTab] = useState("students");
+  const tab = ["info", "tuition"].includes(params.get("tab") || "")
+    ? params.get("tab")!
+    : "students";
+  function setTab(value: string) {
+    const next = new URLSearchParams(params);
+    if (value === "students") next.delete("tab");
+    else next.set("tab", value);
+    setParams(next, { replace: true });
+  }
   const [page, setPage] = useState(0);
   const [adding, setAdding] = useState(false);
   const [history, setHistory] = useState<Enrollment | null>(null);
@@ -110,6 +123,19 @@ export function ClassDetailPage() {
           </p>
         </div>
         <div className="detail-actions">
+          <Link
+            to={`/teacher/announcements?classId=${id}`}
+            className="button button-ghost"
+          >
+            Thông báo lớp
+          </Link>
+          <Link
+            to={`/teacher/classes/${id}/schedule-rules`}
+            className="button button-ghost"
+          >
+            <Icon name="calendar" />
+            Lịch tuần
+          </Link>
           {item.status !== "ARCHIVED" && (
             <Link
               to={`/teacher/classes/${id}/edit`}
@@ -217,6 +243,17 @@ export function ClassDetailPage() {
         >
           Thông tin lớp
         </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === "tuition"}
+          tabIndex={tab === "tuition" ? 0 : -1}
+          aria-controls="class-tuition"
+          id="tab-tuition"
+          onClick={() => setTab("tuition")}
+        >
+          Học phí
+        </button>
       </div>
       {tab === "students" ? (
         <section
@@ -286,6 +323,13 @@ export function ClassDetailPage() {
                             <td>{instantDateLabel(member.joinedAt)}</td>
                             <td>
                               <div className="row-actions">
+                                <Link
+                                  className="text-button"
+                                  to={`/teacher/enrollments/${member.id}/tuition`}
+                                  aria-label={`Học phí của ${member.studentName}`}
+                                >
+                                  Học phí
+                                </Link>
                                 <button
                                   type="button"
                                   className="icon-button"
@@ -343,7 +387,7 @@ export function ClassDetailPage() {
             )
           )}
         </section>
-      ) : (
+      ) : tab === "info" ? (
         <section
           className="panel details-panel"
           role="tabpanel"
@@ -382,6 +426,16 @@ export function ClassDetailPage() {
               <dd>{item.location || "Chưa cập nhật"}</dd>
             </div>
           </dl>
+        </section>
+      ) : (
+        <section
+          role="tabpanel"
+          id="class-tuition"
+          aria-labelledby="tab-tuition"
+        >
+          <Suspense fallback={<Loading />}>
+            <ClassTuitionPanel key={id} classId={id!} />
+          </Suspense>
         </section>
       )}
       {(adding || params.get("add") === "1") && editable && (

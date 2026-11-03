@@ -9,16 +9,24 @@ Các trường hợp AC giữ nguyên mã ở [bộ nghiệm thu tổng quan](..
 | Frontend build/lint | Hai lệnh build/lint đều thành công sau chuẩn hóa nhãn và proxy |
 | Backend | com.tinyclass, Java 21, Spring Boot 4.1.2, artifact backend |
 | Maven Wrapper | Đã sửa Target nullable; compile và verify thành công |
-| Database/email | Local/test PostgreSQL và Mailpit riêng; V1–V7 schema rỗng/nâng cấp và SMTP đã kiểm tra |
-| Kiểm thử backend | 70 test đạt: 57 test mốc trước, 6 test LOCAL và 7 test học liệu/giao bài |
-| Kiểm thử UI | 13 E2E Edge đạt với API/database/SMTP, video upload và OIDC provider thử nghiệm; desktop/mobile |
+| Database/email | Local/test PostgreSQL và Mailpit riêng; V1–V17 schema rỗng, nâng V1, V7, V8, V9, V10, V11, V12, V15 và V16 có dữ liệu; SMTP đã kiểm tra |
+| Kiểm thử backend | 196 test đạt; thêm 12 DashboardTests về số tiền chính xác, ngày Việt Nam, lớp/bé và quyền nguồn/lịch sử; giữ 15 CommunicationTests và tổng 10 test migration |
+| Kiểm thử UI | 44 E2E Edge đạt, API/database/SMTP/OIDC thử nghiệm, học liệu/sản phẩm/lịch/điểm danh/nhận xét, tệp thật, lỗi upload/lưu/xung đột và quyền gia đình |
 | Tài khoản/lớp | Setup giáo viên/session/CSRF, lớp/bé/thành viên/audit đã chạy qua UI/API |
 | Gia đình/email | Lời mời/đăng ký/xác minh/reset, nhận đồng thời một lần, nhiều quan hệ và thu hồi có bằng chứng |
 | Google | UI/API và protocol đã kiểm tra bằng provider thử nghiệm; còn OAuth client/callback và nghiệm thu Google thật |
-| Học liệu | LOCAL, chủ đề/bài/khóa, snapshot/recipient, family đọc/confirm và thu hồi quyền đã có bằng chứng |
-| Drive/sản phẩm/lịch/phí | Các task tiếp theo; SMTP nhà cung cấp thật chưa nghiệm thu |
+| Học liệu | LOCAL, chủ đề/bài/khóa, snapshot/recipient, family đọc/confirm, sản phẩm/phản hồi/mở lại và thu hồi quyền đã có bằng chứng |
+| Lịch dạy | Preview/xung đột, sinh/đổi/hủy/lịch sử, giữ ngoại lệ, lịch gia đình và dashboard hôm nay đã kiểm tra |
+| Điểm danh | Snapshot/tên, lưu nguyên tử, hoàn thành/mở lại, ghi chú riêng/chia sẻ, lịch sử/thu hồi và dashboard thật đã kiểm tra |
+| Nhận xét/hành trình | PRIVATE/SHARED, tệp theo note hiện tại, archive/restore/audit, ngữ cảnh và timeline sản phẩm đã kiểm tra |
+| Điều kiện học phí | V12 chính sách/snapshot theo bé; thay/kết thúc/hủy, khoảng ngày/version/retry/đồng thời và gia đình đúng bé đã kiểm tra |
+| Phiếu học phí | Preview/nháp/sửa/phát hành/hủy, chống giữ buổi trùng, nguồn thay đổi, hạn thu trước, giảm trừ/0 VND và family invoice đã kiểm tra |
+| Ghi nhận thanh toán | Thu từng phần/đủ, retry sau mất phản hồi, void/audit, chặn hủy phiếu còn khoản thu, lịch sử/thu hồi và múi giờ gia đình đã kiểm tra |
+| Thông báo/cập nhật | Bảng tin/read revision, source-only BEFORE_COMMIT/rollback, chống trùng, quyền trước page/count/badge/open và form 503/409 đã kiểm tra |
+| Tổng quan/trải nghiệm | 12 HTTP test + 3 luồng UI mới: rỗng/tiến độ/tiếp tục, tổng lớn hơn Number.MAX_SAFE_INTEGER, paidAt tháng Việt Nam, filter trước page, đổi lớp/bé và rời/lưu trữ/thu hồi; preview có giới hạn, lỗi 503/404 và mobile 320/375px |
+| Drive/dịch vụ ngoài | Theo backlog; học bù tạm hoãn; SMTP nhà cung cấp thật chưa nghiệm thu |
 
-Bằng chứng mới nhất: [học liệu/giao bài](../verification/2026-11-02-learning.md), cùng báo cáo mốc trước. Quyền bài/tệp sau rời lớp, giờ mở, snapshot và PARENT_CONFIRM đã kiểm tra; submission/review, roster, Drive và triển khai thật chưa nghiệm thu. Google thật tạm hoãn theo yêu cầu. Không coi toàn bộ 48 AC đã đạt.
+Bằng chứng mới nhất: [tổng quan](../verification/2026-11-03-dashboard.md), cùng [thông báo](../verification/2026-11-03-notifications.md), cùng [thanh toán](../verification/2026-11-03-payments.md), cùng [phiếu](../verification/2026-11-02-invoices.md), cùng [cấu hình](../verification/2026-11-02-tuition-settings.md), [nhận xét](../verification/2026-11-02-student-notes.md), [điểm danh](../verification/2026-11-02-attendance.md), [lịch](../verification/2026-11-02-schedule.md) và các mốc trước. Google thật/học bù tạm hoãn. Drive và vận hành thật chưa nghiệm thu; không coi toàn bộ 48 AC đã đạt.
 
 ## 2. Tầng kiểm tra phù hợp
 
@@ -84,7 +92,7 @@ Khởi động hai database theo [README](../../README.md), sau đó chạy tron
 
 Các lệnh đã qua kiểm tra cho phần hiện tại; module mới cần kiểm tra thêm. Suite kiểm tra cả local và test nên cần hai database. `compile` bỏ test không thay cho `verify`.
 
-Sau Maven verify, chạy `npm.cmd run test:e2e` trong `frontend/` với Edge đã cài trên Windows. Playwright tự chạy/dừng backend 18080 và Vite 5174 trên database test riêng; không chạy cùng lúc với Maven. Script E2E reset dữ liệu test theo [README](../../README.md).
+Sau Maven verify, chạy `npm.cmd run test:e2e` trong `frontend/` với Edge đã cài trên Windows. Npm tự build frontend, Playwright chạy/dừng backend 18080 và Vite preview 5174 trên database test riêng; không chạy cùng lúc với Maven. Script E2E reset dữ liệu test theo [README](../../README.md).
 
 Kiểm tra tính tái lập ở môi trường sạch cần dùng npm lockfile, Maven/migration đã chốt và đầy đủ phụ thuộc. Xác minh local trước; không áp dụng profile test lên dữ liệu production.
 
@@ -115,5 +123,5 @@ Chỉ đánh dấu pass khi đã thực hiện và đạt. Case chưa có cấu 
 - [ ] Có volume/media bền vững, backup/restore thử, quota/health/log cần thiết và kết quả tải thử.
 - [ ] Có hướng dẫn dùng/vận hành, cách xử lý sự cố và phiên bản tài liệu khớp bản triển khai.
 
-Trạng thái hiện tại: TC-001–008 và TC-010/012/013/014 có bằng chứng theo phạm vi từng task; TC-009 có mã/kiểm tra thử nghiệm, cấu hình thật tạm hoãn. Các ô phát hành toàn sản phẩm vẫn để trống vì các module còn phía trước.
+Trạng thái hiện tại: TC-001–008 và TC-010/012/013/014/015/016/017/018/019/020/021/022/023/024/025 có bằng chứng theo phạm vi từng task; TC-009 có mã/kiểm tra thử nghiệm, cấu hình thật tạm hoãn. Các ô phát hành toàn sản phẩm vẫn để trống vì tích hợp thật, phạm vi và vận hành G4 chưa nghiệm thu.
 

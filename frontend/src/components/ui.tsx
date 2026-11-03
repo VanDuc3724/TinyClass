@@ -11,6 +11,7 @@ import type { ReactNode, SVGProps } from "react";
 import { ApiError } from "../lib/api";
 import {
   classStatusLabels,
+  submissionStatusLabels,
   statusLabels,
   statusTone,
 } from "../constants/status";
@@ -19,6 +20,7 @@ import { trapDialogFocus } from "../lib/accessibility";
 
 type IconName =
   | "home"
+  | "bell"
   | "classes"
   | "students"
   | "plus"
@@ -41,6 +43,12 @@ type IconName =
   | "chevron"
   | "upload";
 const paths: Record<IconName, ReactNode> = {
+  bell: (
+    <>
+      <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
+      <path d="M10 21h4" />
+    </>
+  ),
   settings: (
     <>
       <path d="m9 3-1 3-3 1-2 5 2 5 3 1 1 3h6l1-3 3-1 2-5-2-5-3-1-1-3Z" />
@@ -201,7 +209,7 @@ export function Badge({
   context,
 }: {
   status: string;
-  context?: "class";
+  context?: "class" | "submission";
 }) {
   return (
     <span
@@ -210,7 +218,9 @@ export function Badge({
       <span />
       {(context === "class"
         ? classStatusLabels[status]
-        : statusLabels[status]) ||
+        : context === "submission"
+          ? submissionStatusLabels[status]
+          : statusLabels[status]) ||
         statusLabels[status] ||
         status}
     </span>

@@ -139,6 +139,18 @@ public class AssignmentService {
         result.put("items",open?db.rows("select i.id,i.position,i.is_required,i.completion_mode,l.title,p.status as progress_status,p.completed_at from assignment_items i join lessons l on l.id=i.lesson_id left join student_progress p on p.assignment_item_id=i.id and p.student_id=? where i.assignment_id=? order by i.position",child,assignment):List.of());
         return result;
     }
+    public Map<String,Object> familyOverview(UUID parent,UUID child,Instant now){
+        guardians.child(parent,child);
+        String open=" and a.available_at<=?",interactive=" and (a.target_type='STUDENT' or (c.status='ACTIVE' and e.status='ACTIVE'))";
+        var result=new LinkedHashMap<String,Object>();
+        result.put("availableAssignments",db.count("select count(*)"+FAMILY_FROM+open,child,stamp(now)));
+        result.put("waitingAssignments",db.count("select count(*)"+FAMILY_FROM+" and (a.available_at is null or a.available_at>?)",child,stamp(now)));
+        var counts=db.one("select count(*) as required_items,count(*) filter(where p.status='COMPLETED') as completed_items from assignment_items i left join student_progress p on p.assignment_item_id=i.id and p.student_id=? where i.is_required and i.completion_mode<>'REFERENCE' and i.assignment_id in(select a.id"+FAMILY_FROM+open+interactive+")",child,child,stamp(now));
+        result.putAll(counts);result.put("remainingItems",number(counts,"requiredItems")-number(counts,"completedItems"));
+        var next=db.rows("select a.id,a.title,c.name as class_name"+FAMILY_FROM+open+interactive+" and exists(select 1 from assignment_items i left join student_progress p on p.assignment_item_id=i.id and p.student_id=r.student_id where i.assignment_id=a.id and i.is_required and i.completion_mode<>'REFERENCE' and (p.status is null or p.status<>'COMPLETED')) order by a.due_at asc nulls last,a.available_at,a.id limit 1",child,stamp(now));
+        if(!next.isEmpty())progressSummary(next.getFirst(),child,id(next.getFirst(),"id"));
+        result.put("continueAssignment",next.isEmpty()?null:next.getFirst());result.put("recentAssignments",familyList(parent,child,0,3).data());return result;
+    }
     private void progressSummary(Map<String,Object> result,UUID child,UUID assignment) {
         long total=db.count("select count(*) from assignment_items where assignment_id=? and is_required and completion_mode<>'REFERENCE'",assignment);
         long completed=db.count("select count(*) from assignment_items i join student_progress p on p.assignment_item_id=i.id where i.assignment_id=? and i.is_required and i.completion_mode<>'REFERENCE' and p.student_id=? and p.status='COMPLETED'",assignment,child);
@@ -149,7 +161,7 @@ public class AssignmentService {
         var lesson=db.one("select title,summary,parent_guidance,activity_instructions,estimated_minutes from lessons where id=?",access.get("lessonId"));
         lesson.put("blocks",library.blocks(id(access,"lessonId"))); lesson.put("id",item); lesson.put("assignmentId",access.get("assignmentId"));
         lesson.put("completionMode",access.get("completionMode")); lesson.put("isRequired",access.get("isRequired")); lesson.put("canInteract",!"COMPLETED".equals(access.get("classStatus")));
-        var progress=db.rows("select status,parent_confirmed_at,completed_at from student_progress where assignment_item_id=? and student_id=?",item,child);
+        var progress=db.rows("select p.status,p.first_opened_at,p.last_opened_at,p.parent_confirmed_at,p.teacher_accepted_at,p.completed_at,p.review_cycle,p.version,(select e.reason from submission_events e where e.assignment_item_id=p.assignment_item_id and e.student_id=p.student_id and e.event_type='REOPENED' and e.review_cycle=p.review_cycle order by e.created_at desc,e.id desc limit 1) as reopen_reason from student_progress p where p.assignment_item_id=? and p.student_id=?",item,child);
         lesson.put("progress",progress.isEmpty()?null:progress.getFirst()); return lesson;
     }
     @Transactional public Map<String,Object> interact(UUID parent,UUID child,UUID item,boolean confirm,String trace) {
@@ -169,9 +181,9 @@ public class AssignmentService {
         if(download&&!file.isLearnerDownloadAllowed()) throw new ApiException(HttpStatus.FORBIDDEN,"DOWNLOAD_NOT_ALLOWED","Giáo viên chỉ cho phép xem tài liệu này trong bài.");
         return files.content(file);
     }
-    private Map<String,Object> itemAccess(UUID parent,UUID child,UUID item,boolean mutation,boolean lock) {
+    public Map<String,Object> itemAccess(UUID parent,UUID child,UUID item,boolean mutation,boolean lock) {
         guardians.child(parent,child);
-        var result=db.one("select i.id,i.assignment_id,i.lesson_id,i.completion_mode,i.is_required,a.teacher_id,a.available_at,c.status as class_status from assignment_items i join assignments a on a.id=i.assignment_id join assignment_recipients r on r.assignment_id=a.id join students s on s.id=r.student_id left join classes c on c.id=a.class_id left join class_enrollments e on e.id=r.source_enrollment_id where i.id=? and r.student_id=? and r.revoked_at is null and a.status='PUBLISHED' and s.status='ACTIVE' and (a.target_type='STUDENT' or(c.status in('ACTIVE','COMPLETED') and e.status in('ACTIVE','COMPLETED')))"+(lock?" for update of r":""),item,child);
+        var result=db.one("select i.id,i.assignment_id,i.lesson_id,i.completion_mode,i.is_required,i.allowed_response_types,a.teacher_id,a.available_at,a.due_at,c.status as class_status from assignment_items i join assignments a on a.id=i.assignment_id join assignment_recipients r on r.assignment_id=a.id join students s on s.id=r.student_id left join classes c on c.id=a.class_id left join class_enrollments e on e.id=r.source_enrollment_id where i.id=? and r.student_id=? and r.revoked_at is null and a.status='PUBLISHED' and s.status='ACTIVE' and (a.target_type='STUDENT' or(c.status in('ACTIVE','COMPLETED') and e.status in('ACTIVE','COMPLETED')))"+(lock?" for update of r":""),item,child);
         if(!available(result)) throw new ApiException(HttpStatus.FORBIDDEN,"CONTENT_NOT_AVAILABLE","Bài học chưa đến giờ mở.");
         if(mutation&&"COMPLETED".equals(result.get("classStatus"))) throw conflict("CLASS_COMPLETED","Lớp đã kết thúc; bạn có thể xem lại nhưng không xác nhận/nộp mới.");
         return result;

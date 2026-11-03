@@ -73,19 +73,19 @@ export function registerDesignFlows(
     ).toHaveText(String(scoped.students));
     await expect(
       page
-        .getByRole("region", { name: "Bài đã chia sẻ", exact: true })
+        .getByRole("region", { name: "Buổi học hôm nay", exact: true })
         .locator("strong"),
-    ).toHaveText(String(scoped.publishedLessons));
+    ).toHaveText(String(scoped.todaySessionCount));
     await page.reload();
     await expect(
       page.getByLabel("Phạm vi thống kê", { exact: true }),
     ).toHaveValue(selected.id);
     await page
-      .getByRole("region", { name: "Bài đã chia sẻ", exact: true })
+      .getByRole("region", { name: "Buổi học hôm nay", exact: true })
       .waitFor();
     await page.getByLabel("Phạm vi thống kê", { exact: true }).selectOption("");
     await page
-      .getByRole("region", { name: "Bài đã xuất bản", exact: true })
+      .getByRole("region", { name: "Buổi học hôm nay", exact: true })
       .waitFor();
     await ready(page);
     for (const width of [320, 375, 768, 1024, 1280, 1536]) {
@@ -335,7 +335,10 @@ export function registerDesignFlows(
         fullPage: true,
         animations: "disabled",
       });
-      await parent.locator("footer").scrollIntoViewIfNeeded();
+      // Reach the page end: being inside the viewport alone does not account for a fixed bottom bar.
+      await parent.evaluate(() =>
+        scrollTo(0, document.documentElement.scrollHeight),
+      );
       const footer = (await parent.locator("footer").boundingBox())!,
         bottom = (await parent
           .getByRole("navigation", { name: "Điều hướng gia đình" })

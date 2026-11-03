@@ -58,8 +58,12 @@ async function send<T>(
   method = "GET",
   body?: unknown,
   signal?: AbortSignal,
+  extraHeaders?: Record<string, string>,
 ): Promise<T> {
-  const headers: Record<string, string> = { Accept: "application/json" };
+  const headers: Record<string, string> = {
+    ...extraHeaders,
+    Accept: "application/json",
+  };
   const multipart = body instanceof FormData;
   if (body !== undefined && !multipart)
     headers["Content-Type"] = "application/json";
@@ -106,6 +110,17 @@ async function send<T>(
   return response.json() as Promise<T>;
 }
 export const api = {
+  async postIdempotent<T>(
+    path: string,
+    body: unknown,
+    key: string,
+  ): Promise<T> {
+    return (
+      await send<{ data: T }>(path, "POST", body, undefined, {
+        "Idempotency-Key": key,
+      })
+    ).data;
+  },
   async upload<T>(
     path: string,
     body: FormData,

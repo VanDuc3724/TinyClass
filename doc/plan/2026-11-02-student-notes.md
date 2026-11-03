@@ -1,0 +1,13 @@
+# TC-019 — Nhận xét và hồ sơ tiến bộ
+
+Phạm vi ngày 02/11/2026: nhận xét theo bé, tùy chọn lớp/buổi; nội dung riêng hoặc chia sẻ, đính kèm và dòng thời gian chung với sản phẩm đã gửi. Dùng [Design.md](../../frontend/Design.md). Google thật và học bù tiếp tục tạm hoãn; chưa làm học phí/thông báo.
+
+- V11 tạo `student_notes`, `student_note_attachments`, liên kết tệp NOTE_ASSET với duy nhất một nhận xét. Tối đa 5 tệp/250 MB tổng, dùng kiểm tra MIME/quota/LOCAL hiện có. Tệp đã gắn không tái sử dụng sang nhận xét khác, kể cả sau khi gỡ/lưu trữ; mọi quyền gia đình kiểm tra qua nhận xét hiện tại.
+- Nội dung tối đa 10.000 ký tự; tiêu đề tùy chọn tối đa 200, ngày ghi nhận theo Việt Nam không tương lai. Mặc định PRIVATE. Lưu mới có clientRequestId chống tạo trùng khi thử lại. Cần version và lý do khi sửa/lưu trữ/khôi phục; audit giữ nội dung/visibility/tệp trước và sau, chỉ giáo viên được đọc.
+- Lớp phải có quan hệ tham gia của đúng bé và giáo viên, phù hợp ngày ghi nhận. Buổi phải thuộc lớp đã chọn, đã bắt đầu và cùng ngày ghi nhận; bé có membership phù hợp thời gian hoặc roster hoạt động của buổi. Lớp/buổi lịch sử vẫn gắn được khi hợp lệ; liên kết ngữ cảnh không thay điểm danh hay quyền bài học.
+- Gia đình có email xác minh và liên kết còn hiệu lực chỉ nhận SHARED chưa lưu trữ; không có bản PRIVATE trong dữ liệu/count, mã/lịch sử sửa riêng hay tệp. Chuyển riêng/lưu trữ/gỡ tệp/thu hồi guardian chặn URL cũ ở yêu cầu tiếp theo. Giữ nhận xét chia sẻ sau rời lớp/lưu trữ hồ sơ khi còn guardian, tương tự lịch sử sản phẩm/điểm danh; không cấp lại bài gốc.
+- Hồ sơ tiến bộ hiển thị nhận xét và sản phẩm đã gửi (không DRAFT), sắp ngày/thời gian ổn định, lọc loại và phân trang trước khi trả. Số tổng hợp là số nhận xét chia sẻ, lượt gửi và lượt được chấp nhận; không suy ra thang điểm phát triển hoặc tự đánh dấu bài hoàn thành.
+- UI giáo viên từ hồ sơ bé: dòng thời gian, thêm/sửa, chọn ngữ cảnh, upload/lỗi giữ chữ, thay phạm vi có cảnh báo rõ, lưu trữ/khôi phục/lịch sử. UI gia đình: dòng thời gian chỉ nội dung được chia sẻ, tệp và lối vào sản phẩm hiện có; đổi bé/xử lý mất quyền bỏ dữ liệu cũ.
+- Kiểm tra HTTP quyền riêng/tệp/Range/quota/version/đồng thời/ngữ cảnh, migration V10 có dữ liệu; E2E teacher–family/đổi riêng/lưu trữ/thu hồi và mobile; build/lint, OpenAPI, cập nhật hướng dẫn/bằng chứng trước DONE. Maven và E2E dùng database test riêng, chạy tuần tự.
+
+Kết quả: **DONE**. 120 backend test, 28 E2E đạt; build/lint thành công, V11 nâng V10 có dữ liệu giữ điểm danh cũ. OpenAPI 0.0.10 mô tả 120 path/142 operation. [Hướng dẫn](../12-nhan-xet-va-tien-bo.md), [bằng chứng và ảnh](../verification/2026-11-02-student-notes.md). Tiếp theo là TC-020 cấu hình học phí; chưa tự chốt chính sách hoặc phát hành khoản thu.

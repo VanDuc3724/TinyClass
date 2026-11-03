@@ -47,7 +47,7 @@ Google xác minh email đáng tin cậy theo hướng dẫn đã dẫn trong t�
 
 Lớp chuyển `DRAFT → ACTIVE → COMPLETED`, có thể lưu trữ/khôi phục qua hành động nghiệp vụ. Khi COMPLETED, nội dung cũ được xem theo đề xuất nhưng không nộp mới. Rời lớp hoặc lớp lưu trữ chặn quyền bài của lớp. Giao riêng cho bé và việc tham gia lớp khác được kiểm tra độc lập.
 
-Chính sách giữ sản phẩm/nhận xét/phí của bé ở phần lịch sử sau nghỉ học là đề xuất Q-08; không được dùng chính sách này để mở lại bài gốc đã thu hồi.
+Lịch sử sản phẩm/phản hồi, điểm danh và nhận xét SHARED sau rời lớp đã áp dụng Q-08 khi liên kết gia đình còn hiệu lực; không mở lại bài gốc đã thu hồi. Lịch dạy dự kiến theo quyền lớp hiện tại bị ẩn sau rời lớp. Thu hồi guardian chặn cả lịch sử/tệp. Phí, thời hạn lưu và quyết toán tiếp tục theo phạm vi riêng trước vận hành.
 
 ## 4. Phân quyền phải áp dụng
 

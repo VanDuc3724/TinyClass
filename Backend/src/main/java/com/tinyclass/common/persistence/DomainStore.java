@@ -4,6 +4,7 @@ import com.tinyclass.common.api.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.context.ApplicationEventPublisher;
 import tools.jackson.databind.json.JsonMapper;
 import java.sql.*;
 import java.time.Instant;
@@ -14,7 +15,8 @@ import java.util.*;
 public class DomainStore {
     private final JdbcTemplate jdbc;
     private final JsonMapper json;
-    public DomainStore(JdbcTemplate jdbc,JsonMapper json) { this.jdbc=jdbc; this.json=json; }
+    private final ApplicationEventPublisher events;
+    public DomainStore(JdbcTemplate jdbc,JsonMapper json,ApplicationEventPublisher events) { this.jdbc=jdbc; this.json=json; this.events=events; }
     public List<Map<String,Object>> rows(String sql,Object... args) { return jdbc.query(sql,(rs,index)->row(rs),args); }
     public Map<String,Object> one(String sql,Object... args) { return rows(sql,args).stream().findFirst().orElseThrow(DomainStore::missing); }
     public int update(String sql,Object... args) { return jdbc.update(sql,args); }
@@ -22,6 +24,7 @@ public class DomainStore {
     public String json(Object value) { return json.writeValueAsString(value); }
     public void audit(UUID actor,String action,String type,UUID id,Map<String,Object> fields,String reason,String trace) {
         update("insert into audit_events(id,actor_id,action,entity_type,entity_id,changed_fields,reason,request_id) values(?,?,?,?,?,?::jsonb,?,?)",UUID.randomUUID(),actor,action,type,id,json(fields),reason,trace);
+        events.publishEvent(new BusinessChange(actor,action,type,id));
     }
     public PageResponse<Map<String,Object>> page(List<Map<String,Object>> values,long total,int page,int size) {
         return new PageResponse<>(values,new PageResponse.Metadata(page,size,total,(int)((total+size-1)/size)));

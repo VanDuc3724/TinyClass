@@ -6,11 +6,29 @@ Hệ thống quản lý lớp dạy tại nhà cho một giáo viên cá nhân, 
 
 Đã triển khai TC-001 đến TC-008: nền tảng Spring Boot/PostgreSQL, tài khoản/session/CSRF, lớp/bé/thành viên và lịch sử, mời/đăng ký phụ huynh, xác minh/khôi phục mật khẩu qua email và gia đình xem đúng con/lớp. Giao diện React dùng API thật, dữ liệu lưu trong PostgreSQL.
 
-Đã có thêm TC-010/012/013/014: kho LOCAL, chủ đề/bài/khóa học, giao bài theo lớp hoặc riêng bé, thời điểm mở và Góc học của bé với xác nhận tiến độ. Xem [hướng dẫn học liệu](doc/08-hoc-lieu-local.md) và [báo cáo mới nhất](doc/verification/2026-11-02-learning.md).
+Đã có thêm TC-010/012/013/014: kho LOCAL, chủ đề/bài/khóa học, giao bài theo lớp hoặc riêng bé, thời điểm mở và Góc học của bé với xác nhận tiến độ. Xem [hướng dẫn học liệu](doc/08-hoc-lieu-local.md) và [báo cáo học liệu](doc/verification/2026-11-02-learning.md).
 
 Giao diện hiện dùng theme tím, Nunito tiếng Việt tự phục vụ, CSS variables + CSS Modules theo [Design.md](frontend/Design.md). Dashboard lấy số liệu thật theo lớp; có drawer tablet/mobile, bộ lọc mobile và thanh gia đình/bộ chọn bé. Xem [báo cáo giao diện](doc/verification/2026-11-02-design.md).
 
-Cấu hình Google thật tạm hoãn theo yêu cầu; các luồng trên dùng email/mật khẩu, không cần Google. Mã Google của TC-009 có kiểm thử riêng. Drive, nộp/duyệt sản phẩm, lịch/điểm danh và học phí tiếp tục theo [backlog](doc/plan/02-backlog.md).
+Đã có thêm luồng sản phẩm/phản hồi: phụ huynh lưu nháp, tải tệp và gửi; cô chấp nhận hoặc yêu cầu bổ sung bằng chữ/âm thanh; mở vòng mới giữ lịch sử và không tự hoàn thành từ lượt cũ. Xem [hướng dẫn](doc/09-san-pham-va-phan-hoi.md) và [báo cáo TC-015/016](doc/verification/2026-11-02-submissions.md).
+
+TC-017 đã có lịch tuần, xem trước/sinh buổi, cảnh báo trùng giờ, đổi/hủy từng buổi và lịch gia đình theo bé. Dashboard có số buổi và lịch hôm nay thật. Xem [hướng dẫn lịch dạy](doc/10-lich-day.md) và [báo cáo TC-017](doc/verification/2026-11-02-schedule.md).
+
+TC-018 đã có điểm danh theo buổi: snapshot danh sách, đánh dấu nhanh, ghi chú riêng/chia sẻ, sửa có lý do, hoàn thành/mở lại và lịch sử đúng bé. Dashboard đếm bé có mặt thật. Xem [hướng dẫn](doc/11-diem-danh.md) và [báo cáo TC-018](doc/verification/2026-11-02-attendance.md). Học bù tạm hoãn theo người dùng.
+
+TC-019 đã có nhận xét riêng/chia sẻ, tệp theo quyền hiện tại, lịch sử/lưu trữ/khôi phục và hành trình chung với sản phẩm đã gửi. Xem [hướng dẫn](doc/12-nhan-xet-va-tien-bo.md) và [báo cáo TC-019](doc/verification/2026-11-02-student-notes.md).
+
+TC-020 có cấu hình học phí: mặc định lớp, mức riêng từng bé, ngày áp dụng/thay mức/kết thúc/hủy, lịch sử riêng và trang gia đình. Mở **Lớp học → chọn lớp → Học phí**; xem [hướng dẫn](doc/13-cau-hinh-hoc-phi.md).
+
+TC-021 có xem trước khoản thu, phiếu nháp/sửa/phát hành/hủy, snapshot/lịch sử và giữ buổi chống tính trùng. Mở **Phiếu học phí** trong menu hoặc **Lập phiếu** từ thỏa thuận của bé. Gia đình chỉ thấy phiếu từng phát hành của đúng con. Xem [hướng dẫn phiếu](doc/14-phieu-hoc-phi.md).
+
+TC-022/023 đã có ghi nhận tiền mặt/chuyển khoản/khác, thu từng phần hoặc đủ, tổng đã thu/còn lại và lịch sử riêng/công khai. Khoản nhập sai được hủy kèm lý do và audit; phiếu còn khoản thu hợp lệ không được hủy. Mở **Phiếu học phí → chọn phiếu → Ghi nhận thanh toán**. Xem [hướng dẫn](doc/15-thanh-toan.md) và [báo cáo thanh toán](doc/verification/2026-11-03-payments.md).
+
+TC-024 đã có **Thông báo lớp**: soạn nháp/đăng/sửa/lưu trữ, dấu đọc theo bản công bố và lịch sử riêng của cô. Chuông và **Cập nhật của bạn** theo dõi bài học, phản hồi, lịch và học phí theo quyền nguồn hiện tại; chống trùng và không để lại cập nhật nếu nghiệp vụ rollback. Xem [hướng dẫn](doc/16-thong-bao-va-cap-nhat.md) và [báo cáo TC-024](doc/verification/2026-11-03-notifications.md).
+
+TC-025 đã hoàn thiện **Tổng quan**: lọc lớp, học phí còn phải thu/quá hạn, khoản ghi nhận theo tháng Việt Nam và cập nhật cá nhân. Gia đình có tổng quan từng bé với tiến độ, tiếp tục hoạt động, lịch sắp tới, phản hồi, học phí và bảng tin; đổi bé/rời lớp/thu hồi tuân quyền nguồn. Xem [hướng dẫn tổng quan](doc/17-tong-quan-va-trai-nghiem.md) và [báo cáo mới nhất](doc/verification/2026-11-03-dashboard.md).
+
+Cấu hình Google thật tạm hoãn theo yêu cầu; các luồng trên dùng email/mật khẩu, không cần Google. Mã Google của TC-009 có kiểm thử riêng. Drive tiếp tục theo [backlog](doc/plan/02-backlog.md).
 
 ## Yêu cầu phát triển
 
@@ -95,7 +113,7 @@ cd Backend
 
 `verify` kiểm tra cả profile local và test. Database test riêng `tinyclass_test` ở cổng 55433 dùng tmpfs; dữ liệu test không nằm trong database phát triển. Test HTTP chạy ở port ngẫu nhiên, audit round-trip được rollback.
 
-Bộ kiểm tra reset dữ liệu trong `tinyclass_test` trước từng tình huống; database này dành riêng cho dữ liệu giả có thể tạo lại. Mailpit test riêng tại http://localhost:18026/SMTP 11026; không ảnh hưởng hộp thư local. Hiện verify đạt 72 test, E2E đạt 16 luồng; có migration qua V7, upload/Range/quota, học liệu/giao bài/quyền theo bé, dashboard theo lớp, kiểm tra giao diện/bàn phím, token/SMTP và OIDC có chữ ký thử nghiệm. Kết quả này không thay kiểm tra Google/SMTP thật.
+Bộ kiểm tra reset dữ liệu trong `tinyclass_test` trước từng tình huống; database này dành riêng cho dữ liệu giả có thể tạo lại. Mailpit test riêng tại http://localhost:18026/SMTP 11026; không ảnh hưởng hộp thư local. Hiện verify đạt 196 test, E2E đạt 44 luồng; có migration qua V17, upload/Range/quota, học liệu/giao bài/quyền theo bé, sản phẩm/phản hồi/vòng học mới, lịch tuần/đổi/hủy/quyền gia đình, điểm danh/snapshot/hoàn thành/lịch sử công khai, nhận xét/tệp riêng và hành trình bé, dashboard theo lớp/ngày Việt Nam, ghi thu/void/chống lặp và thu vượt/quyền lịch sử, bảng tin/revision đọc/cập nhật nguyên tử và lọc quyền nguồn, tổng quan từng bé/lớp/tổng tiền nguyên chính xác, giao diện/bàn phím, token/SMTP và OIDC có chữ ký thử nghiệm. Kết quả này không thay kiểm tra Google/SMTP thật.
 
 Kiểm tra frontend từ thư mục `frontend/`:
 
@@ -133,6 +151,16 @@ Dừng các dịch vụ local của project bằng `docker compose --profile tes
 - [Kết quả kiểm tra Google và phương thức đăng nhập](doc/verification/2026-11-02-google.md)
 - [Hướng dẫn kho LOCAL, bài/khóa và giao bài](doc/08-hoc-lieu-local.md)
 - [Kết quả học liệu/gia đình và ảnh giao diện](doc/verification/2026-11-02-learning.md)
+- [Hướng dẫn sản phẩm/phản hồi](doc/09-san-pham-va-phan-hoi.md)
+- [Nghiệm thu TC-015/016 và ảnh minh chứng](doc/verification/2026-11-02-submissions.md)
+- [Hướng dẫn tổng quan và trải nghiệm](doc/17-tong-quan-va-trai-nghiem.md)
+- [Nghiệm thu TC-025 và ảnh minh chứng](doc/verification/2026-11-03-dashboard.md)
+- [Hướng dẫn bảng tin và cập nhật](doc/16-thong-bao-va-cap-nhat.md)
+- [Nghiệm thu TC-024 và ảnh minh chứng](doc/verification/2026-11-03-notifications.md)
+- [Hướng dẫn ghi nhận thanh toán](doc/15-thanh-toan.md)
+- [Nghiệm thu TC-022/023 và ảnh minh chứng](doc/verification/2026-11-03-payments.md)
+- [Hướng dẫn lịch dạy](doc/10-lich-day.md)
+- [Nghiệm thu TC-017 và ảnh minh chứng](doc/verification/2026-11-02-schedule.md)
 
 Profile production yêu cầu các biến `TINYCLASS_DATABASE_URL`, `TINYCLASS_DATABASE_USERNAME`, `TINYCLASS_DATABASE_PASSWORD`, `TINYCLASS_UPLOAD_ROOT`, bật secure cookie và không nhập `.env` local. Upload root phải là ổ bền vững riêng tư, sao lưu cùng database.
 

@@ -1,4 +1,106 @@
 @layer components {
+  .headerActions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .statLink {
+    grid-column: 1 / -1;
+    color: var(--tc-primary);
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .summaryPanel {
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    min-width: 0;
+  }
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 20px;
+    padding: 0 24px 16px;
+  }
+  .metrics > div {
+    min-width: 0;
+  }
+  .metrics dt {
+    color: var(--tc-text-muted);
+    font-size: 14px;
+  }
+  .metrics dd {
+    margin: 8px 0;
+    font-size: 24px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+  }
+  .metrics small {
+    display: block;
+    color: var(--tc-text-muted);
+  }
+  .metrics a {
+    display: inline-block;
+    margin-top: 8px;
+    color: var(--tc-primary);
+  }
+  .previewList {
+    padding: 0 24px;
+  }
+  .previewRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 16px 0;
+    border-top: 1px solid var(--tc-border);
+  }
+  .previewRow > div {
+    min-width: 0;
+    flex: 1 1 180px;
+  }
+  .previewRow h3 {
+    font-size: 16px;
+    overflow-wrap: anywhere;
+  }
+  .previewRow p,
+  .previewRow small {
+    color: var(--tc-text-muted);
+    font-size: 14px;
+  }
+  .previewRow strong {
+    overflow-wrap: anywhere;
+  }
+  .previewNote,
+  .progressSummary {
+    margin: 0 24px 20px;
+  }
+  .progressSummary progress {
+    display: block;
+    width: 100%;
+    height: 12px;
+    accent-color: var(--tc-primary);
+  }
+  .continueLink {
+    margin: 0 24px 20px;
+    max-width: calc(100% - 48px);
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .familyOverview {
+    min-width: 0;
+  }
+  @media (max-width: 767px) {
+    .metrics {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      padding-inline: 16px;
+      gap: 16px;
+    }
+    .previewList {
+      padding-inline: 16px;
+    }
+  }
   .scopeRow {
     display: flex;
     align-items: center;

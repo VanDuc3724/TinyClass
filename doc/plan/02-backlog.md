@@ -1,6 +1,6 @@
 # TinyClass — Backlog triển khai
 
-Đường dẫn hiện tại: [backend POM](../../Backend/pom.xml), [frontend package](../../frontend/package.json). TC-001–008 và TC-010/012/013/014 hoàn thành theo phạm vi từng task. Cấu hình Google thật tạm hoãn theo yêu cầu người dùng ngày 02/11/2026. Bằng chứng mới nhất ở [học liệu/giao bài](../verification/2026-11-02-learning.md), cùng báo cáo mốc trước. Quy ước theo [README](README.md); mốc theo [roadmap](01-roadmap.md).
+Đường dẫn hiện tại: [backend POM](../../Backend/pom.xml), [frontend package](../../frontend/package.json). TC-001–008 và TC-010/012/013/014/015/016/017/018/019/020/021/022/023/024/025 hoàn thành theo phạm vi từng task. Google thật và học bù tạm hoãn theo người dùng. Bằng chứng mới nhất ở [tổng quan](../verification/2026-11-03-dashboard.md); các mốc cũ giữ riêng. TC-026 còn phụ thuộc Google/Drive hoặc cần chốt lại phạm vi phát hành. Quy ước theo [README](README.md), mốc theo [roadmap](01-roadmap.md).
 
 Khi bắt đầu task, ghi quyết định Q liên quan. Khi hoàn thành, thêm lệnh/kiểm tra, kết quả, giới hạn và liên kết bằng chứng; không đổi DONE chỉ vì đã tạo file hoặc nút giao diện.
 
@@ -22,9 +22,9 @@ Khi bắt đầu task, ghi quyết định Q liên quan. Khi hoàn thành, thêm
 - Trạng thái: DONE.
 - Phụ thuộc: TC-001.
 - Spec: [sổ quyết định](../spec/06-decisions.md), quy ước TinyClass ở tài liệu tổng quan.
-- Đầu ra: cập nhật namespace/tên ứng dụng theo phương án thống nhất, dự kiến `com.tinyclass`, artifact `backend`, service `tinyclass-backend`; rà import/test/package và nhãn frontend. Ghi quyết định dùng Git chung hay riêng từ trạng thái `.git` hiện có trong Backend; không coi gộp lịch sử Git là thao tác naming thông thường.
+- Đầu ra: cập nhật namespace/tên ứng dụng theo phương án thống nhất, dự kiến `com.tinyclass`, artifact `backend`, service `tinyclass-backend`; rà import/test/package và nhãn frontend. Ghi quyết định dùng Git chung hay riêng từ cấu trúc đang có; không coi gộp lịch sử Git là thao tác naming thông thường.
 - Hoàn thành khi: build vẫn đạt, cấu hình/tài liệu phản ánh đúng tên/đường dẫn thực tế, không tạo nhầm module lồng nhau; quyết định tổ chức Git được ghi lại, thao tác lịch sử nếu cần được tách riêng.
-- Kết quả: package com.tinyclass, artifact backend, service tinyclass-backend; nhãn/package frontend TinyClass. Giữ cấu trúc Git hiện có trong đợt nền tảng, chưa gộp repository; build backend/frontend đạt.
+- Kết quả: package com.tinyclass, artifact backend, service tinyclass-backend; nhãn/package frontend TinyClass; build backend/frontend đạt. Giữ cấu trúc và lịch sử Git của người dùng; hiện có repository ở gốc TinyClass.
 
 <a id="tc-003"></a>
 ### TC-003 — Database local/test và Flyway
@@ -144,113 +144,129 @@ Khi bắt đầu task, ghi quyết định Q liên quan. Khi hoàn thành, thêm
 <a id="tc-014"></a>
 ### TC-014 — Gia đình xem bài và xác nhận tiến độ
 
-- Trạng thái: DONE trong phạm vi xem/mở/REFERENCE/PARENT_CONFIRM.
+- Trạng thái: DONE; phần TEACHER_REVIEW được hoàn thiện cùng TC-015/016.
 - Phụ thuộc: TC-013, TC-008, TC-005.
 - Spec: [tiến độ và màn hình học](../spec/03-content-and-learning.md).
 - Đầu ra: backend family list/detail/open/confirm, thống kê kể cả chưa có progress, cách tính tỷ lệ; frontend bài/khóa theo con, chờ mở/hết quyền, Góc học của bé, xem/tải theo policy.
 - Hoàn thành khi: mở video không tự hoàn thành, PARENT_CONFIRM đúng actor/mốc, REFERENCE không chia cho 0, cùng bài giao lại có tiến độ mới; UI không lộ file/nội dung trước giờ mở.
-- Kết quả: Góc học theo bé, danh sách/khóa/item, xem media/đường tải theo policy, open/confirm và tiến độ cả khi chưa có dòng progress. Lớp kết thúc chỉ xem lại; file/bài hết quyền bị chặn. Hoàn thành TEACHER_REVIEW cần TC-015/016, chưa nghiệm thu luồng sản phẩm. [Bằng chứng](../verification/2026-11-02-learning.md).
+- Kết quả: Góc học theo bé, danh sách/khóa/item, xem media/đường tải theo policy, open/confirm và tiến độ cả khi chưa có dòng progress. Lớp kết thúc chỉ xem lại; file/bài hết quyền bị chặn. TEACHER_REVIEW hoàn thành qua sản phẩm được cô chấp nhận; mở lại tạo vòng mới. [Học liệu](../verification/2026-11-02-learning.md), [sản phẩm](../verification/2026-11-02-submissions.md).
 
 <a id="tc-015"></a>
 ### TC-015 — Sản phẩm và upload của gia đình
 
-- Trạng thái: READY.
+- Trạng thái: DONE.
 - Phụ thuộc: TC-014, TC-010.
 - Spec: [sản phẩm](../spec/03-content-and-learning.md).
 - Đầu ra: backend draft/submit/attempt/attachments/allowed types, chống hai lượt chờ, ràng buộc file đúng ngữ cảnh; frontend lưu nháp, upload/chọn file, gửi và xem lượt cũ.
 - Hoàn thành khi: chỉ tác giả sửa nháp, gửi rồi không sửa trực tiếp, hai người giám hộ không ghi đè hoặc tạo hai SUBMITTED; lỗi upload giữ phần chữ, không gắn file của bé/item khác.
+- Kết quả: V8/lượt nháp theo tác giả-vòng, file bound ngữ cảnh, giới hạn/quota, submit bất biến và partial unique chống hai lượt đang chờ. UI giữ chữ khi upload lỗi, xem lịch sử riêng theo bé. [Bằng chứng](../verification/2026-11-02-submissions.md).
 
 <a id="tc-016"></a>
 ### TC-016 — Giáo viên phản hồi, duyệt và mở lại
 
-- Trạng thái: TODO.
+- Trạng thái: DONE.
 - Phụ thuộc: TC-015.
 - Spec: [hoàn thành và gửi lại](../spec/03-content-and-learning.md).
 - Đầu ra: backend review/reopen, feedback, history và progress atomic; frontend hàng đợi giáo viên, xem sản phẩm, chấp nhận/yêu cầu bổ sung, gia đình xem phản hồi và gửi lại.
 - Hoàn thành khi: hoàn thành TEACHER_REVIEW chỉ sau ACCEPTED, yêu cầu bổ sung có lý do, mở lại không bị lượt accepted cũ làm xong ngay; AC-17 đến AC-22 phù hợp đều đạt.
+- Kết quả: hàng đợi lọc lớp/bé/bài/trạng thái, phản hồi chữ/âm thanh, review/progress/event/audit nguyên tử, mở lại PARENT_CONFIRM/TEACHER_REVIEW theo vòng có lý do và giữ lịch sử. Đạt 83 backend test và 19 E2E trên toàn hệ thống hiện có. [Bằng chứng](../verification/2026-11-02-submissions.md).
 
 ## G3 — Quản lý dạy tại nhà
 
 <a id="tc-017"></a>
 ### TC-017 — Lịch tuần và buổi học
 
-- Trạng thái: TODO.
+- Trạng thái: DONE.
 - Phụ thuộc: TC-007, TC-004, TC-005.
 - Spec: [TEACH-01 đến TEACH-04](../spec/04-teaching-and-billing.md#requirements).
 - Đầu ra: backend rule/session/generate/change/cancel, khoảng ngày và cảnh báo trùng giờ; frontend lịch giáo viên/gia đình và chỉnh riêng buổi.
 - Hoàn thành khi: timezone đúng, sinh lại không trùng, không sửa quá khứ/chỉnh riêng khi đổi rule, gia đình chỉ thấy lịch có quyền.
+- Kết quả: V9/rule+tuần ISO gốc, preview/xác nhận trùng giờ, khóa chống đua, sinh lặp/đổi/hủy/lịch sử, bảo vệ ngoại lệ và kế hoạch riêng. UI giáo viên/gia đình, thanh Lịch học và dashboard hôm nay dùng API thật. Đạt 96 backend test, 22 E2E, build/lint sạch. [Quyết định triển khai](2026-11-02-schedule.md), [bằng chứng](../verification/2026-11-02-schedule.md).
 
 <a id="tc-018"></a>
-### TC-018 — Điểm danh và kế hoạch bù
+### TC-018 — Điểm danh theo buổi
 
-- Trạng thái: TODO.
+- Trạng thái: DONE (điểm danh; học bù tạm hoãn).
 - Phụ thuộc: TC-017, TC-007.
-- Spec: [điểm danh và bù](../spec/04-teaching-and-billing.md), Q-06.
-- Đầu ra: backend roster snapshot, attendance batch/version/audit, makeup nguồn/đích và trạng thái; frontend điểm danh nhanh, quản lý bù và lịch sử của con.
-- Hoàn thành khi: membership đổi không viết lại roster, buổi hủy không tính đã học, một bé/buổi một dòng và một lần nghỉ một kế hoạch còn hiệu lực; dữ liệu đủ đối chiếu tính phí gốc/bù.
+- Spec: [điểm danh](../spec/04-teaching-and-billing.md), [phạm vi triển khai](2026-11-02-attendance.md).
+- Phạm vi chốt ngày 02/11/2026: **học bù tạm hoãn theo người dùng**. Các đề xuất bù từng bé cũ cần xem lại khi mở phạm vi, không phải điều kiện hoàn thành điểm danh.
+- Đầu ra: V10 roster snapshot/tên/enrollment, batch/version/audit, năm trạng thái, ghi chú riêng/chia sẻ, thêm/loại có lý do, hoàn thành/mở lại buổi; UI cô và lịch sử công khai đúng con; dashboard có mặt thật.
+- Hoàn thành khi: membership/tên đổi không viết lại roster, lưu lỗi không ghi một phần, sửa có lý do, buổi hủy không tính đã học; lịch sử riêng/chia sẻ đúng quyền; có kiểm tra backend, frontend và nâng V9 có dữ liệu.
+
+- Kết quả: 107 backend test, 25 E2E, frontend build/lint đạt; V10 nâng V9 có dữ liệu giữ lịch cũ. [Hướng dẫn](../11-diem-danh.md), [bằng chứng](../verification/2026-11-02-attendance.md).
 
 <a id="tc-019"></a>
 ### TC-019 — Nhận xét và hồ sơ tiến bộ
 
-- Trạng thái: TODO.
+- Trạng thái: DONE.
 - Phụ thuộc: TC-007, TC-008, TC-010.
 - Spec: [nhận xét](../spec/04-teaching-and-billing.md).
 - Đầu ra: backend notes/attachments/visibility và DTO theo vai trò; frontend cô viết riêng/chia sẻ, dòng thời gian kết hợp sản phẩm và nhận xét cho gia đình.
 - Hoàn thành khi: PRIVATE không có trong response family kể cả file, thay visibility có lịch sử, liên kết lớp/buổi đúng ngữ cảnh.
 
+- Kết quả TC-019: V11 nhận xét, file binding, ngữ cảnh ngày/lớp/buổi, lịch sử riêng, lưu trữ/khôi phục và hành trình chung sản phẩm. 120 backend test, 28 E2E, build/lint đạt; nâng V10 có dữ liệu giữ roster cũ. [Plan](2026-11-02-student-notes.md), [hướng dẫn](../12-nhan-xet-va-tien-bo.md), [bằng chứng](../verification/2026-11-02-student-notes.md).
+
 <a id="tc-020"></a>
 ### TC-020 — Chính sách lớp và thỏa thuận học phí từng bé
 
-- Trạng thái: TODO.
+- Trạng thái: DONE (cấu hình; chưa phát hành khoản thu).
 - Phụ thuộc: TC-007, TC-004.
 - Spec: [cách tính và thời điểm thu](../spec/04-teaching-and-billing.md), Q-06.
-- Đầu ra: backend policy/agreement, ba cách tính/thời điểm thu, giá trị riêng từng bé, kỳ hiệu lực và điều kiện nghỉ/bù; frontend form cấu hình và xem điều kiện của con.
+- Đầu ra: backend policy/agreement, ba cách tính/thời điểm thu, giá trị riêng từng bé, kỳ hiệu lực và điều kiện nghỉ; frontend form cấu hình và xem điều kiện của con. Học bù tạm hoãn, không phải phụ thuộc bắt buộc của phần phí hiện tại.
 - Hoàn thành khi: không có hai khoảng thỏa thuận chồng nhau, sửa policy không đổi bản sao cũ, đổi giá tạo hiệu lực mới; ghi rõ chính sách được chốt thay vì lấy số tiền ví dụ làm mặc định.
+
+- Kết quả TC-020: V12 policy và snapshot từng bé, ba cách tính/thời điểm thu riêng, quy tắc nghỉ chọn rõ; ngày hiệu lực/thay/kết thúc/hủy, audit và family projection đúng bé. 133 backend test, 31 E2E, build/lint đạt. Nâng V11 giữ nhận xét/tệp cũ. [Plan](2026-11-02-tuition-settings.md), [hướng dẫn](../13-cau-hinh-hoc-phi.md), [bằng chứng](../verification/2026-11-02-tuition-settings.md). Không có phiếu, ghi nhận thanh toán hoặc học bù trong task này.
 
 <a id="tc-021"></a>
 ### TC-021 — Preview, phiếu và buổi tính phí
 
-- Trạng thái: TODO.
+- Trạng thái: DONE (preview/phiếu, chưa ghi nhận thanh toán).
 - Phụ thuộc: TC-020, TC-018.
 - Spec: [phiếu và quy tắc tính phí](../spec/04-teaching-and-billing.md).
 - Đầu ra: backend preview/create/lines/issue/cancel, terms snapshot, root charge entries, chống retry; frontend kiểm tra gợi ý, tạo và phát hành phiếu. Preview không tự phát hành/ghi thu.
-- Hoàn thành khi: tổng backend tính đúng, cùng buổi gốc/bù không giữ/tính hai lần, phiếu đã phát hành không tự sửa theo điểm danh/giá mới, hủy hợp lệ giữ lịch sử và giải phóng buổi đúng cách.
+- Hoàn thành khi: tổng backend tính đúng, một buổi không giữ/tính hai lần, phiếu đã phát hành không tự sửa theo điểm danh/giá mới, hủy hợp lệ giữ lịch sử và giải phóng buổi đúng cách. Nếu mở học bù sau này, quy tắc phí liên quan được review ở task riêng.
+
+- Kết quả TC-021: V13–V15 preview/nháp/sửa/phát hành/hủy, snapshot/audit, unique charge giữ/chốt/void và family invoice đúng bé. 150 backend test, 35 E2E, build/lint đạt; nâng V12 giữ điều kiện cũ, hạn thu trước độc lập kỳ. [Plan](2026-11-02-invoices.md), [hướng dẫn](../14-phieu-hoc-phi.md), [bằng chứng](../verification/2026-11-02-invoices.md). Chưa ghi nhận thanh toán/cổng ngân hàng hoặc học bù.
 
 <a id="tc-022"></a>
 ### TC-022 — Ghi nhận thanh toán và điều chỉnh nhập sai
 
-- Trạng thái: TODO.
+- Trạng thái: DONE.
 - Phụ thuộc: TC-021.
 - Spec: [thanh toán](../spec/04-teaching-and-billing.md).
 - Đầu ra: backend record/void, amount/remaining, Idempotency-Key/request hash và khóa giao dịch; frontend cô ghi thu từng phần và lý do void.
 - Hoàn thành khi: 800.000 VND thu 500.000 VND còn 300.000 VND; retry không thu lại, đồng thời không vượt, không void/xóa ngầm; không gọi đây là cổng thanh toán hay hoàn tiền thực tế.
+- Kết quả: V16 record/void, tổng từ RECORDED, retry cùng key/payload không tạo trùng kể cả sau đủ/void/hủy, cùng khóa/version chống thu vượt và chặn hủy invoice còn tiền. Audit PAYMENT/INVOICE nguyên tử; UI giữ form khi 503/409, giờ Việt Nam. 168 backend test (17 payment, 9 migration), 38 E2E, build/lint đạt. [Plan](2026-11-02-payments.md), [hướng dẫn](../15-thanh-toan.md), [bằng chứng](../verification/2026-11-03-payments.md).
 
 <a id="tc-023"></a>
 ### TC-023 — Màn hình học phí giáo viên và gia đình
 
-- Trạng thái: TODO.
+- Trạng thái: DONE.
 - Phụ thuộc: TC-022, TC-008, TC-005.
 - Spec: [học phí và quyền gia đình](../spec/04-teaching-and-billing.md), Q-08.
 - Đầu ra: frontend danh sách/bộ lọc/chi tiết phiếu, lịch sử thu và số còn lại; backend DTO gia đình chỉ có khoản công bố của đúng bé, không có ghi chú riêng.
-- Hoàn thành khi: gia đình không thấy nháp hoặc phí bé khác, rời lớp không tự giữ quyền bài và không tự hoàn tiền; số hiển thị khớp backend và các tình huống thu từng phần.
+- Hoàn thành khi: gia đình không thấy nháp hoặc phí bé khác, rời lớp không tự giữ quyền bài và không tự hoàn tiền; số hiển thị khớp backend và các tình huống thu từng phần. Danh sách/bộ lọc/chi tiết từ TC-021 kết hợp số đã thu/còn lại và lịch sử RECORDED/VOIDED từ TC-022.
+- Kết quả: hoàn thành tích hợp cùng TC-021/022; teacher/family list/detail dùng tổng backend, chỉ ever-issued đúng bé, không private/version/key/hash/audit. E2E kiểm tra thu từng phần/đủ, đổi bé, rời lớp, thu hồi và giờ Việt Nam ở trình duyệt khác múi giờ. [Bằng chứng](../verification/2026-11-03-payments.md).
 
 <a id="tc-024"></a>
 ### TC-024 — Thông báo lớp và cập nhật trong ứng dụng
 
-- Trạng thái: TODO.
+- Trạng thái: DONE.
 - Phụ thuộc: TC-008, TC-013, TC-016, TC-017, TC-019, TC-022.
 - Spec: [thông báo](../spec/04-teaching-and-billing.md).
 - Đầu ra: backend schema/API announcement/read/notification, phát sau giao dịch thành công và dedupe; frontend bảng tin lớp, badge, danh sách và điều hướng theo quyền.
 - Hoàn thành khi: không có thông báo trùng do retry, không lộ dữ liệu khi quyền bị thu hồi, chỉ người nhận xem/đánh dấu; không tự bật gửi qua dịch vụ nhắn tin bên ngoài.
+- Kết quả: V17 bảng tin nháp/đăng/sửa/lưu trữ, dấu đọc theo revision, audit riêng; cập nhật cá nhân từ các nguồn nghiệp vụ, BEFORE_COMMIT nguyên tử/dedupe và kiểm tra quyền trước list/count/badge/open. Chuông/bộ lọc/mobile/zoom 200% hoạt động. 184 backend test (15 CommunicationTests, 10 migration), 41 E2E, build/lint đạt. [Plan](2026-11-03-notifications.md), [hướng dẫn](../16-thong-bao-va-cap-nhat.md), [bằng chứng](../verification/2026-11-03-notifications.md). Chưa gửi email/SMS nghiệp vụ hoặc WebSocket.
 
 <a id="tc-025"></a>
 ### TC-025 — Dashboard và hoàn thiện trải nghiệm
 
-- Trạng thái: TODO.
+- Trạng thái: DONE.
 - Phụ thuộc: TC-014, TC-016, TC-017, TC-018, TC-019, TC-023, TC-024.
 - Spec: [màn hình sản phẩm](../spec/01-product.md), Q-10.
 - Đầu ra: frontend tổng quan giáo viên/gia đình và Góc học của bé hoàn chỉnh; backend các truy vấn tổng hợp có filter quyền/phân trang; rà trạng thái rỗng/lỗi, thao tác chưa lưu, mobile và nhãn truy cập.
 - Hoàn thành khi: không hiện số liệu giả/cứng hoặc aggregate ngoài quyền, các đường vào module chạy thật, dùng được ở màn hình nhỏ và các trường hợp nhiều con/lớp.
+- Kết quả: giữ số buổi/điểm danh thật; thêm khoản phải thu/quá hạn/đã nhận theo tháng Việt Nam, tổng VND chính xác dạng chuỗi và lọc phiếu trước count/page. Gia đình có tổng quan tài khoản/đúng bé, tiến độ/tiếp tục, lịch/phản hồi/phí/bảng tin và cập nhật theo quyền nguồn; đổi bé/rời lớp/lưu trữ/thu hồi bỏ nội dung không còn quyền. 196 backend test (12 DashboardTests, 10 migration), 44 E2E, build/lint đạt; không migration mới. [Plan](2026-11-03-dashboard.md), [hướng dẫn](../17-tong-quan-va-trai-nghiem.md), [bằng chứng](../verification/2026-11-03-dashboard.md).
 
 ## G4 — Nghiệm thu và bàn giao
 

@@ -392,9 +392,9 @@ Tiêu đề mẫu: **“Xin chào, cô Lan!”**, lấy tên từ hồ sơ. Bên
 | Buổi học hôm nay | Xanh dương | `2` | Buổi có lịch hoặc đã diễn ra trong ngày tại múi giờ nghiệp vụ; loại buổi đã hủy. |
 
 - Thẻ desktop cao tối thiểu khoảng 144px; ô icon khoảng 64px, số lớn và chú thích nhỏ. Trên điện thoại xếp icon phía trên, cho nhãn xuống dòng tự nhiên.
-- Tỷ lệ là `round((PRESENT + LATE) / tổng danh sách buổi × 100)`; số `25/28` làm tròn thành `89%`. Danh sách buổi bao gồm bé học bù đã được thêm.
+- Tỷ lệ là `round((PRESENT + LATE) / tổng danh sách buổi × 100)`; số `25/28` làm tròn thành `89%`. Hiện chỉ gồm thành viên cùng lớp còn hiệu lực; học bù tạm hoãn.
 - Khi chưa có buổi được chọn, thẻ điểm danh ghi “Chọn buổi học”; chưa có buổi hôm nay thì ghi “Hôm nay chưa có lịch”. Không thay giá trị chưa biết bằng `0/0` hoặc trạng thái nghỉ.
-- Khi P1 chưa triển khai, thay hai thẻ liên quan lịch/điểm danh bằng “Lớp đang dạy” và “Bài đã xuất bản”, giữ cùng phong cách. Không hiển thị số giả để lấp chỗ trống.
+- Dashboard hiện dùng “Bé có mặt hôm nay” từ điểm danh thật: DISTINCT bé PRESENT/LATE trong buổi còn hiệu lực của ngày Việt Nam và phạm vi lớp. “Buổi học hôm nay” gồm SCHEDULED/COMPLETED, bỏ CANCELLED. Không hiển thị số giả để lấp chỗ trống.
 - Thẻ chỉ có hiệu ứng hover/cursor tương tác khi có đích điều hướng thực tế.
 
 ### 5.3. Hoạt động hôm nay và thao tác nhanh
@@ -613,7 +613,7 @@ Các biến và class trong mẫu có tiền tố `tc-` để tránh va chạm. 
 - [ ] Bàn phím, focus, nhãn điều khiển, tương phản và zoom 200% đáp ứng các quy tắc ở mục 11.
 - [x] Ảnh lỗi/thiếu ảnh có fallback; ảnh và video không làm xô lệch bố cục khi tải.
 - [ ] Điểm danh đủ năm trạng thái; chưa đánh dấu không bị hiểu thành nghỉ; sửa có phản hồi lưu rõ ràng.
-- [ ] Lưu nháp, xuất bản, giao bài, xác nhận hoàn thành và duyệt sản phẩm là các hành động riêng đúng nghiệp vụ.
+- [x] Lưu nháp, xuất bản, giao bài, xác nhận hoàn thành và duyệt sản phẩm là các hành động riêng đúng nghiệp vụ.
 - [x] Phụ huynh chỉ thấy bé và nội dung được cấp quyền; góc học của bé không lộ chức năng quản lý.
 - [ ] Quyền xem/tải, rời lớp, Drive và học phí hiển thị đúng dữ liệu backend, không suy quyền từ nút đang ẩn/hiện.
 
@@ -623,6 +623,10 @@ Nếu có khác biệt về quy tắc nghiệp vụ, lấy đặc tả hệ th�
 
 Khung ứng dụng, dashboard, đăng nhập, lớp, hồ sơ bé, học liệu, giao bài và góc gia đình đã dùng bộ nhận diện này. Token ở `src/styles/tokens.css`, Nunito tự phục vụ ở `src/assets/fonts/`, CSS Modules cho layout/dashboard/auth/UI/bộ lọc; bố cục tính năng ở `src/styles/features.css`. Không thêm dependency UI mới. Các checkbox toàn sản phẩm chưa đánh dấu không có nghĩa đã triển khai module tương ứng; kết quả theo màn hình, kích thước và giới hạn QA ghi ở báo cáo liên kết đầu tài liệu.
 
-Dashboard hiện dùng **Học sinh đang học · Lớp đang dạy · Lần giao bài · Bài đã xuất bản**, và đổi ô cuối thành **Bài đã chia sẻ** khi chọn lớp. Lần giao bài thay phần chờ duyệt; hoạt động xuất bản hôm nay và danh sách lớp thay lịch/điểm danh trong giai đoạn chưa có các module đó. Không tạo số liệu demo trên tài khoản thật.
+Dashboard hiện dùng **Học sinh đang học · Bé có mặt hôm nay · Sản phẩm chờ duyệt · Buổi học hôm nay**. Có mặt lấy DISTINCT bé PRESENT/LATE từ các dòng còn hiệu lực; buổi hôm nay lấy SCHEDULED/COMPLETED của lớp ACTIVE/COMPLETED theo ngày Việt Nam, bỏ hủy. Các ô cùng lọc theo lớp. Có tối đa sáu buổi hôm nay; hoạt động xuất bản và lớp tiếp tục hiển thị.
 
-Enum backend thực tế được giữ nguyên: file dùng `UPLOADING/READY/FAILED`, kho dùng `CONNECTED`; nhãn/tông màu tương ứng nằm ở `src/constants/status.ts`. Bảng trạng thái đích trong tài liệu được đối chiếu theo ý nghĩa, không đổi hợp đồng backend chỉ để khớp tên mẫu. Google thật chưa cấu hình, Drive/sản phẩm/nhận xét/lịch/điểm danh/học phí chưa nằm trong lần chỉnh giao diện này.
+TC-018 dùng thẻ điểm danh hai cột desktop/một cột mobile, trạng thái/ghi chú riêng và chia sẻ, chỉ báo chưa lưu, lý do sửa, lịch sử trong modal và thêm/loại bé có xác nhận. Có trang tra cứu và trang gia đình chỉ dữ liệu công khai. Hồ sơ bé đặt các lối vào chức năng thành hàng riêng để tên luôn đủ chỗ. [Hướng dẫn điểm danh](../doc/11-diem-danh.md). Học bù tạm hoãn theo người dùng, không tạo màn hình/số liệu bù.
+
+Enum backend thực tế được giữ nguyên: file dùng `UPLOADING/READY/FAILED`, kho dùng `CONNECTED`; nhãn/tông màu tương ứng nằm ở `src/constants/status.ts`. [TC-015/016](../doc/verification/2026-11-02-submissions.md) có nháp/gửi/duyệt, lịch sử và vòng mới; [TC-017](../doc/verification/2026-11-02-schedule.md) có lịch tuần, sinh/đổi/hủy, xem trước và xác nhận trùng giờ, lịch gia đình. Các màn hình dùng CSS Modules và thành phần chung. Thanh mobile gia đình nay có bốn mục Trang chủ/Bài của con/Lịch học/Tài khoản khi có bé. Google thật chưa cấu hình; Điểm danh và lịch sử gia đình đã có theo TC-018; học bù tạm hoãn. Nhận xét và hành trình TC-019 đã triển khai; Drive và học phí chưa triển khai.
+
+TC-019 hiển thị các thẻ nhận xét theo dòng thời gian, badge “Chỉ cô xem”/“Chia sẻ với gia đình”, ngữ cảnh lớp/buổi và tệp theo note. Có editor/modal/lịch sử, ghi nhận dạng sản phẩm dùng thẻ riêng, bộ lọc loại/phân trang, giữ bản nhập khi lỗi và đưa lỗi chung vào vùng nhìn. Mobile 375/320px; xem trước ảnh thật không tràn form. [Hướng dẫn](../doc/12-nhan-xet-va-tien-bo.md), [bằng chứng](../doc/verification/2026-11-02-student-notes.md).

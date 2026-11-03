@@ -1,11 +1,11 @@
 # TinyClass — Đặc tả hệ thống quản lý dạy học tại nhà
 
 Tên chính thức: **TinyClass**  
-Phiên bản tài liệu: **0.10 — LOCAL, thư viện, giao bài và gia đình học ở nhà**  
-Ngày cập nhật: **02/11/2026**, múi giờ nghiệp vụ **Asia/Ho_Chi_Minh**  
+Phiên bản tài liệu: **0.19 — Tổng quan giáo viên và gia đình**<br>
+Ngày cập nhật: **03/11/2026**, múi giờ nghiệp vụ **Asia/Ho_Chi_Minh**<br>
 Đối tượng sử dụng: **một giáo viên cá nhân dạy trẻ mầm non tại nhà**.
 
-Tài liệu mô tả sản phẩm mục tiêu. TC-001–008 và TC-010/012/013/014 đã có tài khoản/lớp/gia đình/email, kho LOCAL, chủ đề/bài/khóa, giao bài và xem/xác nhận theo bé. TC-009 có mã/kiểm thử OIDC, cấu hình Google thật tạm hoãn theo yêu cầu người dùng. Drive, sản phẩm/phản hồi, lịch và phí tiếp tục theo module. Xem [báo cáo học liệu](verification/2026-11-02-learning.md) và [hướng dẫn sử dụng](08-hoc-lieu-local.md); các báo cáo mốc trước giữ làm lịch sử.
+Tài liệu mô tả sản phẩm mục tiêu. Các module đã có gồm tài khoản/lớp/gia đình/email, LOCAL, thư viện/giao bài, sản phẩm/phản hồi, lịch dạy/điểm danh, nhận xét/hành trình V11, điều kiện học phí V12, preview/phiếu/giữ buổi V13–V15 sổ ghi thu V16, bảng tin/cập nhật V17 và tổng quan cô/gia đình TC-025 (không migration mới). Xem [cấu hình](13-cau-hinh-hoc-phi.md), [phiếu](14-phieu-hoc-phi.md), [thanh toán](15-thanh-toan.md), [thông báo](16-thong-bao-va-cap-nhat.md), [tổng quan](17-tong-quan-va-trai-nghiem.md), [spec](spec/README.md) và [backlog](plan/02-backlog.md). Google thật tiếp tục tạm hoãn. **Người dùng xác nhận tạm thời chưa cần học bù ngày 02/11/2026**; mô hình bù từng bé trong các đề xuất cũ chưa chốt. Drive chưa triển khai; thông báo trong ứng dụng đã có, gửi nghiệp vụ qua email/SMS chưa bật.
 
 Điểm vào tài liệu: [README](README.md). Đặc tả theo module nằm trong [spec/](spec/README.md); lộ trình, công việc và kế hoạch nghiệm thu nằm trong [plan/](plan/README.md). Tài liệu hiện tại giữ schema/API/AC tổng quan để các phần cùng đối chiếu.
 
@@ -54,6 +54,7 @@ Tài liệu mô tả sản phẩm mục tiêu. TC-001–008 và TC-010/012/013/0
 | XN-17 | Tên chính thức của hệ thống là **TinyClass**. |
 | XN-18 | Viết bộ spec và plan trước khi làm tính năng; đặt hai thư mục tại `doc/spec/` và `doc/plan/`. |
 | XN-19 | Ngày 02/11/2026: tạm hoãn cấu hình đăng nhập Google thật, tiếp tục các phần còn lại bằng email/mật khẩu. |
+| XN-20 | Ngày 02/11/2026: tạm thời chưa cần thêm quản lý học bù. TC-018 chỉ triển khai điểm danh; khi xem lại bù cần ưu tiên lịch cô có dạy, không mặc định theo người học. |
 
 ### 1.2. Đề xuất dùng làm cơ sở cho bản thiết kế này
 
@@ -74,6 +75,16 @@ Các quy tắc chi tiết bên dưới là **mặc định đề xuất của ph
 
 ### 1.3. Nhật ký cập nhật
 
+- Phiên bản 0.19: TC-025 tổng quan cô theo lớp và gia đình theo bé; còn phải thu/quá hạn/tháng Việt Nam theo paidAt, tổng nguyên dạng chuỗi, tiến độ/tiếp tục/lịch/phản hồi/bảng tin/cập nhật theo quyền nguồn. 196 backend test, 44 E2E và build/lint đạt; V1–V17 giữ nguyên. [Hướng dẫn](17-tong-quan-va-trai-nghiem.md), [bằng chứng](verification/2026-11-03-dashboard.md).
+- Phiên bản 0.18: TC-024/V17 bảng tin nháp/đăng/sửa/lưu trữ, dấu đọc theo bản công bố và cập nhật cá nhân theo nguồn hiện còn quyền. Sự kiện BEFORE_COMMIT nguyên tử, dedupe, chuông/bộ lọc; không gửi bù lịch sử hoặc gửi nghiệp vụ ra email/SMS.
+- Phiên bản 0.17: TC-022/023/V16 ghi thu từng phần/đủ, idempotency và phiên bản/khóa chống thu vượt, void nhập sai giữ audit, chặn hủy phiếu còn khoản thu. Gia đình có tổng tiền/lịch sử công khai đúng bé; không cổng ngân hàng, hoàn tiền hoặc học bù.
+- Phiên bản 0.16: TC-021/V13–V15 preview, nháp/phát hành/hủy, snapshot/audit, giữ buổi chống tính trùng, hạn thu trước độc lập và family invoice công khai đúng bé. Chưa ghi nhận thanh toán hoặc triển khai học bù.
+
+- Phiên bản 0.15: V12 chính sách lớp, snapshot học phí từng bé, hiệu lực/thay mức/kết thúc/hủy, lịch sử riêng và điều kiện công khai gia đình. Cô chọn rõ quy tắc nghỉ; không tính khoản phải thu, lập phiếu hoặc ghi nhận thanh toán trong TC-020.
+
+- Phiên bản 0.14: V11 nhận xét riêng/chia sẻ, tệp gắn một nhận xét, lịch sử/lưu trữ/khôi phục và hành trình chung với sản phẩm đã gửi; giữ quyền đúng bé, ngừng tệp khi chuyển riêng hoặc thu hồi guardian.
+- Phiên bản 0.13: V10 điểm danh theo buổi, giữ tên/danh sách, lưu nguyên tử, ghi chú riêng/chia sẻ, hoàn thành/mở lại và lịch sử đúng bé. Ghi nhận XN-20 tạm hoãn học bù. Các module sản phẩm/phản hồi và lịch V8/V9 tiếp tục được giữ.
+
 - Phiên bản 0.1: phác thảo chức năng, dữ liệu, API và tiêu chí nghiệm thu ban đầu.
 - Phiên bản 0.2: ghi nhận tài khoản phụ huynh, tải trực tiếp, lựa chọn máy chủ/Drive cá nhân, quyền tải xuống và dừng xem khi rời lớp; bổ sung đề xuất học phí và phạm vi phát hành đầu.
 - Phiên bản 0.3: thêm Google vào đăng nhập/đăng ký; mô tả liên kết với tài khoản có sẵn, dữ liệu định danh ngoài, API và nghiệm thu; tách quyền đăng nhập Google khỏi kết nối Drive.
@@ -84,6 +95,8 @@ Các quy tắc chi tiết bên dưới là **mặc định đề xuất của ph
 - Phiên bản 0.8: V3/lời mời/quan hệ gia đình/token; đăng ký PARENT, xác minh/reset qua SMTP/Mailpit, UI gia đình và thu hồi quyền. Verify 41 test và 7 E2E đạt; SMTP nhà cung cấp thật/Google chưa nghiệm thu.
 - Phiên bản 0.9: V4/Google issuer-subject/credential version; OIDC PKCE/state/nonce, UI link/unlink/reauth/SET_PASSWORD. Verify 57 test và 10 E2E đạt với provider OIDC có chữ ký thử nghiệm; thêm hướng dẫn Web OAuth client, chưa nghiệm thu Google thật.
 - Phiên bản 0.10: V5–V7/LOCAL/tài liệu/chủ đề/bài/khóa/lần giao/tiến độ; quyền tệp theo bé/item và thu hồi khi rời lớp. Verify 70 test, 13 E2E với upload/phát video và gia đình xác nhận; cấu hình Google thật tạm hoãn theo yêu cầu. Drive/sản phẩm/lịch/phí tiếp tục.
+- Phiên bản 0.11: V8/sản phẩm/phản hồi, nháp và upload riêng, phản hồi chữ/âm thanh, duyệt và mở vòng mới; giữ lịch sử theo quyền gia đình. Verify 83 test và 19 E2E đạt, build/lint sạch. [Hướng dẫn](09-san-pham-va-phan-hoi.md), [bằng chứng](verification/2026-11-02-submissions.md). Drive/lịch/nhận xét định kỳ/phí chưa triển khai.
+- Phiên bản 0.12 tại mốc TC-017: V9/lịch tuần, preview/xung đột, sinh/đổi/hủy buổi và lịch sử, lịch gia đình theo quyền, dashboard hôm nay. Verify 96 test và 22 E2E đạt, build/lint sạch. [Hướng dẫn](10-lich-day.md), [bằng chứng](verification/2026-11-02-schedule.md). Tại mốc này điểm danh/bù/nhận xét/phí/thông báo còn theo backlog; các phiên bản sau ghi riêng phía trên.
 
 ### 1.4. Quy ước đặt tên
 
@@ -361,13 +374,13 @@ Học phí: giáo viên cấu hình mặc định của lớp rồi lập thỏa
 | Điểm danh | `UNMARKED`, `PRESENT`, `LATE`, `ABSENT_EXCUSED`, `ABSENT_UNEXCUSED` | Chưa đánh dấu, có mặt, đi muộn, hai loại nghỉ. |
 | Kế hoạch học bù | `PENDING`, `SCHEDULED`, `COMPLETED`, `CANCELLED` | Chờ xếp, đã xếp, đã học bù, đã hủy kế hoạch. |
 | Phiếu học phí | `DRAFT`, `ISSUED`, `CANCELLED` | Chưa công bố, đã phát hành, đã hủy. |
-| Tình trạng thanh toán | `UNPAID`, `PARTIAL`, `PAID` | Giá trị suy ra từ số tiền; không sửa trực tiếp bằng một nút đổi trạng thái. |
+| Tình trạng thanh toán | `UNPAID`, `PARTIAL`, `PAID`, `NO_PAYMENT_DUE` | V16 suy ra từ tổng RECORDED trên phiếu ISSUED; phiếu 0 là NO_PAYMENT_DUE. Nháp/hủy có trạng thái và số còn lại null; không sửa trực tiếp. |
 | Khoản thanh toán | `RECORDED`, `VOIDED` | Ghi nhận còn hiệu lực hoặc bị hủy do nhập sai. |
 | Tệp | `PENDING`, `READY`, `REJECTED`, `DELETED` | Đang xử lý, dùng được, bị từ chối, đã xóa vật lý. |
 | Kho lưu | `ACTIVE`, `REAUTH_REQUIRED`, `DISCONNECTED` | Dùng được, cần giáo viên cấp quyền lại, đã ngắt kết nối. |
 | Cách tính học phí | `PER_SESSION`, `MONTHLY_FIXED`, `FULL_PROGRAM` | Theo buổi, cố định tháng, trọn đợt/khóa. |
-| Thỏa thuận học phí | `ACTIVE`, `ENDED` | Điều kiện đang hiệu lực hoặc đã kết thúc. |
-| Buổi được ghi tính phí | `RESERVED`, `INVOICED`, `VOIDED` | Đang nằm trong phiếu nháp, đã phát hành, đã hủy liên kết tính phí có lịch sử. |
+| Thỏa thuận học phí | `ACTIVE`, `ENDED`, `CANCELLED` | V12 giữ bản hiện hành/kết thúc/hủy; periodState CURRENT/UPCOMING/ENDED/CANCELLED tính theo ngày. |
+| Buổi được ghi tính phí | `RESERVED`, `CHARGED`, `VOIDED` | Đang nằm trong phiếu nháp, đã phát hành, đã hủy liên kết tính phí có lịch sử. |
 
 ### 6.2. Lớp và hồ sơ
 
@@ -413,7 +426,7 @@ Học phí: giáo viên cấu hình mặc định của lớp rồi lập thỏa
 ### 6.5. Lịch và học bù
 
 - Giờ bắt đầu phải trước giờ kết thúc; lịch lặp gồm các quy tắc theo ngày trong tuần và thời gian hiệu lực.
-- Buổi học cụ thể được tạo có khóa duy nhất theo quy tắc lịch + thời điểm bắt đầu, để sinh lại lịch không nhân đôi buổi.
+- Buổi học cụ thể có khóa duy nhất theo quy tắc lịch + tuần ISO gốc, để sinh lại lịch không nhân đôi buổi kể cả sau khi chuyển riêng sang ngày/tuần khác. Đây là khóa thực tế V9 thay cho đề xuất rule + giờ bắt đầu ban đầu.
 - Sửa quy tắc lịch chỉ cập nhật các buổi tương lai chưa có điểm danh và chưa được chỉnh riêng. Các buổi đã diễn ra giữ nguyên.
 - Cảnh báo khi hai buổi của giáo viên trùng giờ; chỉ lưu khi giáo viên xác nhận ngoại lệ.
 - Khi lập danh sách điểm danh, chụp danh sách trẻ cho buổi đó. Thay đổi danh sách lớp sau này không tự viết lại dữ liệu điểm danh quá khứ.
@@ -449,8 +462,8 @@ Các mặc định về nghỉ trên là **đề xuất**, không phải chính 
 - Đơn vị tiền ban đầu là **VND**, lưu số nguyên; số lượng là số nguyên dương trong bản đầu. Phí theo tháng có thể dùng số lượng 1, phí theo buổi dùng số buổi giáo viên nhập.
 - Mỗi phiếu học phí thuộc một bé và một lớp. Một kỳ có thể có nhiều phiếu; mã phiếu duy nhất giúp phân biệt khoản bổ sung, không tự coi trùng kỳ là trùng phí.
 - Tổng phiếu bằng tổng `số lượng × đơn giá − giảm trừ` của các dòng; giảm trừ không được làm dòng âm.
-- Số đã thu bằng tổng thanh toán `RECORDED`; số còn lại bằng tổng phiếu trừ số đã thu.
-- Khi tổng phiếu lớn hơn 0: chưa thu là `UNPAID`, đã thu một phần là `PARTIAL`, thu đủ là `PAID`. Phiếu tổng 0 có `payment_status=PAID`, hiển thị “Không còn khoản phải thu” và không tạo thanh toán 0 VND.
+- Số đã thu bằng tổng thanh toán `RECORDED`; với phiếu ISSUED, số còn lại bằng tổng phiếu trừ số đã thu. Nháp/hủy có số còn lại và trạng thái tiền null.
+- Khi phiếu ISSUED có tổng lớn hơn 0: chưa thu là `UNPAID`, đã thu một phần là `PARTIAL`, thu đủ là `PAID`. Phiếu ISSUED tổng 0 có `paymentStatus=NO_PAYMENT_DUE`, hiển thị “Không cần thu” và không tạo thanh toán 0 VND.
 - Giáo viên chỉ sửa dòng tiền ở phiếu `DRAFT`. Phát hành khóa các dòng tính tiền. Gia đình chỉ nhìn thấy phiếu đã phát hành hoặc lịch sử phiếu từng phát hành đã hủy.
 - Một lần ghi thanh toán phải lớn hơn 0 và không vượt số còn lại. Khóa bản ghi hoặc kiểm tra phiên bản trong giao dịch để tránh hai khoản đồng thời thu vượt.
 - Ghi thanh toán hỗ trợ khóa chống gửi lặp. Gửi lại cùng khóa và cùng dữ liệu trả cùng kết quả; cùng khóa nhưng khác dữ liệu báo xung đột.
@@ -537,7 +550,7 @@ Thanh điều hướng chính đề xuất: **Tổng quan · Lớp học · Họ
 | Giao diện | Token tím, Nunito tiếng Việt tự phục vụ, CSS Modules cho thành phần dùng chung theo [Design.md](../frontend/Design.md) | Đã áp dụng cho các module hiện có; [bằng chứng UI](verification/2026-11-02-design.md) |
 | Java/build backend | Java 21 + Maven Wrapper | TC-001 đã sửa wrapper, compile/verify thành công |
 | API/xác thực | Spring Web, Spring Security, OAuth2 Client/OIDC cho Google, Bean Validation | Google đã xác nhận; cấu hình thư viện là đề xuất |
-| Truy cập dữ liệu | Spring Data JPA/JdbcTemplate; PostgreSQL 17.11 local/test | V1–V7, audit JSONB, schema rỗng và nâng cấp đã kiểm tra |
+| Truy cập dữ liệu | Spring Data JPA/JdbcTemplate; PostgreSQL 17.11 local/test | V1–V11, audit JSONB, schema rỗng, nâng V1, V7, V8, V9 và V10 có dữ liệu đã kiểm tra |
 | Quản lý schema | Flyway; Hibernate kiểm tra schema; theo [hướng dẫn khởi tạo dữ liệu Spring Boot](https://docs.spring.io/spring-boot/how-to/data-initialization.html) | Đề xuất |
 | Lưu tệp | Hai lựa chọn `LOCAL` (máy chủ/ổ bền vững) và `GOOGLE_DRIVE` (Drive cá nhân qua API); adapter tách khỏi nghiệp vụ | Hai lựa chọn đã xác nhận; chi tiết tích hợp là đề xuất |
 | Tài khoản/email | Email/mật khẩu + Google; Spring Security và adapter gửi thư xác minh/khôi phục | Hai cách đăng nhập đã xác nhận; dịch vụ email chưa chốt |
@@ -680,9 +693,10 @@ Các trường `external_url`/loại `LINK` dự trù hướng mở rộng. Tron
 | `assignments` | `teacher_id: UUID`, `title: varchar(200)`, `source_type: enum`, `lesson_id: UUID?`, `course_id: UUID?`, `target_type: enum`, `class_id: UUID?`, `student_id: UUID?`, `available_at: timestamptz?`, `due_at: timestamptz?`, `status: enum`, `published_at: timestamptz?`, `revoked_at: timestamptz?`, `revoke_reason: text?`, `client_request_id: UUID` | Nguồn `LESSON`/`COURSE`, đích `CLASS`/`STUDENT`, đúng một FK mỗi nhóm. `available_at` bắt buộc khi xuất bản. Duy nhất `(teacher_id, client_request_id)` để tạo lại an toàn khi mất kết nối. |
 | `assignment_items` | `assignment_id: UUID`, `lesson_id: UUID`, `position: int`, `is_required: boolean`, `completion_mode: enum`, `allowed_response_types: jsonb` | Sao chép từ nguồn vào nháp và cố định khi xuất bản; duy nhất bài và vị trí trong lần giao. Các trường yêu cầu không đổi sau xuất bản. `REFERENCE` bắt buộc có `is_required=false`. |
 | `assignment_recipients` | `assignment_id: UUID`, `student_id: UUID`, `source_enrollment_id: UUID?`, `granted_at: timestamptz`, `revoked_at: timestamptz?`, `revoke_reason: text?` | Duy nhất `(assignment_id, student_id)`. Giao lớp có nguồn tham gia lớp, giao riêng không có. Thu hồi giữ dữ liệu cũ. |
-| `student_progress` | `assignment_item_id: UUID`, `student_id: UUID`, `status: enum`, `first_opened_at: timestamptz?`, `last_opened_at: timestamptz?`, `parent_confirmed_at: timestamptz?`, `confirmed_by: UUID?`, `completed_at: timestamptz?` | Duy nhất `(assignment_item_id, student_id)`. Chỉ tạo khi có tương tác; chưa có dòng tương đương `NOT_STARTED`. Bé phải là người nhận của lần giao chứa item. |
-| `submissions` | `assignment_item_id: UUID`, `student_id: UUID`, `attempt_number: int`, `submitted_by: UUID`, `text_response: text?`, `status: enum`, `submitted_at: timestamptz?`, `reviewed_by: UUID?`, `reviewed_at: timestamptz?`, `feedback_text: text?`, `feedback_audio_file_id: UUID?` | Duy nhất `(assignment_item_id, student_id, attempt_number)`. Tối đa một lượt `SUBMITTED` cho cùng bé/item. Cấp số lượt bằng giao dịch khóa tiến độ; lưu người gửi và người duyệt. |
+| `student_progress` | `assignment_item_id: UUID`, `student_id: UUID`, `status: enum`, `review_cycle: int`, `first_opened_at: timestamptz?`, `last_opened_at: timestamptz?`, `parent_confirmed_at: timestamptz?`, `confirmed_by: UUID?`, `completed_at: timestamptz?`, `teacher_accepted_at: timestamptz?`, `reopened_at: timestamptz?` | Duy nhất `(assignment_item_id, student_id)`. Chưa có dòng tương đương `NOT_STARTED`. Bé phải là người nhận của lần giao chứa item. Mở lại tăng vòng, xóa mốc hoàn thành/xác nhận hiện tại và giữ trạng thái cũ trong sự kiện. |
+| `submissions` | `assignment_item_id: UUID`, `student_id: UUID`, `attempt_number: int`, `review_cycle: int`, `submitted_by: UUID`, `text_response: text?`, `status: enum`, `submitted_at: timestamptz?`, `reviewed_by: UUID?`, `reviewed_at: timestamptz?`, `feedback_text: text?`, `feedback_audio_file_id: UUID?` | Duy nhất `(assignment_item_id, student_id, attempt_number)`. Tối đa một lượt `SUBMITTED` cho cùng bé/item; một nháp mỗi tác giả/vòng. Cấp số lượt bằng giao dịch khóa tiến độ. Lượt đã gửi giữ nguyên nội dung; ACCEPTED chỉ hoàn thành vòng tương ứng. |
 | `submission_attachments` | `submission_id: UUID`, `file_id: UUID`, `position: int` | Duy nhất `(submission_id, file_id)`; không cần UUID/version. Tệp đúng mục đích, thuộc người gửi và đúng ngữ cảnh bé/item. |
+| `submission_events` | `assignment_item_id: UUID`, `student_id: UUID`, `submission_id: UUID?`, `actor_id: UUID`, `event_type: enum`, `review_cycle: int`, `reason: text?`, `before_state: jsonb`, `created_at: timestamptz` | V8 đã triển khai: lịch sử gửi/duyệt/yêu cầu bổ sung/mở lại. Mở lại giữ trạng thái tiến độ trước thay đổi; không cập nhật đè phản hồi lượt cũ. Không có `updated_at`/version vì sự kiện chỉ thêm mới. |
 
 Việc tạo lần giao nháp lưu các item để giữ yêu cầu đã chỉnh, nhưng chưa tạo người nhận hay cấp quyền. Khi xuất bản, kiểm tra và đóng băng item, ghi người nhận và trạng thái xuất bản trong cùng giao dịch. Gửi lại yêu cầu xuất bản đã thành công trả kết quả hiện tại, không nhân đôi danh sách.
 
@@ -690,12 +704,13 @@ Việc tạo lần giao nháp lưu các item để giữ yêu cầu đã chỉnh
 
 | Bảng | Trường nghiệp vụ ngoài quy ước chung | Ràng buộc/ghi chú |
 |---|---|---|
-| `class_schedule_rules` | `class_id: UUID`, `weekday: smallint`, `start_time: time`, `end_time: time`, `timezone: varchar(64)`, `effective_from: date`, `effective_to: date?`, `location: varchar(300)?`, `is_active: boolean` | Thứ ISO: 1 là thứ Hai, 7 là Chủ nhật. Một quy tắc cho một ngày trong tuần. Dùng `Asia/Ho_Chi_Minh` mặc định. |
-| `class_sessions` | `class_id: UUID`, `schedule_rule_id: UUID?`, `starts_at: timestamptz`, `ends_at: timestamptz`, `title: varchar(200)?`, `lesson_plan: text?`, `status: enum`, `is_manual_override: boolean`, `cancellation_reason: text?`, `cancelled_at: timestamptz?` | Khóa duy nhất có điều kiện `(schedule_rule_id, starts_at)` khi có quy tắc. Buổi tạo riêng không cần quy tắc. |
-| `attendance_records` | `session_id: UUID`, `student_id: UUID`, `enrollment_id: UUID?`, `participation_type: enum`, `status: enum`, `marked_by: UUID?`, `marked_at: timestamptz?`, `note: text?` | Duy nhất `(session_id, student_id)`. Nguồn `REGULAR`/`MAKEUP`; học bù có thể khác lớp nên `enrollment_id` được trống, nhưng phải có kế hoạch học bù liên kết hợp lệ. |
-| `makeup_plans` | `student_id: UUID`, `original_attendance_id: UUID`, `target_attendance_id: UUID?`, `status: enum`, `note: text?` | Nguồn là một dòng nghỉ của đúng bé. Tối đa một kế hoạch `PENDING`/`SCHEDULED`/`COMPLETED` cho một lần nghỉ; kế hoạch bị hủy không chặn xếp lại. `target_attendance_id` duy nhất khi có. |
-| `student_notes` | `teacher_id: UUID`, `student_id: UUID`, `class_id: UUID?`, `session_id: UUID?`, `body: text`, `visibility: enum`, `shared_at: timestamptz?`, `archived_at: timestamptz?` | `PRIVATE`/`SHARED`; nếu chia sẻ phải có `shared_at`. Các FK tùy chọn phải thuộc cùng giáo viên; buổi phải thuộc lớp nếu cả hai cùng đặt. |
-| `student_note_attachments` | `student_note_id: UUID`, `file_id: UUID`, `position: int` | Khóa ghép `(student_note_id, file_id)`; quyền tệp kế thừa nhận xét, bao gồm chế độ riêng/chia sẻ. |
+| `class_schedule_rules` | `class_id: UUID`, `weekday: smallint`, `start_time: time`, `end_time: time`, `timezone: varchar(64)`, `effective_from: date`, `effective_to: date?`, `location: varchar(300)?`, `is_active: boolean` | V9 đã triển khai. Thứ ISO 1–7, giờ Việt Nam, cùng ngày/tối đa 12 giờ; tối đa 50 rule/lớp. Khi sửa, `effective_from` là ngày áp dụng mới; dữ liệu cũ trong buổi/audit được giữ. |
+| `class_sessions` | `class_id: UUID`, `schedule_rule_id: UUID?`, `occurrence_week: date?`, `starts_at: timestamptz`, `ends_at: timestamptz`, `title: varchar(200)`, `location: varchar(300)?`, `lesson_plan: text?`, `status: enum`, `is_manual_override: boolean`, `roster_created_at: timestamptz?`, `cancellation_reason: varchar(1000)?`, `cancelled_at: timestamptz?`, `client_request_id: UUID?`, `request_hash: varchar(64)?`, `completed_at: timestamptz?`, `completed_by: UUID?` | V9 lịch + V10 hoàn thành. Khóa rule/tuần gốc hoặc class/clientRequestId chống trùng. Roster đã chốt bảo vệ lịch. Hoàn thành sau giờ kết thúc và hết UNMARKED; sửa lại UNMARKED mở buổi, giữ mốc cũ trong audit. |
+| `attendance_records` | `session_id: UUID`, `student_id: UUID`, `enrollment_id: UUID`, `student_name_snapshot: varchar(150)`, `is_active: boolean`, `status: varchar(30)`, `marked_by: UUID?`, `marked_at: timestamptz?`, `note: varchar(1000)?`, `family_note: varchar(1000)?` | V10 thực tế: duy nhất `(session_id, student_id)`. Enrollment cùng lớp bắt buộc; tên được giữ khi chốt. UNMARKED/PRESENT/LATE/ABSENT_EXCUSED/ABSENT_UNEXCUSED. Loại khỏi buổi chuyển inactive, không xóa. Note riêng; family_note chia sẻ. Có version/timestamps. Không có participation_type/MAKEUP trong phạm vi này. |
+| `attendance_events` | `attendance_id: UUID`, `actor_id: UUID`, `event_type: varchar(30)`, `status_before: varchar(30)?`, `status_after: varchar(30)`, `family_note: varchar(1000)?`, `reason: varchar(1000)?`, `created_at: timestamptz` | V10: CREATED/ADDED/REMOVED/UPDATED, giữ sự kiện theo dòng. Gia đình chỉ nhận projection công khai, không reason riêng. Audit giáo viên giữ snapshot đầy đủ. |
+| `makeup_plans` — đề xuất cũ, tạm hoãn | Chưa có bảng thực tế | Chưa triển khai hoặc chốt mô hình bù theo từng bé; xem lại theo nhu cầu lịch dạy trước khi mở task. |
+| `student_notes` | `teacher_id: UUID`, `student_id: UUID`, `class_id: UUID?`, `session_id: UUID?`, `title: varchar(200)`, `body: text`, `observed_on: date`, `visibility: varchar(10)`, `shared_at: timestamptz?`, `archived_at: timestamptz?`, `client_request_id: UUID`, `create_hash: varchar(64)` | V11: body 1–10.000 ký tự, mặc định PRIVATE. Shared cần mốc, private mốc null; buổi cần lớp. Backend kiểm tra chủ sở hữu và membership/roster đúng thời gian/ngày Việt Nam. Unique `(teacher_id, client_request_id)` chống retry trùng; sửa/state có version, lý do, audit trước/sau. |
+| `student_note_attachments` | `student_note_id: UUID`, `file_id: UUID`, `position: int` | V11: khóa ghép `(student_note_id, file_id)`, unique file và vị trí 0–4. Tối đa 5 tệp/250 MB; NOTE_ASSET READY của cô. File binding giữ sau gỡ/lưu trữ; quyền family theo note hiện tại. |
 
 Một kế hoạch học bù `SCHEDULED` phải có dòng điểm danh đích; `COMPLETED` yêu cầu đích có mặt/đi muộn trong buổi không bị hủy. Không xếp học bù trùng với một dòng có mặt thông thường để tính hai lần cùng một buổi.
 
@@ -706,36 +721,35 @@ Tập tham số học phí dùng chung cho mặc định lớp và bản sao th�
 | Trường cấu hình | Kiểu | Điều kiện |
 |---|---|---|
 | `pricing_mode` | enum | `PER_SESSION`, `MONTHLY_FIXED`, `FULL_PROGRAM` |
-| `collection_timing` | enum | `AT_PERIOD_START`, `AT_PERIOD_END`, `UPFRONT`; theo buổi đề xuất cuối kỳ, tháng đầu/cuối kỳ, trọn khóa thu trước |
-| `session_unit_price_vnd`, `monthly_amount_vnd`, `program_total_vnd` | money? | Chỉ trường phù hợp với cách tính được đặt; số tiền có thể bằng 0 nếu giáo viên miễn phí |
-| `program_label`, `expected_sessions` | varchar(200)?, int? | Tên đợt và số buổi dự kiến cho trọn khóa; số buổi nếu đặt phải dương |
-| `charge_excused_absence`, `charge_unexcused_absence` | boolean | Áp dụng tính theo buổi; mặc định đề xuất false/true |
-| `allow_makeup_excused`, `allow_makeup_unexcused` | boolean | Quyền bù của mỗi loại nghỉ; chưa chốt mặc định theo yêu cầu thực tế |
+| `collection_timing` | varchar(30) | V12: `AT_PERIOD_START`, `AT_PERIOD_END`, `UPFRONT`; chọn riêng, không tự mặc định theo cách tính |
+| `session_unit_price_vnd`, `monthly_amount_vnd`, `program_total_vnd` | BIGINT? | V12: chỉ đúng trường theo cách tính được đặt, 0–1.000.000.000.000; từ chối tiền lẻ |
+| `program_label`, `expected_sessions` | varchar(200)?, int? | Chỉ trọn khóa: tên bắt buộc, số buổi tùy chọn 1–10.000 |
+| `charge_excused_absence`, `charge_unexcused_absence` | boolean? | V12: theo buổi phải chọn rõ cả hai; chế độ khác null. Không mặc định false/true, không có trường allow_makeup |
 | `fixed_fee_absence_rule` | enum | `KEEP_AGREED_AMOUNT` hoặc `MANUAL_ADJUSTMENT`, áp dụng tháng/trọn đợt |
 | `public_terms` | text? | Điều kiện hiển thị cho gia đình; không suy ra nghĩa vụ thanh toán mới từ một ghi chú tự do |
 
 | Bảng | Trường nghiệp vụ ngoài quy ước chung | Ràng buộc/ghi chú |
 |---|---|---|
-| `class_tuition_policies` | `class_id: UUID`, toàn bộ tập tham số học phí ở bảng trên | Duy nhất theo lớp. Sửa mặc định không tự đổi thỏa thuận đã chốt cho học sinh. |
-| `enrollment_tuition_agreements` | `enrollment_id: UUID`, `source_policy_id: UUID?`, bản sao toàn bộ tham số, `effective_from: date`, `effective_to: date?`, `status: enum`, `change_reason: text?` | Không có khoảng hiệu lực chồng nhau của cùng quan hệ tham gia. Đã dùng lập phí thì không sửa giá hồi tố; kết thúc và tạo bản mới. |
-| `invoices` | `teacher_id: UUID`, `student_id: UUID`, `class_id: UUID`, `agreement_id: UUID`, `terms_snapshot: jsonb`, `invoice_code: varchar(50)`, `client_request_id: UUID`, `period_start: date`, `period_end: date`, `due_on: date?`, `status: enum`, `total_amount_vnd: money`, `public_note: text?`, `internal_note: text?`, `issued_at: timestamptz?`, `cancelled_at: timestamptz?`, `cancel_reason: text?` | Mã duy nhất và unique `(teacher_id, client_request_id)` chống gửi lặp. Thỏa thuận phải thuộc bé/lớp; chụp điều kiện khi lập phiếu. Mỗi phiếu một thỏa thuận; nháp được thiếu dòng, phát hành cần ít nhất một dòng. |
-| `invoice_lines` | `invoice_id: UUID`, `description: varchar(300)`, `pricing_basis: enum`, `quantity: int`, `unit_price_vnd: money`, `discount_vnd: money`, `position: int` | Cơ sở `MONTHLY_FIXED`/`PER_SESSION`/`FULL_PROGRAM`/`OTHER`; số lượng dương, giảm trừ không quá số lượng nhân đơn giá. Vị trí duy nhất trong phiếu. |
-| `session_charge_entries` | `agreement_id: UUID`, `root_attendance_id: UUID`, `counted_attendance_id: UUID`, `invoice_line_id: UUID`, `unit_price_vnd_snapshot: money`, `status: enum`, `void_reason: text?` | Dùng cho phí theo buổi; tối đa một bản ghi không VOIDED trên mỗi buổi gốc. Buổi bù dùng root là lần nghỉ gốc để tránh thu hai lần. Khóa và ghi cùng giao dịch tạo phiếu. |
-| `payments` | `invoice_id: UUID`, `amount_vnd: money`, `method: enum`, `paid_at: timestamptz`, `recorded_by: UUID`, `status: enum`, `public_note: text?`, `internal_note: text?`, `idempotency_key: varchar(100)`, `request_hash: varchar(128)`, `voided_at: timestamptz?`, `void_reason: text?` | Phương thức `CASH`/`BANK_TRANSFER`/`OTHER`. Số tiền dương; chỉ giáo viên ghi nhận. Duy nhất `(recorded_by, idempotency_key)`; hash gồm invoice ID và payload chuẩn hóa; không cho hai yêu cầu đồng thời vượt số còn lại. |
+| `class_tuition_policies` — đã có V12 | `class_id: UUID`, tập tham số trên, `internal_note: varchar(5000)?`, version/timestamps | Duy nhất theo lớp, sửa ở DRAFT/ACTIVE có version/lý do. Không tự đổi bản của bé. |
+| `enrollment_tuition_agreements` — đã có V12 | `enrollment_id: UUID`, `source_type: POLICY/CUSTOM`, `source_policy_id/version?`, bản sao tham số, `effective_from/to: date?`, `status: ACTIVE/ENDED/CANCELLED`, `cancelled_at?`, `replacement_id?`, `internal_note?`, `change_reason?`, `client_request_id`, `request_hash`, version/timestamps | From bắt buộc, to tùy chọn; khoảng bao gồm hai đầu, không chồng bản chưa CANCELLED dưới khóa lớp → bé → enrollment. Thay từ hôm nay tạo bản mới/đóng bản cũ; cùng ngày bắt đầu giữ bản cũ CANCELLED. End chỉ rút ngắn; cancel không cho ngày đã qua. Family chỉ nhận projection công khai đúng bé. Chưa có phiếu trong V12. |
+| `invoices` — V13–V15 | teacher/student/class/enrollment/agreement UUID, `invoice_code`, snapshot tên/điều kiện, kỳ từ/đến, `due_on?`, `status`, `total_amount_vnd: BIGINT`, public/internal note, adjustment/cancel reason, review key, client request/hash, issued/cancelled/created/updated/version | Code/teacher-request duy nhất, tổng 0–1e12; DRAFT/ISSUED/CANCELLED. Kỳ gồm hai đầu, 1–366 ngày, trong nguồn; tháng một tháng lịch. Hạn độc lập kỳ để thu trước. Nháp được trống, phát hành cần dòng; chỉ ever-issued vào family. V16 thêm ledger, ghi thu/void tăng version phiếu; còn RECORDED không được hủy. |
+| `invoice_lines` — V13 | `invoice_id`, position, is_active, description300, pricing_basis, quantity1–10000, unit_price/discount/amount BIGINT, attendance_id?, source_snapshot? | Nguồn PER_SESSION/MONTHLY_FIXED/FULL_PROGRAM hoặc OTHER thủ công/lý do. Vị trí duy nhất theo dòng active; chỉnh nháp giữ dòng cũ inactive. Backend tính số nguyên, không âm/quá miền; chỉ PER_SESSION gắn attendance. |
+| `session_charge_entries` — V13 | invoice/line/agreement UUID, root/counted attendance UUID, unit_price_snapshot, RESERVED/CHARGED/VOIDED, void_reason/at, created_at | Duy nhất root khi RESERVED/CHARGED; hiện root=counted, không học bù. Nháp giữ, phát hành chốt, hủy/sửa nháp void dòng cũ. Ghi cùng giao dịch phiếu; không tính lại buổi đang giữ ở phiếu khác. |
+| `payments` — V16 | `invoice_id: UUID`, `amount_vnd: BIGINT`, `method: varchar(30)`, `paid_at: timestamptz`, `recorded_by: UUID`, `status: varchar(20)`, `public_note/internal_note: varchar(1000)?`, `idempotency_key: varchar(100)`, `request_hash: varchar(64)`, `voided_at: timestamptz?`, `voided_by: UUID?`, `void_reason: varchar(1000)?`, created/updated/version | CASH/BANK_TRANSFER/OTHER; tiền nguyên 1–1e12, không quá phần còn lại của ISSUED. Unique `(recorded_by, idempotency_key)` giữ cả VOIDED; SHA-256 invoice/payload. CHECK trạng thái/void đầy đủ, ngày Việt Nam 1900–2200; service chặn tương lai quá 60 giây. Khóa cùng invoice chống thu vượt; chỉ mục RECORDED tính tổng. |
 
-`total_amount_vnd` được backend tính và lưu lại khi thay đổi phiếu nháp/phát hành. `payment_status`, `paid_amount_vnd` và `outstanding_amount_vnd` là giá trị tính khi truy vấn, không nhận từ client. Đây là sổ theo dõi học phí; tên “phiếu” không khẳng định một loại chứng từ kế toán/pháp lý cụ thể.
+`total_amount_vnd` được backend tính và lưu khi thay đổi phiếu nháp; phát hành giữ bất biến. V16 trả `paidAmountVnd` = tổng RECORDED, `outstandingAmountVnd` = tổng phiếu − đã thu và `paymentStatus` suy ra cho ISSUED. Nháp/phiếu hủy có hai trường sau null; phiếu ISSUED 0 dùng NO_PAYMENT_DUE. Không lưu/tin tổng do client gửi. Gia đình chỉ có projection công khai đúng bé, không private note/reason/actor/version/key/hash/audit. Đây là sổ theo dõi học phí; tên “phiếu” không khẳng định một loại chứng từ kế toán/pháp lý cụ thể.
 
-Gợi ý tính phí theo buổi là bản xem trước, không tự ghi thu. Khi giáo viên tạo phiếu từ gợi ý, backend kiểm tra lại điểm danh/thỏa thuận và giữ buổi bằng `session_charge_entries` trong cùng giao dịch; phát hành chuyển RESERVED thành INVOICED. Hủy nháp/phiếu hợp lệ chuyển các dòng giữ buổi sang VOIDED và giữ tham chiếu lịch sử, sau đó mới có thể lập lại buổi đó. Sửa điểm danh sau phát hành tạo cảnh báo đối chiếu, không sửa phiếu cũ. Phí tháng/trọn đợt không phát sinh dòng thu theo từng buổi.
+Gợi ý tính phí theo buổi là bản xem trước, không tự ghi thu. Khi giáo viên tạo phiếu từ gợi ý, backend kiểm tra lại điểm danh/thỏa thuận và giữ buổi bằng `session_charge_entries` trong cùng giao dịch; phát hành chuyển RESERVED thành CHARGED. Hủy nháp/phiếu hợp lệ chuyển các dòng giữ buổi sang VOIDED và giữ tham chiếu lịch sử, sau đó mới có thể lập lại buổi đó. Sửa điểm danh sau phát hành tạo cảnh báo đối chiếu, không sửa phiếu cũ. Phí tháng/trọn đợt không phát sinh dòng thu theo từng buổi.
 
 ### 9.8. Tệp, thông báo và lịch sử thay đổi
 
 | Bảng | Trường nghiệp vụ ngoài quy ước chung | Ràng buộc/ghi chú |
 |---|---|---|
 | `storage_connections` | `teacher_id: UUID`, `provider: enum`, `display_name: varchar(100)`, `root_reference: varchar(500)`, `google_account_email: varchar(254)?`, `refresh_token_ciphertext: text?`, `token_key_version: varchar(100)?`, `granted_scopes: jsonb`, `status: enum`, `is_default: boolean`, `connected_at: timestamptz?` | Provider `LOCAL`/`GOOGLE_DRIVE`. Tối đa một mặc định cho giáo viên. LOCAL dùng alias root cấu hình server; Drive dùng folder ID và thông tin mã hóa. Bí mật không trả API. |
-| `files` | `uploaded_by: UUID`, `storage_connection_id: UUID`, `purpose: enum`, `learner_download_allowed: boolean`, `context_student_id: UUID?`, `context_assignment_item_id: UUID?`, `storage_key: varchar(500)`, `original_name: varchar(255)`, `mime_type: varchar(100)`, `size_bytes: bigint`, `status: enum`, `checksum_sha256: varchar(64)?`, `deleted_at: timestamptz?` | Mục đích `LESSON_ASSET`, `SUBMISSION_ASSET`, `PROFILE_ASSET`, `NOTE_ASSET`, `REVIEW_ASSET`. Parent upload cần ngữ cảnh bé/item. Unique `(storage_connection_id, storage_key)`; LOCAL là khóa tương đối, Drive là file ID; không trả khóa nội bộ ra gia đình. Cờ tải học liệu mặc định false. |
-| `class_announcements` | `class_id: UUID`, `author_id: UUID`, `title: varchar(200)`, `body: text`, `status: enum`, `published_at: timestamptz?` | Trạng thái `DRAFT`/`PUBLISHED`/`ARCHIVED`; phụ huynh chỉ xem thông báo xuất bản của lớp có quyền. |
-| `announcement_reads` | `announcement_id: UUID`, `user_id: UUID`, `read_at: timestamptz` | Khóa ghép `(announcement_id, user_id)`; không cần UUID/version. |
-| `notifications` | `recipient_user_id: UUID`, `type: varchar(50)`, `source_type: varchar(50)`, `source_id: UUID`, `related_student_id: UUID?`, `dedupe_key: varchar(200)`, `created_at: timestamptz`, `read_at: timestamptz?` | Duy nhất `(recipient_user_id, dedupe_key)`. Chỉ lưu dữ liệu điều hướng cần thiết; khi đọc phải kiểm tra lại quyền đối với nguồn, tránh hiện thông tin bé đã bị thu hồi liên kết. |
+| `files` | `uploaded_by: UUID`, `storage_connection_id: UUID`, `purpose: enum`, `learner_download_allowed: boolean`, `context_student_id: UUID?`, `context_assignment_item_id: UUID?`, `context_student_note_id: UUID?`, `storage_key: varchar(500)`, `original_name: varchar(255)`, `mime_type: varchar(100)`, `size_bytes: bigint`, `status: enum`, `checksum_sha256: varchar(64)?`, `deleted_at: timestamptz?` | NOTE_ASSET sau khi gắn có context_student_note_id V11 giữ cố định; family đọc/tải qua note SHARED hiện tại. Parent upload sản phẩm cần bé/item. Unique `(storage_connection_id, storage_key)`; LOCAL là khóa tương đối, Drive là file ID tương lai. Không trả khóa kho ra family; cờ tải học liệu mặc định false, chỉ dùng cho học liệu. |
+| `class_announcements` — V17 | `teacher_id/class_id: UUID`, title varchar(200), body text 1–10.000, status DRAFT/PUBLISHED/ARCHIVED, publication_revision BIGINT, published_at/archived_at?, client_request_id UUID/request_hash varchar(64), created/updated/version | Unique teacher/client request chống gửi lại; tạo ở lớp DRAFT/ACTIVE, đăng khi ACTIVE. Sửa có version/lý do/audit, bản đã đăng tăng revision. Lưu trữ kết thúc và ẩn gia đình; không xóa nội dung cũ. |
+| `announcement_reads` — V17 | `announcement_id/user_id: UUID`, publication_revision BIGINT dương, read_at timestamptz | Khóa ghép announcement/user; đọc cần đúng revision hiện tại, sửa bản đã đăng yêu cầu đọc lại. Gửi lại cùng revision giữ thời gian đọc cũ. |
+| `notifications` — V17 | `recipient_user_id/teacher_id/related_student_id: UUID`, related_class_id UUID?, type varchar(40), source_type varchar(20), source_id UUID, dedupe_key varchar(200), created_at/read_at? | Unique recipient/dedupe theo loại/nguồn/phiên bản/bé. Không lưu body/tiền/note riêng/token. BEFORE_COMMIT cùng giao dịch nghiệp vụ; rollback bỏ cả hai. Lọc quyền nguồn hiện tại trước list/count/badge/detail/read; câu chữ/đường dẫn do backend sinh. Không gửi bù sự kiện trước V17. |
 | `audit_events` | `actor_id: UUID?`, `action: varchar(100)`, `entity_type: varchar(100)`, `entity_id: UUID?`, `changed_fields: jsonb?`, `reason: text?`, `request_id: varchar(100)?`, `created_at: timestamptz` | Bảng chỉ ghi thêm, không có `updated_at`/`version`. Actor trống dành cho hệ thống. Không ghi mật khẩu, token, cookie hay toàn bộ nội dung tệp. |
 
 ### 9.9. Quan hệ cốt lõi
@@ -824,6 +838,16 @@ Response danh sách thêm `meta` gồm `page`, `size`, `totalElements`, `totalPa
   "traceId": "request-example-001"
 }
 ```
+
+### Tổng quan đã triển khai TC-025
+
+| Method | Endpoint sau `/api/v1` | Hành vi |
+|---|---|---|
+| GET | `/dashboard?classId=...` | Tổng quan chủ hệ thống, lớp phải thuộc cô; phiếu còn tiền/quá hạn, tháng Việt Nam và cập nhật đúng phạm vi |
+| GET | `/family/dashboard` | Phụ huynh đã xác minh: số hồ sơ liên kết và cập nhật toàn tài khoản theo nguồn còn quyền |
+| GET | `/family/children/{child}/dashboard` | Guardian hiệu lực: tiến độ/tiếp tục, lịch/phản hồi/phí/bảng tin/cập nhật đúng bé; preview có giới hạn |
+
+`GET /invoices` có thêm `collection=OPEN/OVERDUE/SETTLED` trước count/page. Tổng VND trong dashboard billing là chuỗi số nguyên, không đổi kiểu tiền từng phiếu. Xem [hướng dẫn tổng quan](17-tong-quan-va-trai-nghiem.md) và OpenAPI cho hợp đồng thực tế.
 
 ### 10.2. Tài khoản và gia đình
 
@@ -926,7 +950,12 @@ Ví dụ tạo lần giao khóa cho lớp:
 | POST | `/assignment-items/{itemId}/students/{studentId}/reopen` | Giáo viên mở lại bài đã hoàn thành, ghi lý do và giữ lượt cũ. |
 | GET | `/family/children/{studentId}/submissions`, `/family/children/{studentId}/notes` | Lịch sử của bé, chỉ nhận xét được chia sẻ; không cấp lại quyền với bài gốc đã thu hồi. |
 | GET, POST | `/students/{studentId}/notes` | Giáo viên xem/tạo nhận xét riêng hoặc chia sẻ. |
-| PATCH | `/student-notes/{noteId}` | Giáo viên sửa, đổi phạm vi chia sẻ hoặc lưu trữ, có phiên bản. |
+| GET, PATCH | `/student-notes/{noteId}` | Cô xem/sửa, đổi phạm vi; version và lý do riêng. |
+| POST | `/student-notes/{noteId}/archive`, `/student-notes/{noteId}/restore` | Lưu trữ/khôi phục có version/lý do; khôi phục SHARED chia sẻ lại. |
+| GET | `/student-notes/{noteId}/history` | Audit nội dung/phạm vi/tệp trước/sau, chỉ cô xem. |
+| GET | `/students/{studentId}/note-contexts`, `/students/{studentId}/progress` | Ngữ cảnh lớp/buổi và hành trình giáo viên có ghi nhận riêng. |
+| GET | `/family/children/{studentId}/notes/{noteId}`, `/family/children/{studentId}/progress` | Chi tiết SHARED và hành trình công khai đúng bé; không DRAFT sản phẩm/private metadata. |
+| GET | `/student-notes/{noteId}/files/{fileId}/content`, `/download` | Tệp hiện tại của cô; family dùng `/family/children/{studentId}/notes/{noteId}/files/{fileId}/content` hoặc `/download`. |
 
 Một lượt gửi yêu cầu bổ sung phải có nhận xét giải thích. Mã lỗi dự kiến gồm `ASSIGNMENT_NOT_OPEN`, `SUBMISSION_ALREADY_PENDING`, `SUBMISSION_NOT_EDITABLE`, `RESPONSE_TYPE_NOT_ALLOWED` và `VERSION_CONFLICT`.
 
@@ -939,32 +968,46 @@ Một lượt gửi yêu cầu bổ sung phải có nhận xét giải thích. M
 | POST | `/classes/{classId}/sessions/generate` | Sinh buổi trong khoảng ngày, kiểm tra giới hạn khoảng và chống trùng. |
 | GET, POST | `/sessions` | Giáo viên xem lịch theo khoảng/tạo buổi riêng. |
 | PATCH | `/sessions/{sessionId}` | Giáo viên sửa riêng buổi học, lưu trạng thái chỉnh riêng. |
+| GET | `/sessions/{sessionId}`, `/sessions/{sessionId}/history` | Giáo viên xem chi tiết, phiên bản và lịch sử thay đổi của buổi thuộc mình. |
 | POST | `/sessions/{sessionId}/cancel` | Giáo viên hủy buổi với lý do. |
 | POST | `/sessions/{sessionId}/attendance-roster` | Tạo danh sách điểm danh ban đầu một lần; gọi lại trả danh sách đã có. |
 | GET, PUT | `/sessions/{sessionId}/attendance` | Giáo viên xem/lưu cả đợt điểm danh; giao dịch nguyên tử, có version từng dòng. |
-| POST, PATCH | `/makeup-plans`, `/makeup-plans/{planId}` | Giáo viên tạo/xếp/hủy học bù; đối chiếu nguồn và điểm danh đích. |
+| POST | `/sessions/{sessionId}/attendance-roster/members` | Thêm/loại/khôi phục bé cùng lớp với version buổi và lý do; không xóa lịch sử. |
+| POST | `/sessions/{sessionId}/complete` | Hoàn thành buổi đã kết thúc giờ và đánh dấu đủ; buổi trống cần lý do. |
+| GET | `/attendance`, `/attendance/{id}/history` | Cô tra cứu ngày/lớp/bé/trạng thái và lịch sử riêng có phân trang. |
+| GET | `/family/children/{child}/attendance/{id}/history` | Gia đình xem lịch sử công khai của đúng bé còn liên kết. |
+| Đề xuất cũ, tạm hoãn | `/makeup-plans`, `/makeup-plans/{planId}` | Chưa có API thực tế; mô hình bù cần xem lại khi người dùng mở phạm vi. |
 | GET | `/family/children/{studentId}/sessions`, `/family/children/{studentId}/attendance` | Phụ huynh xem lịch/điểm danh của con. |
-| GET, PUT | `/classes/{classId}/tuition-policy` | Giáo viên xem/đặt mặc định cách tính, thời điểm thu và nghỉ/bù của lớp. |
-| GET, POST | `/enrollments/{enrollmentId}/tuition-agreements` | Giáo viên xem/tạo thỏa thuận đã sao chép mặc định hoặc chỉnh riêng cho bé. |
-| POST | `/tuition-agreements/{agreementId}/end` | Kết thúc thỏa thuận để đổi điều kiện hiệu lực mới, không sửa hồi tố. |
-| GET | `/family/children/{studentId}/tuition-agreements` | Gia đình xem điều kiện của con, không thấy chính sách riêng của bé khác. |
+| GET, PUT | `/classes/{id}/tuition-policy` | V12: workspace/cập nhật mặc định lớp, version/lý do; không có cấu hình học bù. |
+| GET | `/classes/{id}/tuition-policy/history` | V12: audit riêng chính sách lớp. |
+| GET, POST | `/enrollments/{id}/tuition-agreements` | V12: workspace phân trang/tạo snapshot theo policy hoặc riêng cho bé. |
+| GET | `/tuition-agreements/{id}`, `/tuition-agreements/{id}/history` | V12: chi tiết/lịch sử chỉ cô xem. |
+| POST | `/tuition-agreements/{id}/replace`, `/tuition-agreements/{id}/end`, `/tuition-agreements/{id}/cancel` | V12: thay mức theo ngày, rút ngắn ngày cuối hoặc hủy bản bắt đầu hôm nay/tương lai, giữ lịch sử. |
+| GET | `/family/children/{child}/tuition-agreements`, `/family/children/{child}/tuition-agreements/{id}` | V12: workspace/chi tiết công khai đúng bé còn guardian, gồm bản kết thúc/hủy lịch sử. |
 | POST | `/billing/previews` | Giáo viên xem gợi ý từ thỏa thuận/điểm danh; chỉ xem trước, chưa giữ buổi hay tạo khoản thu. |
 | GET, POST | `/invoices` | Giáo viên tìm/tạo phiếu nháp, có `agreementId` và `clientRequestId`; kiểm tra lại gợi ý và giữ buổi trong giao dịch nếu tính theo buổi. |
-| GET, PUT | `/invoices/{invoiceId}` | Giáo viên xem/sửa nháp cùng dòng tiền, có phiên bản. |
-| POST | `/invoices/{invoiceId}/issue`, `/invoices/{invoiceId}/cancel` | Giáo viên phát hành/hủy theo điều kiện ở mục 6. |
-| POST | `/invoices/{invoiceId}/payments` | Giáo viên ghi thu, bắt buộc `Idempotency-Key`. |
-| POST | `/payments/{paymentId}/void` | Giáo viên hủy bản ghi nhập sai, bắt buộc lý do. |
-| GET | `/family/children/{studentId}/invoices`, `/family/children/{studentId}/invoices/{invoiceId}` | Gia đình xem khoản phí được công bố và lịch sử khoản thu của con. |
-| GET, POST | `/classes/{classId}/announcements` | Giáo viên xem/tạo thông báo lớp. |
-| PATCH, POST | `/announcements/{announcementId}`, `/announcements/{announcementId}/publish` | Giáo viên sửa nháp/xuất bản; sửa đã công bố phải hiển thị thời gian cập nhật. |
-| GET | `/family/children/{studentId}/announcements` | Thông báo của các lớp được phép xem. |
-| POST | `/announcements/{announcementId}/read` | Người có quyền đánh dấu đã đọc. |
-| GET, POST | `/notifications`, `/notifications/{notificationId}/read` | Xem/đánh dấu thông báo của tài khoản hiện tại. |
+| GET, PUT | `/invoices/{id}` | TC-021: chi tiết cô/sửa nháp cùng dòng tiền, version/lý do và preview key. |
+| POST | `/invoices/{id}/issue`, `/invoices/{id}/cancel` | TC-021: phát hành sau kiểm tra lại nguồn/hủy giữ lịch sử và giải phóng charge. |
+| GET | `/invoices/{id}/history` | TC-021: audit trước/sau chỉ cô xem. |
+| GET, POST | `/invoices/{invoiceId}/payments` | V16: giáo viên xem trang khoản thu/ghi thu, POST cần invoiceVersion và Idempotency-Key. |
+| GET | `/payments/{paymentId}`, `/payments/{paymentId}/history` | V16: chi tiết/audit riêng của cô; không trả key/hash. |
+| POST | `/payments/{paymentId}/void` | V16: giáo viên hủy bản ghi nhập sai, cần version khoản thu, invoiceVersion và lý do riêng. |
+| GET | `/family/children/{child}/invoices`, `/family/children/{child}/invoices/{id}` | Workspace/chi tiết phiếu từng phát hành đúng bé, kể cả hủy; gồm tổng đã thu/còn lại, không nháp/private/version/source. |
+| GET | `/family/children/{child}/invoices/{invoiceId}/payments` | V16: trang lịch sử công khai RECORDED/VOIDED đúng bé; còn guardian, giữ sau rời lớp/lưu trữ. |
+| GET, POST | `/announcements` | V17: cô tìm/lọc classId/status/q hoặc tạo nháp với classId/clientRequestId/title/body. |
+| GET, PUT | `/announcements/{id}` | V17: chi tiết cô/sửa có version/title/body/lý do riêng; bản đã đăng tăng revision. |
+| POST | `/announcements/{id}/publish`, `/announcements/{id}/archive` | V17: đăng/lưu trữ có version, archive cần lý do; retry trạng thái đích không nhân đôi. |
+| GET | `/announcements/{id}/history` | V17: audit trước/sau và lý do chỉ cô xem. |
+| GET | `/family/children/{child}/announcements`, `/family/children/{child}/announcements/{id}` | V17: trang/nội dung PUBLISHED đúng bé và lớp còn quyền, không metadata riêng. |
+| POST | `/family/children/{child}/announcements/{id}/read` | V17: xác nhận đúng revision đã xem; bản cũ trả 409, cần đọc lại. |
+| GET | `/notifications`, `/notifications/unread-count`, `/notifications/{id}` | V17: hộp cập nhật/đếm chưa đọc/chi tiết của tài khoản, lọc nguồn hiện còn quyền trước count/page. |
+| POST | `/notifications/{id}/read` | V17: kiểm tra lại nguồn, giữ readAt đầu tiên và trả đường dẫn nội bộ hiện tại; không tự xác nhận read revision bảng tin. |
 
 Ví dụ ghi nhận 500.000 VND vào một phiếu còn thiếu ít nhất số tiền đó, với header `Idempotency-Key: payment-example-001`:
 
 ```json
 {
+  "invoiceVersion": 1,
   "amountVnd": 500000,
   "method": "BANK_TRANSFER",
   "paidAt": "2026-11-01T09:00:00+07:00",
@@ -972,7 +1015,7 @@ Ví dụ ghi nhận 500.000 VND vào một phiếu còn thiếu ít nhất số 
 }
 ```
 
-Backend tự xác định người ghi nhận, kiểm tra số còn lại, khóa chống gửi lặp và ghi lịch sử. Không nhận `paidAmountVnd`, `paymentStatus` hoặc `outstandingAmountVnd` do client tự tính.
+Backend tự xác định người ghi nhận, kiểm tra số còn lại, khóa chống gửi lặp và ghi lịch sử payment/invoice nguyên tử. Retry cùng key/payload trả bản gốc trước kiểm tra version/trạng thái/số còn lại, kể cả sau void/hủy; khác payload cùng key trả 409. Không nhận `paidAmountVnd`, `paymentStatus` hoặc `outstandingAmountVnd` do client tự tính. Chi tiết ở [hướng dẫn ghi thu](15-thanh-toan.md).
 
 <a id="s11"></a>
 ## 11. Yêu cầu vận hành và chất lượng
@@ -989,16 +1032,16 @@ Backend tự xác định người ghi nhận, kiểm tra số còn lại, khóa
 
 ### 11.2. Tệp và video
 
-Các giá trị dưới đây là **giới hạn đề xuất để cấu hình**, cần đối chiếu hạ tầng và khối lượng video trước vận hành.
+Các giá trị dưới đây đã áp dụng cho LOCAL; cần đối chiếu hạ tầng và khối lượng video trước vận hành. Dung lượng được kiểm tra bằng MiB (1.048.576 byte).
 
 | Loại | Định dạng ban đầu | Dung lượng tối đa một tệp |
 |---|---|---|
-| Hình ảnh | JPEG, PNG, WebP | 10 MB |
-| Âm thanh | MP3, M4A, WAV | 20 MB |
-| Tài liệu | PDF | 50 MB |
-| Video | MP4, WebM; kiểm tra khả năng phát ở trình duyệt mục tiêu | 200 MB |
+| Hình ảnh | JPEG, PNG, GIF, WebP | 10 MiB |
+| Âm thanh | MP3, OGG, WAV | 20 MiB |
+| Tài liệu | PDF, chỉ dùng làm học liệu | 50 MiB |
+| Video | MP4, WebM; kiểm tra khả năng phát ở trình duyệt mục tiêu | 200 MiB |
 
-- Một lượt sản phẩm tối đa 5 tệp và tổng 250 MB theo đề xuất ban đầu; giới hạn từng tệp vẫn áp dụng.
+- Một lượt sản phẩm tối đa 5 tệp và tổng 250 MiB; giới hạn từng tệp vẫn áp dụng. Ít nhất có chữ hoặc một tệp thuộc loại trả lời được phép trong snapshot lần giao.
 - Kiểm tra kích thước và nội dung nhận dạng MIME, không chỉ tên đuôi. Đường dẫn lưu được backend tạo; không nhận đường dẫn vật lý do client cung cấp.
 - Tệp phải hoàn tất kiểm tra và `READY` trước xuất bản/gửi bài. Trạng thái lỗi trả lý do phù hợp để tải lại.
 - Upload của phụ huynh chỉ được dùng cho sản phẩm trong ngữ cảnh bé/item đã kiểm tra; việc gắn `fileId` của tài nguyên khác bị từ chối.
@@ -1191,18 +1234,20 @@ Kiểm thử phù hợp khi code: unit test cho trạng thái/tính tiền/tiế
 
 Các mục này giữ bản thiết kế trung thực với thông tin hiện có. Chúng được ghi thành quyết định để review, không xem các đề xuất trong tài liệu là đã được người dùng duyệt.
 
-| Mã | Quyết định | Trạng thái và đề xuất trong bản 0.10 | Thời điểm cần chốt |
+| Mã | Quyết định | Trạng thái và đề xuất trong bản 0.19 | Thời điểm cần chốt |
 |---|---|---|---|
-| Q-01 | Database và cách quản lý schema | PostgreSQL/Flyway/JPA local/test, V1–V7 từ schema rỗng và nâng cấp đạt; migration tiếp theo theo module | Trước migration nghiệp vụ mới |
+| Q-01 | Database và cách quản lý schema | PostgreSQL/Flyway/JPA local/test, V1–V17 schema rỗng và nâng V1/V7/V8/V9/V10/V11/V12/V15/V16 có dữ liệu đạt. V17 giữ khoản thu/version/note, không gửi bù cập nhật cũ | Trước migration nghiệp vụ mới |
 | Q-02 | Cơ chế phiên và liên kết tài khoản | Setup/session/CSRF/PBKDF2, gia đình/email, OIDC issuer-subject, link/unlink, reauth 5 phút/một lần và credential version đã áp dụng; chưa nghiệm thu Google thật | Review cấu hình Google thật; OAuth login riêng Drive |
 | Q-03 | Công cụ frontend và phiên bản runtime | Đã chuẩn hóa TinyClass, wrapper verify và frontend build/lint đạt; giữ manifest/lockfile hiện có | Kiểm tra lại khi đổi runtime/phụ thuộc |
-| Q-04 | Cấu hình hai kho lưu và quyền tải | LOCAL đã có root riêng, quota kỹ thuật 5 GiB/giới hạn theo loại, cờ tải theo quyền hiện tại. Drive theo TC-011; ổ bền vững và sao lưu cần kiểm tra production | Chốt dung lượng/hạ tầng và tích hợp Drive |
+| Q-04 | Cấu hình hai kho lưu và quyền tải | LOCAL đã có root riêng, quota kỹ thuật 5 GiB tính cả sản phẩm gia đình/giới hạn theo loại, cờ tải học liệu theo quyền hiện tại. Drive theo TC-011; ổ bền vững và sao lưu cần kiểm tra production | Chốt dung lượng/hạ tầng và tích hợp Drive |
 | Q-05 | Quy mô và ngân sách | Dùng mốc tham chiếu mục 11 để thiết kế; cần số lớp/bé, video/tháng và ngân sách thực tế | Trước cấu hình tải và chọn nơi triển khai |
-| Q-06 | Mặc định học phí, nghỉ và học bù | Đã yêu cầu linh hoạt; đề xuất ba cách tính và thời điểm thu ở mục 6.6. Cần chọn mặc định từng lớp, mức giá, nghỉ có phép/chưa báo có tính hay được bù không | Trước module học phí; gợi ý từ điểm danh luôn qua giáo viên chốt |
-| Q-07 | Kênh lời mời/xác minh/khôi phục và thông báo | SMTP/Mailpit local/test; xác minh 24 giờ, reset/SET_PASSWORD 30 phút, lời mời 48 giờ. Google-only đã thêm mật khẩu qua email; Google bật cần Web OAuth client. Thông báo nghiệp vụ làm tiếp | Trước nghiệm thu SMTP/Google thật và phát hành |
-| Q-08 | Thời hạn lưu và lịch sử của bé | Đã chốt rời lớp dừng xem bài/khóa của lớp. Giữ sản phẩm/nhận xét/phí riêng của bé ở lịch sử là đề xuất; cần chốt thời hạn giữ và cách quyết toán nghỉ giữa đợt | Trước xử lý vòng đời và vận hành dữ liệu thật |
+| Q-06 | Chính sách học phí/nghỉ | TC-020–023 có ba cách tính/nghỉ chọn rõ, snapshot/ngày/phiếu; thu từng phần/đủ, idempotency/khóa chống thu vượt, void có audit và chặn hủy phiếu còn khoản thu. Phiếu 0 NO_PAYMENT_DUE, nháp/hủy không có số còn phải thu. Học bù tạm hoãn | Cô đối chiếu khoản thực nhận/quyết toán; hoàn tiền, ví/số buổi trả trước và cổng ngân hàng ngoài phạm vi hiện tại |
+| Q-07 | Kênh lời mời/xác minh/khôi phục và thông báo | SMTP/Mailpit local/test; xác minh 24 giờ, reset/SET_PASSWORD 30 phút, lời mời 48 giờ. Google-only thêm mật khẩu qua email; Google bật cần Web OAuth client. TC-024 có thông báo trong ứng dụng; chưa gửi email/SMS nghiệp vụ | Trước nghiệm thu SMTP/Google thật và phát hành |
+| Q-08 | Thời hạn lưu và lịch sử của bé | Rời lớp dừng bài/lịch/bảng tin, giữ sản phẩm/phản hồi, điểm danh, nhận xét SHARED và phiếu/ghi thu khi guardian còn hiệu lực. Cập nhật theo quyền nguồn tương ứng; thu hồi guardian chặn cả lịch sử/tệp/cập nhật. PRIVATE/audit chỉ cô; không tự hoàn tiền hoặc cấp lại bài | Thời hạn lưu và quyết toán phần chưa học cần chốt trước áp dụng dữ liệu thật |
 | Q-09 | Phạm vi phát hành đầu | Đề xuất đủ chức năng đã liệt kê ở mức cơ bản, làm P0 rồi P1 trước phát hành; trò chơi/tích hợp và gói số buổi trả trước tự động để mở rộng | Trước lập kế hoạch phát triển chi tiết |
 | Q-10 | Giao diện và nhận diện | Đã chuyển các màn hình hiện có sang tím/Nunito, token + CSS Modules theo [Design.md](../frontend/Design.md); dashboard theo lớp, drawer và điều hướng gia đình | Dùng lại quy chuẩn khi triển khai các module tiếp theo |
+| Q-15 | Tổng quan/trải nghiệm | TC-025 ngày/tháng Việt Nam, khoản RECORDED theo paidAt, phiếu còn tiền/quá hạn, tổng nhiều phiếu dạng chuỗi; REPEATABLE_READ và quyền nguồn trước count/limit. Tiến độ chỉ gồm bài đang được thực hiện; rời/lưu trữ giữ lịch sử nguồn phù hợp, thu hồi guardian chặn toàn bộ bé | Khi đổi chỉ số/quyền/múi giờ; tải thử và vận hành vẫn thuộc G4 |
+| Q-14 | Thông báo/cập nhật | V17 bảng tin/read revision, dedupe và BEFORE_COMMIT nguyên tử; nguồn hiện còn quyền trước count/page/badge/open. Chuông mỗi 60 giây khi hiển thị/focus/read; không payload riêng hoặc gửi bù lịch sử | Khi mở thêm nguồn, WebSocket, gửi ra dịch vụ ngoài hoặc đổi chính sách lưu |
 
 Những thông tin nội dung như môn dạy chính, nhóm tuổi cụ thể và bộ chủ đề mẫu có thể bổ sung dần; mô hình lớp/bài/khóa hiện tại không cố định vào một môn. Việc thay đổi mô hình tài khoản, nguồn/đích lần giao hoặc cách tính tiến độ cần cập nhật tài liệu trước khi sửa thiết kế dữ liệu.
 
@@ -1238,7 +1283,7 @@ Kế hoạch thực hiện chi tiết: [roadmap](plan/01-roadmap.md), [28 công 
 - [ ] Review wireframe giáo viên tạo/giao bài và gia đình xem/gửi sản phẩm.
 - [x] Có migration/OpenAPI cho phần đã triển khai; tiếp tục bổ sung theo từng module.
 
-Trạng thái hiện tại: **TC-001–008 và TC-010/012/013/014 hoàn thành theo phạm vi từng task**. Backend 70 test, frontend build/lint và 13 E2E đạt; xem [học liệu/giao bài](verification/2026-11-02-learning.md). Google thật tạm hoãn theo yêu cầu; Drive, sản phẩm/phản hồi, lịch và học phí theo backlog. Hướng dẫn chạy ở [README dự án](../README.md).
+Trạng thái hiện tại: **TC-001–008 và TC-010/012/013/014/015/016/017/018/019/020/021 hoàn thành theo phạm vi từng task**. Backend 150 test, frontend build/lint và 35 E2E đạt; xem [phiếu học phí](verification/2026-11-02-invoices.md). Google thật và học bù tạm hoãn. Drive, ghi nhận thanh toán và thông báo theo backlog. Hướng dẫn chạy ở [README dự án](../README.md).
 
 <a id="s16"></a>
 ## 16. Tài liệu kỹ thuật tham chiếu

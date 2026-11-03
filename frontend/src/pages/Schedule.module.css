@@ -1,0 +1,401 @@
+@layer components {
+  .weekBar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+  .weekBar h2 {
+    font-size: 20px;
+    margin: 0;
+  }
+  .weekControls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .weekControls button {
+    min-width: 44px;
+  }
+  .weekControls input {
+    width: 160px;
+  }
+  .zone {
+    color: var(--tc-text-muted);
+    font-size: 14px;
+    margin-top: 4px;
+  }
+  .days {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    list-style: none;
+    margin: 0 0 24px;
+    padding: 0;
+    gap: 8px;
+  }
+  .days li {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: center;
+    padding: 12px 4px;
+    border-radius: var(--tc-radius-md);
+    background: var(--tc-surface);
+    border: 1px solid var(--tc-border);
+    color: var(--tc-text-muted);
+    font-size: 12px;
+  }
+  .days strong {
+    font-size: 20px;
+    color: var(--tc-text);
+  }
+  .days .today {
+    background: var(--tc-primary-soft);
+    border-color: var(--tc-primary);
+    color: var(--tc-primary);
+  }
+  .days .today strong {
+    color: var(--tc-primary);
+  }
+  .filters {
+    align-items: end;
+  }
+  .familyFilter {
+    margin-bottom: 20px;
+    max-width: 420px;
+  }
+  .filters select {
+    max-width: 100%;
+  }
+  .dayGroup {
+    margin-bottom: 24px;
+  }
+  .dayHeading {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 12px;
+  }
+  .dayHeading h2 {
+    font-size: 18px;
+    margin: 0;
+    white-space: nowrap;
+  }
+  .dayHeading::after {
+    content: "";
+    height: 1px;
+    background: var(--tc-border);
+    flex: 1;
+  }
+  .sessionGrid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+  .dashboardSessions {
+    padding: 0 24px 24px;
+  }
+  .sessionCard {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    padding: 20px;
+    background: var(--tc-surface);
+    border: 1px solid var(--tc-border);
+    border-radius: var(--tc-radius-lg);
+    box-shadow: var(--tc-shadow-card);
+    color: var(--tc-text);
+    min-width: 0;
+  }
+  a.sessionCard:hover {
+    border-color: var(--tc-primary);
+  }
+  .sessionCard h3 {
+    font-size: 18px;
+    margin: 0 0 8px;
+    overflow-wrap: anywhere;
+  }
+  .sessionCard p {
+    margin: 4px 0 0;
+    font-size: 14px;
+  }
+  .sessionCard > div {
+    min-width: 0;
+    flex: 1;
+  }
+  .sessionCard > svg {
+    margin-top: 8px;
+    color: var(--tc-primary);
+    flex-shrink: 0;
+  }
+  .timeIcon {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: var(--tc-info-soft);
+    color: var(--tc-info);
+    flex-shrink: 0;
+  }
+  .cancelled .timeIcon {
+    background: var(--tc-surface-muted);
+    color: var(--tc-text-muted);
+  }
+  .sessionTime {
+    font-weight: 800;
+    color: var(--tc-info);
+    margin-bottom: 8px;
+    font-variant-numeric: tabular-nums;
+  }
+  .cancelled .sessionTime {
+    color: var(--tc-text-muted);
+  }
+  .meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .meta small {
+    color: var(--tc-text-muted);
+  }
+  .emptyPanel {
+    padding: 24px;
+  }
+  .actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+  }
+  .rule {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 24px;
+    border-bottom: 1px solid var(--tc-border);
+  }
+  .rule:last-child {
+    border-bottom: 0;
+  }
+  .ruleDay {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 84px;
+    min-height: 84px;
+    padding: 12px;
+    background: var(--tc-primary-soft);
+    border-radius: 16px;
+    color: var(--tc-primary);
+    font-weight: 800;
+  }
+  .ruleDay small {
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .ruleBody {
+    flex: 1;
+    min-width: 0;
+  }
+  .ruleBody h2 {
+    font-size: 20px;
+    margin: 0 0 4px;
+  }
+  .ruleBody p {
+    margin: 4px 0;
+    font-size: 14px;
+    color: var(--tc-text-muted);
+    overflow-wrap: anywhere;
+  }
+  .form {
+    max-width: 760px;
+  }
+  .form fieldset {
+    border: 0;
+    margin: 0;
+    padding: 0;
+    min-width: 0;
+  }
+  .formGrid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 20px;
+  }
+  .check {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin: 16px 0;
+    line-height: 1.6;
+  }
+  .check input {
+    min-width: 20px;
+    width: 20px;
+    height: 20px;
+    min-height: 20px;
+    margin-top: 4px;
+    flex-shrink: 0;
+  }
+  .hint {
+    font-size: 14px;
+    color: var(--tc-text-muted);
+    margin: 8px 0 20px;
+  }
+  .preview {
+    margin: 20px 0;
+    border: 1px solid var(--tc-primary);
+    border-radius: 16px;
+    padding: 20px;
+    background: var(--tc-primary-soft);
+  }
+  .preview h3 {
+    font-size: 18px;
+    margin: 0 0 12px;
+  }
+  .preview p {
+    margin: 8px 0;
+  }
+  .preview ul {
+    padding-left: 20px;
+    margin: 12px 0;
+  }
+  .preview li {
+    margin-bottom: 8px;
+    font-size: 14px;
+    overflow-wrap: anywhere;
+  }
+  .conflicts {
+    border-top: 1px solid var(--tc-control-border);
+    margin-top: 16px;
+    padding-top: 16px;
+  }
+  .conflicts h4 {
+    color: var(--tc-warning);
+    margin: 0 0 8px;
+  }
+  .detailColumns {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+    gap: 24px;
+    align-items: start;
+  }
+  .detailPanel {
+    padding: 24px;
+  }
+  .detailPanel h2 {
+    font-size: 20px;
+    margin: 0 0 16px;
+  }
+  .detailPanel dl {
+    margin: 0;
+  }
+  .detailPanel dl > div {
+    margin-bottom: 16px;
+  }
+  .detailPanel dt {
+    font-size: 14px;
+    color: var(--tc-text-muted);
+  }
+  .detailPanel dd {
+    margin: 4px 0 0;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+  }
+  .history {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .history li {
+    border-left: 2px solid var(--tc-border);
+    padding: 0 0 20px 16px;
+  }
+  .history li:last-child {
+    padding-bottom: 0;
+  }
+  .history p {
+    font-size: 14px;
+    margin: 6px 0;
+    overflow-wrap: anywhere;
+  }
+  .notice {
+    border: 1px solid var(--tc-success);
+    background: var(--tc-success-soft);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 20px;
+    color: var(--tc-success);
+  }
+  @media (max-width: 1199px) {
+    .detailColumns {
+      grid-template-columns: 1fr;
+    }
+  }
+  @media (max-width: 767px) {
+    .dashboardSessions {
+      padding: 0 16px 16px;
+    }
+    .sessionGrid,
+    .formGrid {
+      grid-template-columns: 1fr;
+    }
+    .sessionCard,
+    .detailPanel,
+    .rule {
+      padding: 16px;
+    }
+    .rule {
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .rule > button {
+      width: 100%;
+    }
+    .weekControls {
+      width: 100%;
+    }
+    .weekControls input {
+      flex: 1;
+      min-width: 140px;
+    }
+    .weekBar {
+      gap: 12px;
+    }
+    .days {
+      gap: 4px;
+    }
+    .days li {
+      font-size: 10px;
+      padding: 8px 0;
+    }
+    .days strong {
+      font-size: 16px;
+    }
+    .dayHeading h2 {
+      font-size: 16px;
+      white-space: normal;
+    }
+    .form :global(.form-actions) {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .form :global(.form-actions) > button {
+      width: 100%;
+    }
+    .preview {
+      padding: 16px;
+    }
+    .actions > a,
+    .actions > button {
+      flex: 1;
+      min-width: 140px;
+    }
+  }
+}

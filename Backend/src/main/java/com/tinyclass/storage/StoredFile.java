@@ -9,6 +9,8 @@ import java.util.UUID;
 public class StoredFile extends BaseEntity {
     @Column(name="uploaded_by",nullable=false) private UUID uploadedBy;
     @Column(name="storage_connection_id",nullable=false) private UUID storageConnectionId;
+    @Column(name="context_student_id") private UUID contextStudentId;
+    @Column(name="context_assignment_item_id") private UUID contextAssignmentItemId;
     @Column(nullable=false) private String purpose;
     @Column(name="learner_download_allowed",nullable=false) private boolean learnerDownloadAllowed;
     @Column(name="storage_key",nullable=false) private String storageKey;
@@ -26,9 +28,12 @@ public class StoredFile extends BaseEntity {
     public void ready(StorageAdapter.Written written) { status="READY"; sizeBytes=written.size(); checksum=written.checksum(); }
     public void failed() { status="FAILED"; }
     public void policy(boolean allowed) { learnerDownloadAllowed=allowed; }
+    public void submissionContext(UUID child,UUID item) { contextStudentId=child; contextAssignmentItemId=item; }
     public void delete() { status="DELETED"; deletedAt=Instant.now(); }
     public UUID getUploadedBy() { return uploadedBy; }
     public UUID getStorageConnectionId() { return storageConnectionId; }
+    public UUID getContextStudentId() { return contextStudentId; }
+    public UUID getContextAssignmentItemId() { return contextAssignmentItemId; }
     public String getPurpose() { return purpose; }
     public boolean isLearnerDownloadAllowed() { return learnerDownloadAllowed; }
     public String getStorageKey() { return storageKey; }

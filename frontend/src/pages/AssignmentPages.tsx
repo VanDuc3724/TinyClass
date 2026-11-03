@@ -636,6 +636,13 @@ function AssignmentDetail({
                       : "Nội dung tham khảo"}
                   </span>
                 )}
+                <Link
+                  className="text-link"
+                  to={`/teacher/assignments/${initial.id}/children/${recipient.studentId}`}
+                >
+                  Xem tiến độ
+                  <Icon name="arrow" />
+                </Link>
               </div>
             ))}
           </div>

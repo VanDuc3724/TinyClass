@@ -15,6 +15,9 @@ import {
 import { dateLabel } from "../lib/format";
 import { api } from "../lib/api";
 import { useResource } from "../lib/hooks";
+import FamilyOverviewPanel from "./FamilyOverviewPanel";
+import { UpdatesOverviewPanel } from "./DashboardParts";
+import type { FamilyDashboard, FamilyHomeOverview } from "../lib/dashboard";
 
 interface Child {
   id: string;
@@ -41,10 +44,14 @@ export function FamilyHomePage() {
   const [page, setPage] = useState(0);
   const resource = useResource(
     useCallback(
-      (signal) =>
-        verified
-          ? api.list<Child>(`/family/children?page=${page}&size=12`, signal)
-          : Promise.resolve(null),
+      async (signal) => {
+        if (!verified) return null;
+        const [children, summary] = await Promise.all([
+          api.list<Child>(`/family/children?page=${page}&size=12`, signal),
+          api.get<FamilyHomeOverview>("/family/dashboard", signal),
+        ]);
+        return { children, summary };
+      },
       [page, verified],
     ),
   );
@@ -54,6 +61,17 @@ export function FamilyHomePage() {
         eyebrow="CÙNG CON LỚN KHÔN"
         title={`Xin chào, ${account!.displayName}!`}
         description="Chọn hồ sơ của bé để theo dõi lớp học và cùng giáo viên đồng hành."
+        action={
+          verified && (
+            <button
+              className="button button-ghost"
+              disabled={resource.loading}
+              onClick={resource.reload}
+            >
+              Cập nhật trang chủ
+            </button>
+          )
+        }
       />
       {!verified ? (
         <section className="panel family-verification">
@@ -67,9 +85,13 @@ export function FamilyHomePage() {
           ) : (
             resource.data && (
               <>
-                {resource.data.data.length ? (
+                <p className="info-notice">
+                  {resource.data.summary.linkedChildren} hồ sơ bé đang liên kết
+                  · Hộp cập nhật bao gồm mọi bé bạn còn quyền xem.
+                </p>
+                {resource.data.children.data.length ? (
                   <div className="family-child-grid">
-                    {resource.data.data.map((child) => (
+                    {resource.data.children.data.map((child) => (
                       <Link
                         className="panel family-child-card"
                         key={child.id}
@@ -105,7 +127,15 @@ export function FamilyHomePage() {
                     </EmptyState>
                   </section>
                 )}
-                <Pagination meta={resource.data.meta} onChange={setPage} />
+                <Pagination
+                  meta={resource.data.children.meta}
+                  onChange={setPage}
+                />
+                <UpdatesOverviewPanel
+                  data={resource.data.summary.updates}
+                  root="/family"
+                  onRefresh={resource.reload}
+                />
               </>
             )
           )}
@@ -123,14 +153,15 @@ export function FamilyChildPage() {
     useCallback(
       async (signal) => {
         if (!verified) return null;
-        const [child, classes] = await Promise.all([
+        const [child, classes, overview] = await Promise.all([
           api.get<Child>(`/family/children/${id}`, signal),
           api.list<ChildClass>(
             `/family/children/${id}/classes?page=${page}&size=12`,
             signal,
           ),
+          api.get<FamilyDashboard>(`/family/children/${id}/dashboard`, signal),
         ]);
-        return { child, classes };
+        return { child, classes, overview };
       },
       [id, page, verified],
     ),
@@ -151,13 +182,13 @@ export function FamilyChildPage() {
         <ErrorNotice error={resource.error} retry={resource.reload} />
       </>
     );
-  const { child, classes } = resource.data;
+  const { child, classes, overview } = resource.data;
   return (
     <>
       <Link to="/family" className="back-link">
         ← Chọn bé khác
       </Link>
-      <div className="student-profile-heading">
+      <div className="student-profile-heading family-profile-heading">
         <Avatar name={child.fullName} large />
         <div>
           <p className="eyebrow">HÀNH TRÌNH CỦA BÉ</p>
@@ -172,14 +203,77 @@ export function FamilyChildPage() {
         <button className="button button-ghost" onClick={resource.reload}>
           Cập nhật thông tin
         </button>
-        <Link
-          className="button button-primary"
-          to={`/family/children/${id}/learning`}
+        <nav
+          className="family-profile-actions"
+          aria-label="Theo dõi hoạt động của bé"
         >
-          <Icon name="book" />
-          Góc học của bé
-        </Link>
+          <Link
+            className="button button-ghost"
+            to={`/family/children/${id}/announcements`}
+          >
+            Thông báo lớp
+          </Link>
+          <Link
+            className="button button-ghost"
+            to={`/family/children/${id}/invoices`}
+          >
+            Phiếu học phí
+          </Link>
+          <Link
+            className="button button-ghost"
+            to={`/family/children/${id}/tuition`}
+          >
+            <Icon name="book" />
+            Điều kiện học phí
+          </Link>
+          <Link
+            className="button button-ghost"
+            to={`/family/children/${id}/progress`}
+          >
+            <Icon name="leaf" />
+            Nhận xét & tiến bộ
+          </Link>
+          <Link
+            className="button button-primary"
+            to={`/family/children/${id}/learning`}
+          >
+            <Icon name="book" />
+            Góc học của bé
+          </Link>
+          <Link
+            className="button button-ghost"
+            to={`/family/children/${id}/submissions`}
+          >
+            <Icon name="check" />
+            Sản phẩm & phản hồi
+          </Link>
+          <Link
+            className="button button-ghost"
+            to={`/family/children/${id}/schedule`}
+          >
+            <Icon name="calendar" />
+            Lịch học của bé
+          </Link>
+          <Link
+            className="button button-ghost"
+            to={`/family/children/${id}/attendance`}
+          >
+            <Icon name="check" />
+            Điểm danh của bé
+          </Link>
+        </nav>
       </div>
+      <section className="panel details-panel">
+        <h2>Tổng quan của bé</h2>
+        <p className="muted">
+          Bài học, lịch, phản hồi và học phí theo quyền hiện tại.
+        </p>
+      </section>
+      <FamilyOverviewPanel
+        key={child.id}
+        data={overview}
+        onRefresh={resource.reload}
+      />
       <section className="panel details-panel">
         <h2>Đôi điều về bé</h2>
         <dl>

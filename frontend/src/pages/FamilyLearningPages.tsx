@@ -15,6 +15,7 @@ import {
 import { LessonBody } from "./LibraryPages";
 import { dateTimeLabel as dateTime } from "../lib/format";
 import type { Assignment } from "./AssignmentPages";
+import { FamilyProductPanel } from "./SubmissionParts";
 
 export function FamilyLearningPage() {
   const { child } = useParams();
@@ -42,6 +43,15 @@ export function FamilyLearningPage() {
       <PageHeader
         eyebrow="MỖI NGÀY MỘT KHÁM PHÁ"
         title="Góc học của bé"
+        action={
+          <button
+            className="button button-ghost"
+            disabled={data.loading}
+            onClick={data.reload}
+          >
+            Cập nhật góc học
+          </button>
+        }
         description={
           data.data
             ? `Cùng ${data.data.profile.fullName} khám phá những hoạt động cô đã chuẩn bị.`
@@ -123,7 +133,7 @@ function Progress({ assignment }: { assignment: Assignment }) {
           <progress
             max={100}
             value={assignment.completionPercent}
-            aria-label="Tiến độ hoàn thành"
+            aria-label={`Tiến độ hoàn thành ${assignment.title}`}
           />
         </>
       )}
@@ -204,7 +214,7 @@ interface FamilyItem extends Lesson {
   completionMode: CompletionMode;
   isRequired: boolean;
   canInteract: boolean;
-  progress: { status: string } | null;
+  progress: { status: string; reopenReason?: string | null } | null;
 }
 export function FamilyLessonPage() {
   const { child, item } = useParams();
@@ -280,6 +290,12 @@ export function FamilyLessonPage() {
       </section>
       <section className="panel editor-section completion-panel">
         <ErrorNotice error={error} />
+        {lesson.progress?.reopenReason &&
+          lesson.progress.status !== "COMPLETED" && (
+            <p className="info-notice" role="status">
+              Cô đã mở vòng học mới: {lesson.progress.reopenReason}
+            </p>
+          )}
         {lesson.progress?.status === "COMPLETED" ? (
           <div className="completed-message" role="status">
             <Icon name="check" />
@@ -326,6 +342,14 @@ export function FamilyLessonPage() {
           </p>
         )}
       </section>
+      {lesson.completionMode === "TEACHER_REVIEW" && (
+        <FamilyProductPanel
+          key={`${child}-${item}`}
+          child={child!}
+          item={item!}
+          onChanged={data.reload}
+        />
+      )}
     </>
   );
 }

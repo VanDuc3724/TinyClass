@@ -25,7 +25,8 @@ export default defineConfig({
       stderr: "pipe",
     },
     {
-      command: "npm.cmd run dev -- --host 127.0.0.1 --port 5174 --strictPort",
+      command:
+        "npm.cmd run preview -- --host 127.0.0.1 --port 5174 --strictPort",
       url: "http://127.0.0.1:5174",
       reuseExistingServer: false,
       timeout: 30_000,

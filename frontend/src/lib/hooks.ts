@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { ApiError } from "./api";
 export function useResource<T>(load: (signal: AbortSignal) => Promise<T>) {
   const [result, setResult] = useState<{
     load: typeof load;
@@ -19,7 +20,14 @@ export function useResource<T>(load: (signal: AbortSignal) => Promise<T>) {
           setResult((previous) => ({
             load,
             revision,
-            data: previous?.load === load ? previous.data : null,
+            data:
+              previous?.load === load &&
+              !(
+                error instanceof ApiError &&
+                [401, 403, 404].includes(error.status)
+              )
+                ? previous.data
+                : null,
             error,
           }));
       });

@@ -36,7 +36,7 @@ Một bài có thể dùng ở nhiều khóa/lớp. Quyền xem xuất phát t�
 | Học liệu | Chủ đề, bài, khóa; nháp/xuất bản/lưu trữ | FR-05 đến FR-08 |
 | Lưu tệp | Chọn máy chủ hoặc Drive cá nhân, xem/tải theo quyền giáo viên đặt | FR-07 |
 | Học ở nhà | Giao nội dung, xem, xác nhận, gửi sản phẩm và nhận xét | FR-09 đến FR-12 |
-| Quản lý buổi dạy | Lịch, điểm danh, học bù, nhận xét riêng/chia sẻ | FR-13 đến FR-15 |
+| Quản lý buổi dạy | Lịch, điểm danh; nhận xét riêng/chia sẻ theo task tiếp theo. Học bù tạm hoãn ngày 02/11/2026 | FR-13 đến FR-15 |
 | Khoản thu | Cấu hình cách tính/thu, lập phiếu, ghi tiền và số còn lại | FR-16 |
 | Trao đổi và tổng quan | Thông báo lớp, cập nhật trong ứng dụng, dashboard đúng vai trò | FR-17, FR-18 |
 
@@ -47,13 +47,13 @@ Một bài có thể dùng ở nhiều khóa/lớp. Quyền xem xuất phát t�
 1. Giáo viên tạo lớp → thêm bé → mời gia đình → phụ huynh đăng nhập và thấy đúng con.
 2. Giáo viên upload → chọn nơi lưu/quyền tải → tạo bài/khóa → giao lớp → gia đình mở đúng nội dung.
 3. Gia đình thực hiện → xác nhận hoặc gửi sản phẩm → giáo viên phản hồi → tiến độ thay đổi đúng quy tắc.
-4. Giáo viên lập lịch → điểm danh → xếp học bù → xem lịch sử đúng bé, đúng buổi.
+4. Giáo viên lập lịch → chốt danh sách → điểm danh → hoàn thành buổi → xem lịch sử đúng bé, đúng buổi. Học bù chưa thuộc phạm vi hiện tại.
 5. Giáo viên đặt thỏa thuận → xem trước phí → phát hành phiếu → ghi thu → gia đình thấy đúng số còn lại.
-6. Bé rời lớp → các yêu cầu đọc/tải bài từ lớp bị chặn; việc giữ lịch sử riêng của bé theo chính sách đề xuất còn cần chốt.
+6. Bé rời lớp → ngừng bài/lịch/bảng tin theo quyền nguồn; giữ sản phẩm/phản hồi, nhận xét SHARED và học phí đúng bé khi guardian còn hiệu lực. Thu hồi guardian chặn cả lịch sử; thời hạn lưu/vận hành dữ liệu thật còn cần chốt.
 
 ## 5. Màn hình và bản phác thảo bố cục
 
-Danh sách route đầy đủ ở [mục 7 của tổng quan](../01-mo-ta-he-thong.md#s07). Các bố cục sau là wireframe sản phẩm mục tiêu. Bản đầu dùng CSS thuần với giao diện xanh lá/kem cho tài khoản/lớp/bé; xem [ảnh và bằng chứng](../verification/2026-11-01-accounts-and-classes.md). Các màn hình khác tiếp tục theo backlog.
+Danh sách route ở [mục 7 của tổng quan](../01-mo-ta-he-thong.md#s07); các bố cục sau là wireframe mục tiêu. Giao diện hiện dùng tím/Nunito, CSS variables + CSS Modules theo [Design.md](../../frontend/Design.md). TC-025 bổ sung tổng học phí/cập nhật theo lớp, tổng quan tài khoản gia đình và từng bé, tiến độ/lối tiếp tục hoạt động; xem [hướng dẫn](../17-tong-quan-va-trai-nghiem.md). Các tích hợp ngoài/vận hành thật tiếp tục theo backlog.
 
 ### Trang giáo viên
 

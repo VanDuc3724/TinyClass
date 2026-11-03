@@ -394,6 +394,15 @@ td strong {
 .student-profile-heading .muted {
   margin-top: 7px;
 }
+.family-profile-heading {
+  flex-wrap: wrap;
+}
+.family-profile-actions {
+  display: flex;
+  flex: 1 0 100%;
+  flex-wrap: wrap;
+  gap: 12px;
+}
 .profile-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

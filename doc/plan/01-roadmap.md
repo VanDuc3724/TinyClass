@@ -9,14 +9,14 @@ Nguồn yêu cầu: [spec sản phẩm](../spec/01-product.md), [quyết định
 | Spec tổng quan và bộ spec/plan theo module | Đã có tài liệu để review |
 | Khởi tạo React và Spring Boot | Đã có trong `frontend/` và `Backend/` |
 | Frontend build | Lượt kiểm tra gần nhất thành công với `npm.cmd run build` |
-| Backend compile/verify | Wrapper verify thành công, 70 test đạt |
-| Runtime/database | Local/test PostgreSQL và Mailpit riêng; V1–V7 từ schema rỗng/nâng cấp đạt |
-| React/tài khoản/lớp/gia đình | UI/API thật; LOCAL/bài/khóa/giao/học cùng các luồng cũ; 13 E2E đạt |
+| Backend compile/verify | Wrapper verify thành công, 196 test đạt |
+| Runtime/database | Local/test PostgreSQL và Mailpit riêng; V1–V17 từ schema rỗng, nâng V1, V7, V8, V9, V10, V11, V12, V15 và V16 có dữ liệu đạt |
+| React/tài khoản/lớp/gia đình | UI/API thật; LOCAL/bài/khóa/giao/học/sản phẩm/phản hồi/lịch dạy/điểm danh/nhận xét cùng các luồng cũ; 44 E2E đạt |
 | Google | TC-009 có UI/API, protocol/E2E với OIDC thử nghiệm; còn nghiệm thu Google thật |
-| Học liệu | TC-010/012/013/014 hoàn thành trong phạm vi LOCAL/xem/xác nhận; sản phẩm TC-015/016 tiếp theo |
-| Lịch/phí và email ngoài | Theo backlog; chưa nghiệm thu Drive/SMTP ngoài |
+| Học liệu | TC-010/012/013/014/015/016 hoàn thành: LOCAL/xem/xác nhận, nộp/duyệt, âm thanh, mở vòng mới và lịch sử; TC-011 Drive chưa triển khai |
+| Lịch/phí và email ngoài | TC-017–025 có lịch, điểm danh, nhận xét, học phí, bảng tin/cập nhật và tổng quan cô/gia đình theo quyền nguồn; học bù tạm hoãn, chưa Drive/SMTP ngoài |
 
-TC-001–008 và TC-010/012/013/014 DONE theo phạm vi từng task. TC-009 giữ IN_PROGRESS; người dùng yêu cầu tạm hoãn cấu hình Google thật. Xem [báo cáo học liệu](../verification/2026-11-02-learning.md); tiếp tục TC-015/016 và các module dạy tại nhà, không cần chờ Google.
+TC-001–008 và TC-010/012/013/014/015/016/017/018/019/020/021/022/023/024/025 DONE theo phạm vi từng task. Google thật/học bù tạm hoãn theo người dùng. Xem [báo cáo tổng quan](../verification/2026-11-03-dashboard.md); TC-023 hoàn tất cùng TC-021/022. G4 chưa nghiệm thu; TC-026 còn phụ thuộc Google/Drive hoặc cần xác định lại phạm vi phát hành.
 
 Không cần tạo lại project hoặc cài lại frontend từ đầu để bắt đầu kế hoạch. Giải quyết đường build/cấu hình backend và tiếp tục trên hai module hiện có.
 
@@ -27,7 +27,7 @@ Không cần tạo lại project hoặc cài lại frontend từ đầu để b�
 | G0 — nền tảng | TC-001 đến TC-005 | Build backend, naming, database/migration, API chung, khung React/API client | Chạy local có database; build/lint theo công cụ đã chọn; quy ước API và cấu hình rõ |
 | G1 — lớp và tài khoản | TC-006 đến TC-009 | Giáo viên quản lý lớp/bé, lời mời gia đình, email/Google, quyền theo bé | Gia đình vào đúng con, sai quyền bị chặn, identity không bị ghép sai |
 | G2 — học liệu và học ở nhà | TC-010 đến TC-016 | Hai kho lưu, bài/khóa, giao nội dung, sản phẩm và phản hồi | Trọn luồng qua cả hai kho; xem/tải đúng quyền; tiến độ đúng và rời lớp dừng nội dung |
-| G3 — quản lý dạy tại nhà | TC-017 đến TC-025 | Lịch, điểm danh/bù, nhận xét, học phí, thông báo và dashboard | Quản lý một lớp thật bằng dữ liệu giả qua frontend/API; không tính trùng buổi/tiền |
+| G3 — quản lý dạy tại nhà | TC-017 đến TC-025 | Lịch, điểm danh, nhận xét, học phí, thông báo và dashboard; học bù tạm hoãn | Quản lý một lớp thật bằng dữ liệu giả qua frontend/API; không tính trùng buổi/tiền |
 | G4 — chạy thử/phát hành | TC-026 đến TC-028 | Kiểm thử tích hợp, cấu hình triển khai, backup/restore, hướng dẫn | Các AC trong phạm vi phát hành đạt; có kiểm tra phục hồi và danh sách giới hạn thực tế |
 
 ```mermaid
@@ -68,7 +68,7 @@ Trước khi đánh dấu DONE:
 |---|---|
 | Lỗi build backend ban đầu | Đã xử lý TC-001; wrapper compile và verify thành công, cần giữ đường build tái lập |
 | Namespace/brand | TC-002 đã chuẩn hóa com.tinyclass, tên artifact/service và nhãn frontend; build đạt |
-| Có `.git` trong Backend, chưa có root Git | TC-002 ghi lựa chọn repository; thao tác gộp/tách lịch sử là công việc riêng, không suy ra đã thực hiện |
+| Cấu trúc Git | Hiện có repository ở gốc TinyClass; giữ lịch sử và tổ chức của người dùng |
 | Kho LOCAL có thể không bền khi deploy | TC-010/TC-027 kiểm tra volume, dung lượng, sao lưu và restart/redeploy |
 | Google login/Drive/email cần cấu hình ngoài | Ghi kết quả local/mocked và tích hợp thật riêng; thiết kế hai luồng quyền Google độc lập |
 | Chính sách nghỉ/bù/phí chưa duyệt | Triển khai cấu hình theo thỏa thuận, chốt giá trị thật trước nghiệm thu tính tiền |

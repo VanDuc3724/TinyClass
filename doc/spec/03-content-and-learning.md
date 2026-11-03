@@ -2,7 +2,7 @@
 
 Nguồn: [quy tắc](../01-mo-ta-he-thong.md#s06), [schema](../01-mo-ta-he-thong.md#s09), [API](../01-mo-ta-he-thong.md#s10). Phụ thuộc [tài khoản/lớp](02-auth-and-classes.md). Giới hạn dung lượng và kho mặc định là đề xuất tại [06-decisions.md](06-decisions.md).
 
-Trạng thái 02/11/2026: đã triển khai LOCAL, chủ đề/bài/khóa, snapshot giao bài, quyền tệp theo bé/item, Góc học và PARENT_CONFIRM/REFERENCE. [Hướng dẫn sử dụng](../08-hoc-lieu-local.md), [báo cáo/AC](../verification/2026-11-02-learning.md), [OpenAPI thực tế](openapi.yaml). Drive, upload/nộp/duyệt sản phẩm tiếp tục TC-011/015/016; Google login thật tạm hoãn theo yêu cầu.
+Trạng thái 02/11/2026: đã có LOCAL, chủ đề/bài/khóa, snapshot giao bài, quyền tệp theo bé/item, Góc học, xác nhận và nộp/duyệt sản phẩm theo vòng. [Học liệu](../08-hoc-lieu-local.md), [sản phẩm/phản hồi](../09-san-pham-va-phan-hoi.md), [bằng chứng TC-015/016](../verification/2026-11-02-submissions.md), [OpenAPI thực tế](openapi.yaml). Drive và Google login thật vẫn tạm hoãn/chưa tích hợp theo phạm vi đã ghi.
 
 <a id="requirements"></a>
 ## 1. Kho nội dung
@@ -115,5 +115,6 @@ Tham chiếu `AC-08`–`AC-22`, `AC-31`, `AC-34`–`AC-37`, `AC-41` ở [bộ g�
 - client_request_id kèm request hash chống tạo lặp; publish retry không tạo lại recipients. Cấp bài cũ chỉ thực hiện khi cô chọn bé đang ở lớp và ghi lý do. Rút lớp thu hồi recipient trong cùng giao dịch, quay lại không tự phục hồi; giao riêng độc lập.
 - Family list/count/item/file kiểm tra parent xác minh, guardian ACTIVE, recipient còn hiệu lực và trạng thái profile/class/enrollment. Trước giờ mở chỉ có tiêu đề/thời gian, không trả item/content/file. Family stream dùng `/family/children/{child}/assignment-items/{item}/files/{file}/content|download`; tải cần cờ hiện tại.
 - OPEN chỉ ghi mốc mở; CONFIRM chỉ PARENT_CONFIRM, giữ người/thời điểm xác nhận đầu và idempotent khi gửi lại. Tỷ lệ đếm item bắt buộc không phải REFERENCE; không có item như vậy trả phần trăm null. Mỗi lần giao có item/progress mới, không tái dùng progress theo lesson ID.
-- TEACHER_REVIEW mới có yêu cầu trong library/assignment; hoàn thành qua sản phẩm chờ TC-015/016. Chưa tự dọn tệp rời, chuyển mã video, kiểm tra phục hồi production hoặc tích hợp Drive thật.
+- V8 triển khai TEACHER_REVIEW: nháp theo tác giả/vòng, tệp sản phẩm, gửi, phản hồi chữ/âm thanh, yêu cầu bổ sung/chấp nhận và mở lại. Quota tính cả tệp gia đình. Sản phẩm riêng còn đọc được sau rời lớp khi guardian còn hiệu lực; không cấp lại bài gốc. PARENT_CONFIRM cũng có thể được mở lại với lý do. Xem [hướng dẫn và lựa chọn cụ thể](../09-san-pham-va-phan-hoi.md).
+- Chưa tự dọn tệp rời, chuyển mã video, kiểm tra phục hồi production hoặc tích hợp Drive thật.
 

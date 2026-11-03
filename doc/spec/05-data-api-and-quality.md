@@ -28,16 +28,19 @@ React gọi REST API Spring Boot. Backend theo module nghiệp vụ, service qu�
 | Học liệu | `topics`, `lessons`, `lesson_topics`, `lesson_blocks`, `courses`, `course_lessons` |
 | Lưu trữ | `storage_connections`, `files` |
 | Giao/học bài | `assignments`, `assignment_items`, `assignment_recipients`, `student_progress`, `submissions`, `submission_attachments` |
-| Buổi dạy | `class_schedule_rules`, `class_sessions`, `attendance_records`, `makeup_plans`, `student_notes`, `student_note_attachments` |
-| Học phí | `class_tuition_policies`, `enrollment_tuition_agreements`, `invoices`, `invoice_lines`, `session_charge_entries`, `payments` |
-| Trao đổi/lịch sử | `class_announcements`, `announcement_reads`, `notifications`, `audit_events` |
+| Buổi dạy/nhận xét đã có | `class_schedule_rules`, `class_sessions`, `attendance_records`, `attendance_events`, `student_notes`, `student_note_attachments` |
+| Dạy học tạm hoãn | Học bù chưa chốt bảng/model |
+| Điều kiện học phí đã có V12 | `class_tuition_policies`, `enrollment_tuition_agreements` |
+| Phiếu đã có V13–V15 | `invoices`, `invoice_lines`, `session_charge_entries`, `invoice_code_sequence` |
+| Ghi thu đã có V16 | `payments`: RECORDED/VOIDED, số tiền/ngày/phương thức, ghi chú công khai/riêng, actor/version, khóa chống lặp và thông tin void |
+| Trao đổi đã có V17 | `class_announcements`, `announcement_reads`, `notifications`; audit dùng chung |
 
 ### Quy ước chung
 
 - UUID do server tạo; `snake_case` trong database, `camelCase` cho JSON.
 - Bản ghi có thể sửa có timestamps/version; bảng nối bất biến và sự kiện theo định nghĩa riêng.
 - Timestamps lưu UTC/trả ISO 8601; ngày sinh và kỳ phí là date; lịch tuần dùng time + timezone.
-- VND lưu nguyên theo miền `0..1_000_000_000_000`, tính tổng ở backend; tiền không dùng số thực. Chi tiết kiểu `numeric(14,0)` theo tổng quan.
+- VND lưu BIGINT kèm CHECK, DTO dùng BigDecimal kiểm tra tiền nguyên. Điều kiện/phiếu trong miền `0..1_000_000_000_000`; khoản thu mới trong `1..1_000_000_000_000` và không quá số còn lại. Backend tính tổng/đã thu/còn lại; không làm tròn tiền lẻ hoặc tin tổng từ client.
 - Có FK và unique cho các quan hệ không được trùng; kiểm tra quan hệ cùng giáo viên/trẻ và các điều kiện liên bảng ở service/giao dịch.
 - Dữ liệu đã có lịch sử dùng archive/revoke/cancel/void; không cascade xóa sản phẩm/phí khi đổi lớp hay khóa.
 - Giá trị chưa có dòng tiến độ là NOT_STARTED; không phải lỗi dữ liệu và không loại bé đó khỏi thống kê.
@@ -53,11 +56,15 @@ React gọi REST API Spring Boot. Backend theo module nghiệp vụ, service qu�
 7. Thỏa thuận, phiếu, buổi tính phí và thanh toán.
 8. Thông báo lớp/đã đọc/thông báo cá nhân.
 
-V1 audit, V2 users/classes/students/class_enrollments và V3 guardian_invitations/student_guardians/auth_tokens đã triển khai, kiểm tra từ schema rỗng và nâng V1 đến V3. Các nhóm còn lại là đề xuất. Migration chỉ áp dụng một lần; Hibernate validate. UUID tạo phía server, timestamp UTC microsecond. FK media và auth_identities bổ sung cùng module tương ứng.
+V1–V17 đã triển khai: audit, tài khoản/lớp/gia đình, Google/file/học liệu/giao bài, sản phẩm/lịch/điểm danh/nhận xét, điều kiện học phí, phiếu/giữ buổi và sổ ghi thu. Kiểm tra schema rỗng, nâng V1, V7, V8, V9, V10, V11, V12, V15 và V16 có dữ liệu. V16 không tự tạo khoản thu từ phiếu cũ, giữ nguyên phiên bản/tiền/note/line/charge. V17 giữ tiền/version/note của khoản thu V16 và không gửi bù cập nhật cũ. Drive chưa có. Migration chỉ áp dụng một lần; Hibernate validate. UUID tạo phía server, timestamp UTC microsecond.
 
 ## 3. Hợp đồng API chung
 
-Hợp đồng endpoint hiện có: [openapi.yaml](openapi.yaml), gồm tài khoản/lớp/gia đình/email/Google, LOCAL/file/policy/Range, chủ đề/bài/khóa, snapshot giao bài, family item/file/open/confirm. PUT lesson/course/assignment nhận đủ biểu mẫu/version; list dùng DTO tóm tắt riêng. Google thật tạm hoãn; Drive/sản phẩm/lịch/phí tiếp tục theo module. PATCH lớp/bé nhận đủ biểu mẫu/version; bỏ trường tùy chọn sẽ xóa giá trị.
+Hợp đồng hiện có: [OpenAPI 0.0.15](openapi.yaml), gồm các module trước, bảng tin/cập nhật V17 và tổng quan TC-025 không thêm migration. PUT lesson/course/assignment/policy/invoice/announcement nhận đủ biểu mẫu/version; list dùng DTO riêng. Học phí/family invoices trả workspace có trang lồng; teacher invoice, payment, announcement và notifications dùng PageResponse trực tiếp. Tạo/thay agreement, invoice và announcement chống lặp theo chủ thể/clientRequestId/hash, khóa ngữ cảnh trước bản ghi khi cần. Khoảng ngày gồm hai đầu; snapshot/public projection tách metadata riêng. Phiếu so nguồn theo preview/review key, tổng backend tính; nháp giữ charge, phát hành chốt, hủy VOIDED, không tự ghi thu. Google thật/học bù tạm hoãn; Drive tiếp tục theo backlog. PATCH lớp/bé nhận đủ biểu mẫu/version; bỏ trường tùy chọn sẽ xóa giá trị.
+
+TC-025 có `GET /dashboard`, `GET /family/dashboard` và `GET /family/children/{child}/dashboard`. Tổng hợp đọc trong REPEATABLE_READ, dùng ngày/tháng Asia/Ho_Chi_Minh và cùng điều kiện quyền nguồn trước count/limit. Preview mỗi nhóm tối đa ba mục, phiếu bốn; không thay danh sách có phân trang. Hai tổng `billing.outstandingAmountVnd` và `billing.receivedThisMonthVnd` là **chuỗi số nguyên**, React dùng BigInt/Intl; tiền trên từng phiếu/khoản thu giữ kiểu số trong miền đã có. `GET /invoices?collection=OPEN/OVERDUE/SETTLED` dùng cùng định nghĩa với tổng quan, kết hợp bộ lọc khác trước count/page. Xem [hướng dẫn](../17-tong-quan-va-trai-nghiem.md).
+
+Thanh toán dùng `Idempotency-Key` 8–100 ký tự, unique theo người ghi, SHA-256 64 ký tự của invoice/payload chuẩn hóa; không lộ key/hash trong DTO. Retry cùng dữ liệu được nhận trước kiểm tra version/trạng thái/số còn lại và trả bản gốc cùng số liệu phiếu hiện tại. Ghi mới/void/hủy invoice khóa cùng thứ tự, cần invoiceVersion; void cần version khoản thu/lý do. Hai audit PAYMENT/INVOICE ghi cùng giao dịch. Tổng được tính từ RECORDED qua chỉ mục có điều kiện; danh sách invoice lấy tổng trong truy vấn, không truy vấn từng dòng. Phiếu ISSUED trả UNPAID/PARTIAL/PAID hoặc NO_PAYMENT_DUE (0 VND); nháp/hủy trả paymentStatus/outstandingAmountVnd null. Family chỉ nhận payment công khai của phiếu từng phát hành đúng bé; không actor/version/private reason/audit. Xem [hướng dẫn thanh toán](../15-thanh-toan.md).
 
 | Nội dung | Quy ước |
 |---|---|
@@ -110,6 +117,8 @@ Lỗi xác minh dữ liệu:
 Các lỗi khác gồm trạng thái không hợp lệ, quá sĩ số, chưa đến giờ mở, mất quyền, tệp chưa READY/quá dung lượng, lượt nộp đang chờ và ghi tiền vượt số còn lại. OpenAPI từng module phải mô tả rõ request/response, permission, error/status và cơ chế gửi lặp, không chỉ có danh sách endpoint.
 
 ## 4. Giao dịch và tính nhất quán
+
+TC-024 dùng BusinessChange chỉ chứa ID/loại nguồn từ DomainStore.audit. Listener BEFORE_COMMIT thêm cập nhật cùng transaction; chỉ sau commit mới nhìn thấy, không dùng callback ngoài giao dịch để gửi ra dịch vụ khác. Unique recipient/dedupe theo nguồn/version/bé chống trùng. Cùng một điều kiện SQL kiểm tra quyền nguồn bảo vệ page/count/badge/detail/read; lọc trước phân trang. Read revision của thông báo khóa lớp trước bản ghi, gửi lại cùng revision/read notification giữ thời điểm đầu. Xem [hướng dẫn thông báo](../16-thong-bao-va-cap-nhat.md).
 
 | Thao tác | Bất biến cần giữ |
 |---|---|

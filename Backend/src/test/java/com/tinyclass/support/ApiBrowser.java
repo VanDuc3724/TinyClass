@@ -35,8 +35,13 @@ public final class ApiBrowser implements AutoCloseable {
         return http.send(HttpRequest.newBuilder(URI.create(path.startsWith("http") ? path : base + path)).GET().build(), HttpResponse.BodyHandlers.ofString());
     }
     public Result write(String method, String path, Object body, boolean csrf) throws Exception {
+        return write(method,path,body,csrf,Map.of());
+    }
+    public Result put(String path,Object body) throws Exception { return write("PUT",path,body,true); }
+    public Result write(String method, String path, Object body, boolean csrf,Map<String,String> headers) throws Exception {
         var builder = HttpRequest.newBuilder(URI.create(base + path)).header("Content-Type", "application/json")
                 .method(method, HttpRequest.BodyPublishers.ofString(json.writeValueAsString(body)));
+        headers.forEach(builder::header);
         if (csrf) {
             var token = get("/auth/csrf").data();
             builder.header(token.path("headerName").stringValue(), token.path("token").stringValue());

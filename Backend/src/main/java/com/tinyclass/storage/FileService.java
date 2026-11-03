@@ -69,6 +69,13 @@ public class FileService {
     public FileView upload(UUID actor,MultipartFile part,UUID connectionId,String purpose,boolean allowed,String trace) {
         if(!Set.of("LESSON_ASSET","PROFILE_ASSET","NOTE_ASSET","REVIEW_ASSET").contains(purpose))
             throw problem(HttpStatus.BAD_REQUEST,"INVALID_PURPOSE","Chưa hỗ trợ mục đích upload này.");
+        return uploadTo(actor,actor,part,connectionId,purpose,allowed,null,null,Set.of(),trace);
+    }
+    public FileView uploadSubmission(UUID parent,UUID teacher,UUID child,UUID item,MultipartFile part,Set<String> responses,String trace) {
+        return uploadTo(parent,teacher,part,null,"SUBMISSION_ASSET",false,child,item,responses,trace);
+    }
+    private FileView uploadTo(UUID actor,UUID teacher,MultipartFile part,UUID connectionId,String purpose,boolean allowed,
+            UUID child,UUID item,Set<String> responses,String trace) {
         if(part.isEmpty()) throw problem(HttpStatus.BAD_REQUEST,"EMPTY_FILE","Chọn tệp có nội dung.");
         String name=Normalizer.normalize(Objects.toString(part.getOriginalFilename(),""),Normalizer.Form.NFC).strip();
         if(name.isBlank()||name.length()>255||name.chars().anyMatch(c->Character.isISOControl(c))||name.contains("/")||name.contains("\\"))
@@ -89,14 +96,18 @@ public class FileService {
             throw problem(HttpStatus.BAD_REQUEST,"UNSUPPORTED_FILE_TYPE","Định dạng/nội dung tệp không khớp. Dùng ảnh, PDF, MP3/WAV/OGG, MP4 hoặc WebM.");
         if(part.getSize()>kind.limit()) throw problem(HttpStatus.PAYLOAD_TOO_LARGE,"FILE_TOO_LARGE","Tệp vượt quá giới hạn cho định dạng này.");
         if("PROFILE_ASSET".equals(purpose)&&!mime.startsWith("image/")) throw problem(HttpStatus.BAD_REQUEST,"INVALID_PROFILE_FILE","Ảnh hồ sơ phải là tệp ảnh.");
+        if("SUBMISSION_ASSET".equals(purpose)&&!responses.contains(responseType(mime)))
+            throw problem(HttpStatus.BAD_REQUEST,"RESPONSE_TYPE_NOT_ALLOWED","Loại tệp này không nằm trong yêu cầu của bài. Chọn ảnh, âm thanh hoặc video cô cho phép.");
         final String detected=mime;
         StoredFile reserved=tx.execute(status->{
-            var defaultConnection=ensureLocal(actor); // User lock serializes quota reservations.
-            var connection=connectionId==null?defaultConnection:connections.findByIdAndTeacherId(connectionId,actor).orElseThrow(FileService::missing);
+            var defaultConnection=ensureLocal(teacher); // Teacher lock also serializes family quota reservations.
+            var connection=connectionId==null?defaultConnection:connections.findByIdAndTeacherId(connectionId,teacher).orElseThrow(FileService::missing);
             if(!"CONNECTED".equals(connection.getStatus())||!"LOCAL".equals(connection.getProvider())) throw unavailable();
-            if(files.used(actor)+part.getSize()>quota) throw problem(HttpStatus.CONFLICT,"STORAGE_QUOTA_EXCEEDED","Kho đã hết dung lượng cho phép.");
-            return files.saveAndFlush(new StoredFile(actor,connection.getId(),purpose,allowed,
-                    actor+"/"+UUID.randomUUID()+"."+extension,name,detected,part.getSize()));
+            if(files.used(teacher)+part.getSize()>quota) throw problem(HttpStatus.CONFLICT,"STORAGE_QUOTA_EXCEEDED","Kho đã hết dung lượng cho phép.");
+            var reservedFile=new StoredFile(actor,connection.getId(),purpose,allowed,
+                    teacher+"/"+UUID.randomUUID()+"."+extension,name,detected,part.getSize());
+            if(child!=null) reservedFile.submissionContext(child,item);
+            return files.saveAndFlush(reservedFile);
         });
         try(var input=part.getInputStream()) {
             var written=local.write(reserved.getStorageKey(),input,kind.limit());
@@ -135,6 +146,13 @@ public class FileService {
         catch(IOException failure) { throw unavailable(); }
     }
     public StoredFile owned(UUID actor,UUID id) { return files.findByIdAndUploadedBy(id,actor).filter(f->!"DELETED".equals(f.getStatus())).orElseThrow(FileService::missing); }
+    public StoredFile submissionAsset(UUID id,UUID child,UUID item) {
+        return files.findById(id).filter(f->"SUBMISSION_ASSET".equals(f.getPurpose())&&"READY".equals(f.getStatus())
+                &&child.equals(f.getContextStudentId())&&item.equals(f.getContextAssignmentItemId())).orElseThrow(FileService::missing);
+    }
+    public static String responseType(String mime) {
+        return mime.startsWith("image/")?"IMAGE":mime.startsWith("audio/")?"AUDIO":mime.startsWith("video/")?"VIDEO":"UNSUPPORTED";
+    }
     private FileView view(StoredFile file) { return FileView.from(file,connections.findById(file.getStorageConnectionId()).orElseThrow(FileService::missing).getProvider()); }
     private String normalizeMime(String mime) { return switch(mime.toLowerCase(Locale.ROOT)) { case "audio/wav","audio/x-wav","audio/wave"->"audio/vnd.wave"; case "application/ogg"->"audio/ogg"; default->mime.toLowerCase(Locale.ROOT); }; }
     private boolean webmHeader(byte[] bytes) {
