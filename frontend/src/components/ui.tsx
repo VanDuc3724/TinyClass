@@ -353,16 +353,19 @@ export function EmptyState({
   children,
   action,
   icon = "classes",
+  compact = false,
 }: {
   title: string;
   children: ReactNode;
   action?: ReactNode;
   icon?: IconName;
+  /** Inside summary panels: one short row instead of a full illustration block. */
+  compact?: boolean;
 }) {
   return (
-    <div className={styles.empty}>
+    <div className={`${styles.empty} ${compact ? styles.emptyCompact : ""}`}>
       <span className={styles.emptyIcon}>
-        <Icon name={icon} width="30" height="30" />
+        <Icon name={icon} width={compact ? 22 : 30} height={compact ? 22 : 30} />
       </span>
       <h3>{title}</h3>
       <p>{children}</p>
@@ -400,6 +403,13 @@ export function Pagination({
   onChange: (page: number) => void;
 }) {
   if (meta.totalElements === 0) return null;
+  // A single page only needs the count; paging buttons would both be disabled.
+  if (meta.totalPages <= 1 && meta.page === 0)
+    return (
+      <div className="pagination">
+        <span>{meta.totalElements} kết quả</span>
+      </div>
+    );
   return (
     <div className="pagination">
       <span>

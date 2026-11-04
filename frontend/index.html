@@ -5,6 +5,10 @@
     <link rel="icon" type="image/svg+xml" href="/tinyclass.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TinyClass</title>
+    <!-- Fix the cascade layer order before any code-split stylesheet can declare a layer first. -->
+    <style>
+      @layer tokens, features, base, components, utilities;
+    </style>
     <meta
       name="description"
       content="TinyClass — không gian quản lý lớp học tại nhà, cùng bé lớn khôn mỗi ngày."

@@ -361,9 +361,10 @@
     .weekControls {
       width: 100%;
     }
+    /* The date needs ~150px; on its own row it never clips beside the three buttons. */
     .weekControls input {
-      flex: 1;
-      min-width: 140px;
+      flex: 1 1 100%;
+      min-width: 0;
     }
     .weekBar {
       gap: 12px;

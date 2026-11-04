@@ -462,7 +462,10 @@ export default function AppLayout() {
             error={error || children.error}
             retry={children.error ? children.reload : undefined}
           />
-          {!teacher && routeChild && child && (
+          {!teacher &&
+            routeChild &&
+            child &&
+            location.pathname !== `/family/children/${routeChild}` && (
             <p className={styles.childContext}>
               <Avatar name={child.fullName} />
               Hành trình của <strong>{child.fullName}</strong>

@@ -296,7 +296,10 @@ export function registerLearningFlows(
       await parent
         .getByRole("button", { name: "Nhận lời mời", exact: true })
         .click();
-      await parent.getByRole("link", { name: "Góc học của bé" }).click();
+      await parent
+        .getByRole("main")
+        .getByRole("link", { name: "Bài của con", exact: true })
+        .click();
       await parent
         .getByRole("link")
         .filter({ has: parent.getByRole("heading", { name: assignmentName }) })

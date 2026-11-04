@@ -140,7 +140,11 @@ export default function FamilyOverviewPanel({
               ))}
             </div>
           ) : (
-            <EmptyState title="Chưa có buổi sắp học trong khoảng này">
+            <EmptyState
+              title="Chưa có buổi sắp học trong khoảng này"
+              icon="calendar"
+              compact
+            >
               Lịch đã hủy không xuất hiện trong các buổi sắp tới.
             </EmptyState>
           )}
@@ -176,7 +180,11 @@ export default function FamilyOverviewPanel({
               ))}
             </div>
           ) : (
-            <EmptyState title="Chưa có phản hồi trong lịch sử">
+            <EmptyState
+              title="Chưa có phản hồi trong lịch sử"
+              icon="message"
+              compact
+            >
               Phản hồi của cô sẽ xuất hiện sau khi xem sản phẩm đã gửi.
             </EmptyState>
           )}
@@ -215,7 +223,11 @@ export default function FamilyOverviewPanel({
             ))}
           </div>
         ) : (
-          <EmptyState title="Chưa có thông báo được chia sẻ">
+          <EmptyState
+            title="Chưa có thông báo được chia sẻ"
+            icon="megaphone"
+            compact
+          >
             Bảng tin hiển thị theo quyền lớp hiện tại của bé.
           </EmptyState>
         )}

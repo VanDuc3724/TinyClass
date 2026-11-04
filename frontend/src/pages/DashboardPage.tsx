@@ -144,7 +144,7 @@ export default function DashboardPage() {
                   {
                     label: "Sản phẩm chờ duyệt",
                     value: data.pendingSubmissions,
-                    icon: "check",
+                    icon: "message",
                     tone: "pink",
                     note: "Gia đình đã gửi, chờ cô xem",
                   },
@@ -202,7 +202,7 @@ export default function DashboardPage() {
                 lại.
               </p>
             )}
-            <section className="panel">
+            <section className={`panel ${styles.summaryPanel}`}>
               <div className="section-heading">
                 <div>
                   <h2>Lịch dạy hôm nay</h2>
@@ -230,19 +230,13 @@ export default function DashboardPage() {
                 <EmptyState
                   title="Hôm nay chưa có buổi trong lịch"
                   icon="calendar"
+                  compact
                 >
                   Cô có thể tạo lịch tuần cho lớp hoặc thêm một buổi học riêng.
                 </EmptyState>
               )}
             </section>
-            <BillingOverviewPanel data={data.billing} classId={classId} />
-            <UpdatesOverviewPanel
-              key={classId || "all"}
-              data={data.updates}
-              root="/teacher"
-              onRefresh={resource.reload}
-            />
-            <div className={styles.columns}>
+            <div className={`${styles.columns} ${styles.columnsSpaced}`}>
               <section className="panel">
                 <div className="section-heading">
                   <div>
@@ -299,10 +293,11 @@ export default function DashboardPage() {
                   <EmptyState
                     title="Hôm nay đang chờ những khám phá mới"
                     icon="book"
+                    compact
                   >
                     {classId
                       ? "Chưa có bài được xuất bản cho lớp này hôm nay. Bạn có thể giao một hoạt động từ thư viện."
-                      : "Bạn chưa xuất bản bài học hay giao bài hôm nay. Bắt đầu từ những thao tác nhanh bên cạnh."}
+                      : "Bạn chưa xuất bản bài học hay giao bài hôm nay. Bắt đầu từ mục Thao tác nhanh."}
                   </EmptyState>
                 )}
               </section>
@@ -346,14 +341,14 @@ export default function DashboardPage() {
                     [
                       "Phiếu học phí",
                       "Theo dõi các phiếu còn phải thu",
-                      "book",
+                      "receipt",
                       "pink",
                       `/teacher/invoices?collection=OPEN${classId ? `&classId=${classId}` : ""}`,
                     ],
                     [
                       "Thông báo lớp",
                       "Xem và soạn thông tin cho gia đình",
-                      "bell",
+                      "megaphone",
                       "purple",
                       `/teacher/announcements${classId ? `?classId=${classId}` : ""}`,
                     ],
@@ -378,7 +373,14 @@ export default function DashboardPage() {
                 </div>
               </aside>
             </div>
-            <section className={`panel ${styles.classesPanel}`}>
+            <BillingOverviewPanel data={data.billing} classId={classId} />
+            <UpdatesOverviewPanel
+              key={classId || "all"}
+              data={data.updates}
+              root="/teacher"
+              onRefresh={resource.reload}
+            />
+            <section className="panel">
               <div className="section-heading">
                 <div>
                   <h2>{selectedClass ? "Lớp đang xem" : "Lớp học của bạn"}</h2>

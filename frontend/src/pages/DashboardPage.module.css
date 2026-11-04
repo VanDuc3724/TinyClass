@@ -190,6 +190,10 @@
     align-items: start;
     gap: 24px;
   }
+  /* Teacher dashboard: its column panels carry no margin of their own, unlike summary panels. */
+  .columnsSpaced {
+    margin-bottom: 24px;
+  }
   .todayTag {
     padding: 4px 12px;
     border-radius: 999px;
@@ -289,9 +293,6 @@
     border-radius: 12px;
     font-size: 12px;
   }
-  .classesPanel {
-    margin-top: 24px;
-  }
   .classList {
     padding: 0 24px 8px;
   }
@@ -337,6 +338,10 @@
     }
     .columns {
       grid-template-columns: 1fr;
+    }
+    /* Stacked: the shortcuts are the reason to open the page, so they lead. */
+    .columns > .quickActions {
+      order: -1;
     }
   }
   @media (max-width: 767px) {

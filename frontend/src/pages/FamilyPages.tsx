@@ -207,68 +207,30 @@ export function FamilyChildPage() {
           className="family-profile-actions"
           aria-label="Theo dõi hoạt động của bé"
         >
-          <Link
-            className="button button-ghost"
-            to={`/family/children/${id}/announcements`}
-          >
-            Thông báo lớp
-          </Link>
-          <Link
-            className="button button-ghost"
-            to={`/family/children/${id}/invoices`}
-          >
-            Phiếu học phí
-          </Link>
-          <Link
-            className="button button-ghost"
-            to={`/family/children/${id}/tuition`}
-          >
-            <Icon name="book" />
-            Điều kiện học phí
-          </Link>
-          <Link
-            className="button button-ghost"
-            to={`/family/children/${id}/progress`}
-          >
-            <Icon name="leaf" />
-            Nhận xét & tiến bộ
-          </Link>
-          <Link
-            className="button button-primary"
-            to={`/family/children/${id}/learning`}
-          >
-            <Icon name="book" />
-            Góc học của bé
-          </Link>
-          <Link
-            className="button button-ghost"
-            to={`/family/children/${id}/submissions`}
-          >
-            <Icon name="check" />
-            Sản phẩm & phản hồi
-          </Link>
-          <Link
-            className="button button-ghost"
-            to={`/family/children/${id}/schedule`}
-          >
-            <Icon name="calendar" />
-            Lịch học của bé
-          </Link>
-          <Link
-            className="button button-ghost"
-            to={`/family/children/${id}/attendance`}
-          >
-            <Icon name="check" />
-            Điểm danh của bé
-          </Link>
+          {/* Same names, icons and order as the family menu. */}
+          {(
+            [
+              ["learning", "book", "Bài của con"],
+              ["submissions", "message", "Sản phẩm & phản hồi"],
+              ["progress", "leaf", "Nhận xét & tiến bộ"],
+              ["schedule", "calendar", "Lịch học"],
+              ["attendance", "check", "Điểm danh của bé"],
+              ["invoices", "receipt", "Phiếu học phí"],
+              ["tuition", "wallet", "Điều kiện học phí"],
+              ["announcements", "megaphone", "Thông báo lớp"],
+            ] as const
+          ).map(([path, icon, label]) => (
+            <Link
+              key={path}
+              className={`button ${path === "learning" ? "button-primary" : "button-ghost"}`}
+              to={`/family/children/${id}/${path}`}
+            >
+              <Icon name={icon} />
+              {label}
+            </Link>
+          ))}
         </nav>
       </div>
-      <section className="panel details-panel">
-        <h2>Tổng quan của bé</h2>
-        <p className="muted">
-          Bài học, lịch, phản hồi và học phí theo quyền hiện tại.
-        </p>
-      </section>
       <FamilyOverviewPanel
         key={child.id}
         data={overview}
@@ -297,11 +259,14 @@ export function FamilyChildPage() {
           </div>
         </dl>
       </section>
-      <PageHeader
-        eyebrow="ĐỒNG HÀNH MỖI NGÀY"
-        title="Lớp học của bé"
-        description="Các lớp đã mở và được cấp quyền theo hồ sơ của bé."
-      />
+      <div className="section-heading section-heading-plain">
+        <div>
+          <h2>Lớp học của bé</h2>
+          <p className="muted">
+            Các lớp đã mở và được cấp quyền theo hồ sơ của bé.
+          </p>
+        </div>
+      </div>
       {classes.data.length ? (
         <div className="class-grid">
           {classes.data.map((classroom) => (

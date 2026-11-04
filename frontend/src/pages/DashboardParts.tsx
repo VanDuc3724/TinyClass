@@ -23,6 +23,10 @@ export function BillingOverviewPanel({
     ? `/family/children/${child}/invoices`
     : "/teacher/invoices";
   const filter = classId ? `&classId=${classId}` : "";
+  // Four zero metrics say nothing the empty state does not; keep them for any real amount.
+  const idle =
+    data.openInvoiceCount === 0 &&
+    (!!child || BigInt(data.receivedThisMonthVnd) === 0n);
   return (
     <section
       className={`panel ${styles.summaryPanel}`}
@@ -42,35 +46,37 @@ export function BillingOverviewPanel({
           {child ? "Xem phiếu của bé" : "Xem phiếu còn phải thu"}
         </Link>
       </div>
-      <dl className={styles.metrics}>
-        <div>
-          <dt>{child ? "Còn cần thanh toán" : "Còn phải thu"}</dt>
-          <dd>{aggregateMoney(data.outstandingAmountVnd)}</dd>
-        </div>
-        <div>
-          <dt>Phiếu còn phải thu</dt>
-          <dd>{data.openInvoiceCount}</dd>
-        </div>
-        <div>
-          <dt>Phiếu quá hạn</dt>
-          <dd>{data.overdueInvoiceCount}</dd>
-          {!child && (
-            <Link to={`${root}?collection=OVERDUE${filter}`}>
-              Xem phiếu quá hạn
-            </Link>
-          )}
-        </div>
-        {!child && (
+      {!idle && (
+        <dl className={styles.metrics}>
           <div>
-            <dt>Đã ghi nhận tháng này</dt>
-            <dd>{aggregateMoney(data.receivedThisMonthVnd)}</dd>
-            <small>
-              Từ {dateLabel(data.monthStart)} · theo ngày nhận tiền, bỏ khoản đã
-              hủy bản ghi
-            </small>
+            <dt>{child ? "Còn cần thanh toán" : "Còn phải thu"}</dt>
+            <dd>{aggregateMoney(data.outstandingAmountVnd)}</dd>
           </div>
-        )}
-      </dl>
+          <div>
+            <dt>Phiếu còn phải thu</dt>
+            <dd>{data.openInvoiceCount}</dd>
+          </div>
+          <div>
+            <dt>Phiếu quá hạn</dt>
+            <dd>{data.overdueInvoiceCount}</dd>
+            {!child && (
+              <Link to={`${root}?collection=OVERDUE${filter}`}>
+                Xem phiếu quá hạn
+              </Link>
+            )}
+          </div>
+          {!child && (
+            <div>
+              <dt>Đã ghi nhận tháng này</dt>
+              <dd>{aggregateMoney(data.receivedThisMonthVnd)}</dd>
+              <small>
+                Từ {dateLabel(data.monthStart)} · theo ngày nhận tiền, bỏ khoản
+                đã hủy bản ghi
+              </small>
+            </div>
+          )}
+        </dl>
+      )}
       {data.dueInvoices.length ? (
         <div className={styles.previewList}>
           {data.dueInvoices.map((invoice) => (
@@ -97,7 +103,11 @@ export function BillingOverviewPanel({
           ))}
         </div>
       ) : (
-        <EmptyState title="Không có phiếu còn phải thu">
+        <EmptyState
+          title="Không có phiếu còn phải thu"
+          icon="receipt"
+          compact
+        >
           Các khoản chưa phát hành hoặc đã hủy không được tính là khoản phải
           thu.
         </EmptyState>
@@ -190,7 +200,7 @@ export function UpdatesOverviewPanel({
           ))}
         </div>
       ) : (
-        <EmptyState title="Chưa có cập nhật để xem">
+        <EmptyState title="Chưa có cập nhật để xem" icon="clock" compact>
           Các thay đổi bạn còn quyền đọc sẽ xuất hiện tại đây.
         </EmptyState>
       )}
