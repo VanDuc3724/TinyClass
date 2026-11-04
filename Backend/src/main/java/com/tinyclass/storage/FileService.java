@@ -94,7 +94,7 @@ public class FileService {
         String claimed=normalizeMime(Objects.toString(part.getContentType(),"application/octet-stream").split(";")[0]);
         if(kind==null||!kind.extensions().contains(extension)||(!"application/octet-stream".equals(claimed)&&!mime.equals(claimed)))
             throw problem(HttpStatus.BAD_REQUEST,"UNSUPPORTED_FILE_TYPE","Định dạng/nội dung tệp không khớp. Dùng ảnh, PDF, MP3/WAV/OGG, MP4 hoặc WebM.");
-        if(part.getSize()>kind.limit()) throw problem(HttpStatus.PAYLOAD_TOO_LARGE,"FILE_TOO_LARGE","Tệp vượt quá giới hạn cho định dạng này.");
+        if(part.getSize()>kind.limit()) throw problem(HttpStatus.CONTENT_TOO_LARGE,"FILE_TOO_LARGE","Tệp vượt quá giới hạn cho định dạng này.");
         if("PROFILE_ASSET".equals(purpose)&&!mime.startsWith("image/")) throw problem(HttpStatus.BAD_REQUEST,"INVALID_PROFILE_FILE","Ảnh hồ sơ phải là tệp ảnh.");
         if("SUBMISSION_ASSET".equals(purpose)&&!responses.contains(responseType(mime)))
             throw problem(HttpStatus.BAD_REQUEST,"RESPONSE_TYPE_NOT_ALLOWED","Loại tệp này không nằm trong yêu cầu của bài. Chọn ảnh, âm thanh hoặc video cô cho phép.");

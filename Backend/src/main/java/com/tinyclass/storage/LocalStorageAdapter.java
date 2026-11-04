@@ -41,7 +41,7 @@ public class LocalStorageAdapter implements StorageAdapter {
             try (var output = Files.newOutputStream(temporary)) {
                 while ((read = source.read(buffer)) != -1) {
                     size += read;
-                    if (size > limit) throw new ApiException(HttpStatus.PAYLOAD_TOO_LARGE, "FILE_TOO_LARGE", "Tệp vượt quá giới hạn cho phép.");
+                    if (size > limit) throw new ApiException(HttpStatus.CONTENT_TOO_LARGE, "FILE_TOO_LARGE", "Tệp vượt quá giới hạn cho phép.");
                     digest.update(buffer, 0, read); output.write(buffer, 0, read);
                 }
             }

@@ -21,7 +21,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
     ResponseEntity<ApiError> handleUploadSize(HttpServletRequest request) {
-        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(ApiError.of("FILE_TOO_LARGE", "Tệp vượt quá giới hạn upload.", request));
+        return ResponseEntity.status(HttpStatus.CONTENT_TOO_LARGE).body(ApiError.of("FILE_TOO_LARGE", "Tệp vượt quá giới hạn upload.", request));
     }
 
     @ExceptionHandler({org.springframework.web.multipart.support.MissingServletRequestPartException.class,
