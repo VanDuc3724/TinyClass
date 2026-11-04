@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import {
   Link,
   NavLink,
@@ -154,9 +154,19 @@ export default function AppLayout() {
   }
   function changeChild(id: string) {
     setRememberedChild(id);
-    navigate(
-      `/family/children/${id}${location.pathname.includes("/learning") ? "/learning" : location.pathname.includes("/schedule") ? "/schedule" : location.pathname.includes("/attendance") ? "/attendance" : location.pathname.includes("/progress") ? "/progress" : location.pathname.includes("/tuition") ? "/tuition" : location.pathname.includes("/invoices") ? "/invoices" : location.pathname.includes("/announcements") ? "/announcements" : ""}`,
-    );
+    // Stay in the same section for the other child; detail pages fall back to that section's list.
+    const section =
+      [
+        "/learning",
+        "/schedule",
+        "/attendance",
+        "/progress",
+        "/tuition",
+        "/invoices",
+        "/announcements",
+        "/submissions",
+      ].find((path) => location.pathname.includes(path)) || "";
+    navigate(`/family/children/${id}${section}`);
   }
   const navigation = (
     <>
@@ -187,33 +197,14 @@ export default function AppLayout() {
           <Icon name="home" />
           {teacher ? "Tổng quan" : "Trang chủ"}
         </NavLink>
+        <NavLink to={`${root}/updates`}>
+          <Icon name="clock" />
+          Cập nhật của bạn
+        </NavLink>
+        {/* Groups follow how often each task comes up: daily work first, monthly billing last. */}
         {teacher ? (
           <>
-            <NavLink to="/teacher/classes">
-              <Icon name="classes" />
-              Lớp học
-            </NavLink>
-            <NavLink to="/teacher/students">
-              <Icon name="students" />
-              Học sinh
-            </NavLink>
-            <p className={styles.groupLabel}>HỌC LIỆU</p>
-            <NavLink to="/teacher/library">
-              <Icon name="book" />
-              Thư viện học liệu
-            </NavLink>
-            <NavLink to="/teacher/files">
-              <Icon name="upload" />
-              Kho tài liệu
-            </NavLink>
-            <NavLink to="/teacher/assignments">
-              <Icon name="arrow" />
-              Giao bài
-            </NavLink>
-            <NavLink to="/teacher/reviews">
-              <Icon name="check" />
-              Phản hồi
-            </NavLink>
+            <p className={styles.groupLabel}>GIẢNG DẠY</p>
             <NavLink to="/teacher/schedule">
               <Icon name="calendar" />
               Lịch dạy
@@ -222,13 +213,55 @@ export default function AppLayout() {
               <Icon name="check" />
               Điểm danh
             </NavLink>
-            <NavLink to="/teacher/invoices">
+            <NavLink to="/teacher/reviews">
+              <Icon name="message" />
+              Phản hồi
+            </NavLink>
+            <p className={styles.groupLabel}>LỚP HỌC</p>
+            <NavLink to="/teacher/classes">
+              <Icon name="classes" />
+              Lớp học
+            </NavLink>
+            <NavLink to="/teacher/students">
+              <Icon name="students" />
+              Học sinh
+            </NavLink>
+            <NavLink to="/teacher/announcements">
+              <Icon name="megaphone" />
+              Thông báo lớp
+            </NavLink>
+            <p className={styles.groupLabel}>HỌC LIỆU</p>
+            <NavLink to="/teacher/library">
               <Icon name="book" />
+              Thư viện học liệu
+            </NavLink>
+            <NavLink to="/teacher/assignments">
+              <Icon name="arrow" />
+              Giao bài
+            </NavLink>
+            <NavLink to="/teacher/files">
+              <Icon name="upload" />
+              Kho tài liệu
+            </NavLink>
+            <p className={styles.groupLabel}>HỌC PHÍ</p>
+            <NavLink to="/teacher/invoices">
+              <Icon name="receipt" />
               Phiếu học phí
             </NavLink>
           </>
         ) : (
           <>
+            <NavLink
+              to={
+                selectedChild
+                  ? `/family/children/${selectedChild}/announcements`
+                  : "/family"
+              }
+            >
+              <Icon name="megaphone" />
+              Thông báo lớp
+            </NavLink>
+            <p className={styles.groupLabel}>HỌC TẬP</p>
             <NavLink
               to={learningLink}
               className={
@@ -238,6 +271,19 @@ export default function AppLayout() {
               <Icon name="book" />
               Bài của con
             </NavLink>
+            {selectedChild && (
+              <NavLink to={`/family/children/${selectedChild}/submissions`}>
+                <Icon name="message" />
+                Sản phẩm & phản hồi
+              </NavLink>
+            )}
+            {selectedChild && (
+              <NavLink to={`/family/children/${selectedChild}/progress`}>
+                <Icon name="leaf" />
+                Nhận xét & tiến bộ
+              </NavLink>
+            )}
+            <p className={styles.groupLabel}>LỊCH HỌC</p>
             <NavLink
               to={
                 selectedChild
@@ -255,41 +301,20 @@ export default function AppLayout() {
               </NavLink>
             )}
             {selectedChild && (
-              <NavLink to={`/family/children/${selectedChild}/progress`}>
-                <Icon name="leaf" />
-                Nhận xét & tiến bộ
-              </NavLink>
-            )}
-            {selectedChild && (
-              <NavLink to={`/family/children/${selectedChild}/tuition`}>
-                <Icon name="book" />
-                Điều kiện học phí
-              </NavLink>
-            )}
-            {selectedChild && (
-              <NavLink to={`/family/children/${selectedChild}/invoices`}>
-                <Icon name="book" />
-                Phiếu học phí
-              </NavLink>
+              <>
+                <p className={styles.groupLabel}>HỌC PHÍ</p>
+                <NavLink to={`/family/children/${selectedChild}/invoices`}>
+                  <Icon name="receipt" />
+                  Phiếu học phí
+                </NavLink>
+                <NavLink to={`/family/children/${selectedChild}/tuition`}>
+                  <Icon name="wallet" />
+                  Điều kiện học phí
+                </NavLink>
+              </>
             )}
           </>
         )}
-        <NavLink
-          to={
-            teacher
-              ? "/teacher/announcements"
-              : selectedChild
-                ? `/family/children/${selectedChild}/announcements`
-                : "/family"
-          }
-        >
-          <Icon name="bell" />
-          Thông báo lớp
-        </NavLink>
-        <NavLink to={`${root}/updates`}>
-          <Icon name="clock" />
-          Cập nhật của bạn
-        </NavLink>
       </nav>
       <div className={styles.sidebarBottom}>
         <div className={styles.mascot}>
@@ -443,7 +468,9 @@ export default function AppLayout() {
               Hành trình của <strong>{child.fullName}</strong>
             </p>
           )}
-          <Outlet />
+          <Suspense fallback={<Loading />}>
+            <Outlet />
+          </Suspense>
         </main>
         <footer className={styles.footer}>
           <span>TinyClass</span>
@@ -469,10 +496,12 @@ export default function AppLayout() {
               <span>Lịch học</span>
             </NavLink>
           )}
-          <NavLink to="/family/account">
-            <Icon name="user" />
-            <span>Tài khoản</span>
-          </NavLink>
+          {selectedChild && (
+            <NavLink to={`/family/children/${selectedChild}/invoices`}>
+              <Icon name="receipt" />
+              <span>Học phí</span>
+            </NavLink>
+          )}
         </nav>
       )}
     </div>

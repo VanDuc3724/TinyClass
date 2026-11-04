@@ -41,7 +41,11 @@ type IconName =
   | "settings"
   | "user"
   | "chevron"
-  | "upload";
+  | "upload"
+  | "megaphone"
+  | "receipt"
+  | "wallet"
+  | "message";
 const paths: Record<IconName, ReactNode> = {
   bell: (
     <>
@@ -145,6 +149,30 @@ const paths: Record<IconName, ReactNode> = {
     <>
       <rect x="3" y="5" width="18" height="16" rx="2" />
       <path d="M7 3v4m10-4v4M3 11h18m-13 5h2m4 0h2" />
+    </>
+  ),
+  megaphone: (
+    <>
+      <path d="M4 10v4h3l8 4V6l-8 4Z" />
+      <path d="M19 9a4 4 0 0 1 0 6M7 14l1 6h3l-1-5" />
+    </>
+  ),
+  receipt: (
+    <>
+      <path d="M6 3h12v18l-3-2-3 2-3-2-3 2Z" />
+      <path d="M9 8h6M9 12h6M9 16h3" />
+    </>
+  ),
+  wallet: (
+    <>
+      <rect x="3" y="6" width="18" height="14" rx="2" />
+      <path d="M3 10h18M16 15h2" />
+    </>
+  ),
+  message: (
+    <>
+      <path d="M4 5h16v11H9l-5 4Z" />
+      <path d="M8 9h8M8 12h5" />
     </>
   ),
 };
