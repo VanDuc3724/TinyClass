@@ -9,9 +9,9 @@ Nguồn yêu cầu: [spec sản phẩm](../spec/01-product.md), [quyết định
 | Spec tổng quan và bộ spec/plan theo module | Đã có tài liệu để review |
 | Khởi tạo React và Spring Boot | Đã có trong `frontend/` và `Backend/` |
 | Frontend build | Lượt kiểm tra gần nhất thành công với `npm.cmd run build` |
-| Backend compile/verify | Wrapper verify thành công, 196 test đạt |
-| Runtime/database | Local/test PostgreSQL và Mailpit riêng; V1–V17 từ schema rỗng, nâng V1, V7, V8, V9, V10, V11, V12, V15 và V16 có dữ liệu đạt |
-| React/tài khoản/lớp/gia đình | UI/API thật; LOCAL/bài/khóa/giao/học/sản phẩm/phản hồi/lịch dạy/điểm danh/nhận xét cùng các luồng cũ; 44 E2E đạt |
+| Backend compile/verify | Wrapper verify thành công, 214 test đạt |
+| Runtime/database | Local/test PostgreSQL và Mailpit riêng; V1–V20 từ schema rỗng, nâng V1, V7, V8, V9, V10, V11, V12, V15, V16, V18 và V19 có dữ liệu đạt |
+| React/tài khoản/lớp/gia đình | UI/API thật; các module trước cùng ba kiểu trò chơi; 47 E2E đạt |
 | Google | TC-009 có UI/API, protocol/E2E với OIDC thử nghiệm; còn nghiệm thu Google thật |
 | Học liệu | TC-010/012/013/014/015/016 hoàn thành: LOCAL/xem/xác nhận, nộp/duyệt, âm thanh, mở vòng mới và lịch sử; TC-011 Drive chưa triển khai |
 | Lịch/phí và email ngoài | TC-017–025 có lịch, điểm danh, nhận xét, học phí, bảng tin/cập nhật và tổng quan cô/gia đình theo quyền nguồn; học bù tạm hoãn, chưa Drive/SMTP ngoài |
@@ -29,6 +29,7 @@ Không cần tạo lại project hoặc cài lại frontend từ đầu để b�
 | G2 — học liệu và học ở nhà | TC-010 đến TC-016 | Hai kho lưu, bài/khóa, giao nội dung, sản phẩm và phản hồi | Trọn luồng qua cả hai kho; xem/tải đúng quyền; tiến độ đúng và rời lớp dừng nội dung |
 | G3 — quản lý dạy tại nhà | TC-017 đến TC-025 | Lịch, điểm danh, nhận xét, học phí, thông báo và dashboard; học bù tạm hoãn | Quản lý một lớp thật bằng dữ liệu giả qua frontend/API; không tính trùng buổi/tiền |
 | G4 — chạy thử/phát hành | TC-026 đến TC-028 | Kiểm thử tích hợp, cấu hình triển khai, backup/restore, hướng dẫn | Các AC trong phạm vi phát hành đạt; có kiểm tra phục hồi và danh sách giới hạn thực tế |
+| G5 — góc chơi mở rộng | TC-029 | CHOICE/MATCH/MEMORY, kho soạn/chơi thử/giao, kết quả và bộ sưu tập | DONE theo [nghiệm thu](../verification/2026-11-08-games.md); G4 vẫn có phạm vi riêng |
 
 ```mermaid
 flowchart LR

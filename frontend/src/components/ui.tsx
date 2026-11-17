@@ -19,6 +19,7 @@ import styles from "./ui.module.css";
 import { trapDialogFocus } from "../lib/accessibility";
 
 type IconName =
+  | "game"
   | "home"
   | "bell"
   | "classes"
@@ -45,8 +46,15 @@ type IconName =
   | "megaphone"
   | "receipt"
   | "wallet"
-  | "message";
+  | "message"
+  | "filter";
 const paths: Record<IconName, ReactNode> = {
+  game: (
+    <>
+      <path d="M7 7h10a4 4 0 0 1 4 3l1 7a2 2 0 0 1-3.3 1.8L15 16H9l-3.7 2.8A2 2 0 0 1 2 17l1-7a4 4 0 0 1 4-3Z" />
+      <path d="M7 10v5m-2.5-2.5h5M16 11h.01M19 14h.01" />
+    </>
+  ),
   bell: (
     <>
       <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
@@ -175,6 +183,7 @@ const paths: Record<IconName, ReactNode> = {
       <path d="M8 9h8M8 12h5" />
     </>
   ),
+  filter: <path d="M4 5h16l-6 7.5V18l-4 2v-7.5Z" />,
 };
 export function Icon({
   name,
@@ -365,7 +374,11 @@ export function EmptyState({
   return (
     <div className={`${styles.empty} ${compact ? styles.emptyCompact : ""}`}>
       <span className={styles.emptyIcon}>
-        <Icon name={icon} width={compact ? 22 : 30} height={compact ? 22 : 30} />
+        <Icon
+          name={icon}
+          width={compact ? 22 : 30}
+          height={compact ? 22 : 30}
+        />
       </span>
       <h3>{title}</h3>
       <p>{children}</p>
@@ -378,14 +391,19 @@ export function PageHeader({
   title,
   description,
   action,
+  hero = false,
 }: {
   eyebrow: string;
   title: string;
   description?: string;
   action?: ReactNode;
+  /** Home pages: the greeting sits on a lit card instead of the bare canvas. */
+  hero?: boolean;
 }) {
   return (
-    <div className={`page-heading ${styles.pageHeader}`}>
+    <div
+      className={`page-heading ${styles.pageHeader} ${hero ? styles.hero : ""}`}
+    >
       <div>
         <p className="eyebrow">{eyebrow}</p>
         <h1>{title}</h1>

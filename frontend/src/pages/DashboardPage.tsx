@@ -62,6 +62,7 @@ export default function DashboardPage() {
   return (
     <>
       <PageHeader
+        hero
         eyebrow="GÓC GIÁO VIÊN"
         title={`Xin chào, ${account!.displayName}!`}
         description="Cùng chuẩn bị một ngày nhiều khám phá cho lớp nhỏ."

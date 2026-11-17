@@ -144,7 +144,7 @@
     margin: 16px 0;
     background: var(--tc-success-soft);
     color: var(--tc-success);
-    border: 1px solid var(--tc-success);
+    border: 1px solid color-mix(in srgb, var(--tc-success) 28%, transparent);
   }
   .information {
     padding: 16px 20px;
@@ -152,7 +152,7 @@
     margin: 16px 0;
     background: var(--tc-info-soft);
     color: var(--tc-info);
-    border: 1px solid var(--tc-info);
+    border: 1px solid color-mix(in srgb, var(--tc-info) 28%, transparent);
   }
   .warning {
     padding: 16px 20px;
@@ -160,7 +160,7 @@
     margin: 16px 0;
     background: var(--tc-warning-soft);
     color: var(--tc-warning);
-    border: 1px solid var(--tc-warning);
+    border: 1px solid color-mix(in srgb, var(--tc-warning) 28%, transparent);
   }
   .empty {
     padding: 24px;
@@ -178,7 +178,10 @@
     padding: 20px;
     margin-bottom: 24px;
   }
-  .filterPanel > p {
+  .filterHeading {
+    display: none;
+  }
+  .filterContent > p {
     font-size: 14px;
     margin: 16px 0 0;
   }
@@ -239,22 +242,32 @@
   .familyRow > button {
     margin-top: 8px;
   }
-  .sharedNote {
-    background: var(--tc-primary-soft);
-    border-radius: 12px;
-    padding: 16px;
-    margin-top: 16px;
-  }
-  .sharedNote strong {
-    font-size: 14px;
-    color: var(--tc-primary);
-  }
   @media (max-width: 1199px) {
     .roster {
       grid-template-columns: 1fr;
     }
   }
   @media (max-width: 767px) {
+    .filterPanel {
+      padding: 16px;
+    }
+    .filterHeading {
+      display: flex;
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .filterHeading p {
+      margin: 0;
+      font-size: 14px;
+    }
+    .filterContent {
+      display: none;
+    }
+    .filterContent.filterOpen {
+      display: block;
+      margin-top: 20px;
+    }
     .summary {
       gap: 8px;
     }

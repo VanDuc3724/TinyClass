@@ -172,6 +172,57 @@ class LearningTests {
             assertThat(p.get("/family/children/"+child+"/assignments/"+refId).data().path("completionPercent").isNull()).isTrue();
         }
     }
+    @Test void progressSummariesStayScopedAcrossAssignmentsRecipientsAndOptionalItems() throws Exception {
+        try(var t=login(TEACHER);var p=login(PARENT)) {
+            String first=child(t,"First progress child"),second=child(t,"Second progress child"),c=classroom(t,first);
+            assertThat(t.post("/classes/"+c+"/enrollments",Map.of("studentId",second)).status()).isEqualTo(201);
+            String required=lesson(t,"Required one"),requiredTwo=lesson(t,"Required two"),optional=lesson(t,"Optional activity");
+            var referenceBody=lessonBody("Reference activity");referenceBody.put("defaultCompletionMode","REFERENCE");
+            String reference=t.post("/lessons",referenceBody).data().path("id").stringValue();
+            assertThat(t.post("/lessons/"+reference+"/publish",Map.of("version",0)).status()).isEqualTo(200);
+            var course=t.post("/courses",Map.of("title","Mixed requirements","lessons",List.of(
+                    Map.of("lessonId",required,"isRequired",true),Map.of("lessonId",requiredTwo,"isRequired",true),
+                    Map.of("lessonId",optional,"isRequired",false),Map.of("lessonId",reference,"isRequired",false))));
+            assertThat(course.status()).isEqualTo(201);String courseId=course.data().path("id").stringValue();
+            assertThat(t.post("/courses/"+courseId+"/publish",Map.of("version",0)).status()).isEqualTo(200);
+            var draft=t.post("/assignments",assignmentBody("COURSE",courseId,"CLASS",c,Instant.now().minusSeconds(1)));
+            assertThat(draft.status()).isEqualTo(201);String shared=draft.data().path("id").stringValue();
+            var published=t.post("/assignments/"+shared+"/publish",Map.of("version",0));assertThat(published.status()).isEqualTo(200);
+            for(var recipient:published.data().path("recipients"))assertProgress(recipient,2,0,0);
+            var items=published.data().path("items");
+            for(int i=0;i<3;i++)assertThat(p.post(familyItem(second,items.get(i).path("id").stringValue())+"/confirm",Map.of()).status()).isEqualTo(200);
+            for(int i:List.of(0,2))assertThat(p.post(familyItem(first,items.get(i).path("id").stringValue())+"/confirm",Map.of()).status()).isEqualTo(200);
+            String repeated=assignment(t,required,first,true).path("id").stringValue();
+            String referenceOnly=assignment(t,reference,first,true).path("id").stringValue();
+            String otherAssignment=assignment(t,required,second,true).path("id").stringValue();
+
+            var listed=p.get("/family/children/"+first+"/assignments");assertThat(listed.status()).isEqualTo(200);
+            assertThat(listed.data().size()).isEqualTo(3);assertThat(listed.body().toString()).doesNotContain(otherAssignment,second);
+            var byAssignment=new HashMap<String,JsonNode>();for(var row:listed.data())byAssignment.put(row.path("id").stringValue(),row);
+            assertProgress(byAssignment.get(shared),2,1,50);assertProgress(byAssignment.get(repeated),1,0,0);
+            assertProgress(byAssignment.get(referenceOnly),0,0,null);
+            var recipients=t.get("/assignments/"+shared).data().path("recipients");
+            var byChild=new HashMap<String,JsonNode>();for(var row:recipients)byChild.put(row.path("studentId").stringValue(),row);
+            assertProgress(byChild.get(first),2,1,50);assertProgress(byChild.get(second),2,2,100);
+            assertProgress(t.get("/assignments/"+referenceOnly).data().path("recipients").get(0),0,0,null);
+
+            var page=p.get("/family/children/"+first+"/assignments?size=1&page=0");assertThat(page.data().size()).isEqualTo(1);
+            assertThat(page.body().path("meta").path("totalElements").intValue()).isEqualTo(3);
+            assertThat(p.get("/family/children/"+first+"/assignments?size=1&page=3").data().size()).isZero();
+            jdbc.update("update student_guardians set status='REVOKED' where student_id=? and guardian_user_id=?",UUID.fromString(second),parentId);
+            assertThat(p.get("/family/children/"+second+"/assignments").status()).isEqualTo(404);
+            assertThat(p.get("/family/children/"+first+"/assignments").data().size()).isEqualTo(3);
+            jdbc.update("update assignment_recipients set revoked_at=now(),revoke_reason='Synthetic revocation' where assignment_id=? and student_id=?",UUID.fromString(shared),UUID.fromString(second));
+            var history=t.get("/assignments/"+shared).data().path("recipients");assertThat(history.size()).isEqualTo(2);
+            for(var recipient:history)if(second.equals(recipient.path("studentId").stringValue()))assertProgress(recipient,2,2,100);
+        }
+    }
+    private void assertProgress(JsonNode row,int required,int completed,Integer percent) {
+        assertThat(row).isNotNull();assertThat(row.path("requiredItems").intValue()).isEqualTo(required);
+        assertThat(row.path("completedItems").intValue()).isEqualTo(completed);
+        if(percent==null)assertThat(row.path("completionPercent").isNull()).isTrue();
+        else assertThat(row.path("completionPercent").intValue()).isEqualTo(percent);
+    }
     @Test void completedClassRemainsReadableButCannotConfirmAndRevocationDeniesNewRequests() throws Exception {
         try(var t=login(TEACHER);var p=login(PARENT)) {
             String l=lesson(t,"Activity"),child=child(t,"Child"),c=classroom(t,child);

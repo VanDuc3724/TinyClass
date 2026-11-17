@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { LinkedGamesPanel } from "./FamilyGamePages";
 import { Link, useParams } from "react-router-dom";
 import { api, apiUrl } from "../lib/api";
 import { useResource } from "../lib/hooks";
@@ -181,6 +182,9 @@ export function FamilyAssignmentPage() {
               trong lịch sử.
             </p>
           )}
+          {item.canInteract && (
+            <LinkedGamesPanel child={child!} assignment={assignment!} />
+          )}
           {item.items.map((lesson, index) => (
             <Link
               key={lesson.id}
@@ -289,6 +293,7 @@ export function FamilyLessonPage() {
         )}
       </section>
       <section className="panel editor-section completion-panel">
+        {lesson.canInteract && <LinkedGamesPanel child={child!} item={item!} />}
         <ErrorNotice error={error} />
         {lesson.progress?.reopenReason &&
           lesson.progress.status !== "COMPLETED" && (

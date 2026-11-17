@@ -1,21 +1,22 @@
 # TinyClass — Kho tài liệu, bài học và giao bài
 
-Cập nhật 02/11/2026. Phần này hoạt động bằng email/mật khẩu, không cần cấu hình Google. Phạm vi đã triển khai: TC-010/012/013/014; xem [báo cáo kiểm tra](verification/2026-11-02-learning.md).
+Cập nhật 04/11/2026. Phần này hoạt động bằng email/mật khẩu, không cần cấu hình Google. Phạm vi đã triển khai: TC-010/012/013/014; xem [báo cáo kiểm tra](verification/2026-11-02-learning.md).
 
 ## Chuẩn bị kho LOCAL
 
-Chạy backend/frontend theo [README](../README.md). Khi chạy backend từ Backend/, mặc định tệp nằm trong `.local/uploads/` ở thư mục gốc dự án; database chỉ chứa metadata, không chứa video BLOB. Thư mục này được gitignore, tách khỏi static/public, build và Vite.
+Chạy backend/frontend theo [README](../README.md). Tệp upload nằm trong PostgreSQL cùng metadata (bảng `file_chunks`, V19); không còn thư mục upload trên ổ đĩa.
 
 Có thể đặt trong `.env`:
 
 ```dotenv
-TINYCLASS_UPLOAD_ROOT=../.local/uploads
 TINYCLASS_STORAGE_QUOTA_BYTES=5368709120
 ```
 
-Đây là mặc định kỹ thuật 5 GiB cho giáo viên, có thể điều chỉnh theo ổ lưu/ngân sách. Khởi động lại backend sau khi sửa cấu hình. Production bắt buộc khai báo thư mục bền vững bằng biến môi trường. Khi đổi root, giữ/mang theo cây tệp đang có để các khóa trong database vẫn tìm đúng byte; thay biến không tự chuyển dữ liệu.
+Đây là mặc định kỹ thuật 5 GiB cho giáo viên, có thể điều chỉnh theo dung lượng database/ngân sách. Khởi động lại backend sau khi sửa cấu hình.
 
-Sao lưu database **và** thư mục upload cùng mốc. JAR không chứa học liệu. Không đặt thư mục upload trong public/static/dist/target hoặc trỏ qua symlink. Kiểm tra khôi phục và triển khai thực tế thuộc TC-027.
+Tệp upload trước V19 nằm trong `.local/uploads/`. Khi khởi động với profile local, backend chép từng tệp READY còn thiếu vào database nếu kích thước và SHA-256 khớp metadata rồi ghi log số tệp đã nhập. Tệp thiếu hoặc không khớp được cảnh báo trong log và vẫn trả STORAGE_UNAVAILABLE. Thư mục cũ chỉ được đọc; khi log không còn cảnh báo thì có thể xóa. Đặt `TINYCLASS_UPLOAD_ROOT` nếu thư mục cũ nằm chỗ khác.
+
+Sao lưu database là đủ cho cả metadata và tệp (ví dụ `pg_dump`); bản sao lớn theo dung lượng tệp. JAR không chứa học liệu. Kiểm tra khôi phục và triển khai thực tế thuộc TC-027.
 
 ## Giáo viên chuẩn bị học liệu
 
@@ -55,4 +56,4 @@ Tài liệu được phép tải hiện đường tải riêng. File xem/tải �
 
 ## Giới hạn hiện tại
 
-Nộp/duyệt sản phẩm đã có trong [hướng dẫn riêng](09-san-pham-va-phan-hoi.md); lịch dạy tại [hướng dẫn lịch](10-lich-day.md). Drive, điểm danh/bù, nhận xét định kỳ, học phí và thông báo theo [backlog](plan/02-backlog.md). Kho hiện chưa tự dọn tệp rời lâu ngày hoặc có giao diện xóa tệp; giữ metadata FAILED để theo dõi lỗi upload. Mất byte trong ổ lưu trả STORAGE_UNAVAILABLE, không xóa metadata hay tự đổi kho.
+Nộp/duyệt sản phẩm đã có trong [hướng dẫn riêng](09-san-pham-va-phan-hoi.md); lịch dạy tại [hướng dẫn lịch](10-lich-day.md). Drive, điểm danh/bù, nhận xét định kỳ, học phí và thông báo theo [backlog](plan/02-backlog.md). Kho hiện chưa tự dọn tệp rời lâu ngày hoặc có giao diện xóa tệp; giữ metadata FAILED để theo dõi lỗi upload. Thiếu khối byte trong database trả STORAGE_UNAVAILABLE, không xóa metadata hay tự đổi kho.

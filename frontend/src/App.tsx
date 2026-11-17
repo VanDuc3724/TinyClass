@@ -15,6 +15,28 @@ function lazyPage<K extends string, M extends Record<K, ComponentType<any>>>(
   return lazy(async () => ({ default: (await load())[name] }));
 }
 const DashboardPage = lazy(() => import("./pages/DashboardPage"));
+const TeacherGamesPage = lazyPage(
+  () => import("./pages/TeacherGamePages"),
+  "TeacherGamesPage",
+);
+const TeacherGameDetailPage = lazyPage(
+  () => import("./pages/TeacherGamePages"),
+  "TeacherGameDetailPage",
+);
+const TeacherGameAssignmentsPage = lazyPage(
+  () => import("./pages/TeacherGamePages"),
+  "TeacherGameAssignmentsPage",
+);
+const TeacherGameResultsPage = lazyPage(
+  () => import("./pages/TeacherGamePages"),
+  "TeacherGameResultsPage",
+);
+const GameEditorPage = lazy(() => import("./pages/GameEditorPage"));
+const GamePlayerPage = lazy(() => import("./pages/GamePlayerPage"));
+const FamilyGamesPage = lazyPage(
+  () => import("./pages/FamilyGamePages"),
+  "FamilyGamesPage",
+);
 const AttendanceWorkspacePage = lazy(
   () => import("./pages/AttendanceWorkspace"),
 );
@@ -128,7 +150,10 @@ const FamilyLessonPage = lazyPage(
   () => import("./pages/FamilyLearningPages"),
   "FamilyLessonPage",
 );
-const LibraryPage = lazyPage(() => import("./pages/LibraryPages"), "LibraryPage");
+const LibraryPage = lazyPage(
+  () => import("./pages/LibraryPages"),
+  "LibraryPage",
+);
 const LessonEditorPage = lazyPage(
   () => import("./pages/LibraryPages"),
   "LessonEditorPage",
@@ -167,10 +192,6 @@ const FamilyInvoiceListPage = lazyPage(
 const FamilyInvoiceDetailPage = lazyPage(
   () => import("./pages/InvoicePages"),
   "FamilyInvoiceDetailPage",
-);
-const FamilyAttendancePage = lazyPage(
-  () => import("./pages/AttendancePages"),
-  "FamilyAttendancePage",
 );
 const TeacherAttendancePage = lazyPage(
   () => import("./pages/AttendancePages"),
@@ -286,6 +307,22 @@ export default function App() {
             <Route element={<RequireAccount role="TEACHER" />}>
               <Route path="/teacher" element={<AppLayout />}>
                 <Route index element={<DashboardPage />} />
+                <Route path="games" element={<TeacherGamesPage />} />
+                <Route path="games/new" element={<GameEditorPage />} />
+                <Route path="games/:game" element={<TeacherGameDetailPage />} />
+                <Route path="games/:game/edit" element={<GameEditorPage />} />
+                <Route
+                  path="games/:game/preview"
+                  element={<GamePlayerPage />}
+                />
+                <Route
+                  path="game-assignments"
+                  element={<TeacherGameAssignmentsPage />}
+                />
+                <Route
+                  path="game-assignments/:assignment"
+                  element={<TeacherGameResultsPage />}
+                />
                 <Route path="invoices" element={<InvoiceListPage />} />
                 <Route path="invoices/new" element={<InvoiceEditorPage />} />
                 <Route
@@ -305,7 +342,10 @@ export default function App() {
                   element={<ScheduleRulesPage />}
                 />
                 <Route path="updates" element={<NotificationPage />} />
-                <Route path="announcements" element={<AnnouncementListPage />} />
+                <Route
+                  path="announcements"
+                  element={<AnnouncementListPage />}
+                />
                 <Route
                   path="announcements/:announcement"
                   element={<AnnouncementDetailPage />}
@@ -332,10 +372,7 @@ export default function App() {
                   path="students/:child/progress"
                   element={<StudentProgressPage />}
                 />
-                <Route
-                  path="students/:id/edit"
-                  element={<StudentFormPage />}
-                />
+                <Route path="students/:id/edit" element={<StudentFormPage />} />
                 <Route path="account" element={<AccountPage />} />
                 <Route path="files" element={<FileLibraryPage />} />
                 <Route path="assignments" element={<AssignmentListPage />} />
@@ -383,6 +420,14 @@ export default function App() {
             <Route element={<RequireAccount role="PARENT" />}>
               <Route path="/family" element={<AppLayout />}>
                 <Route index element={<FamilyHomePage />} />
+                <Route
+                  path="children/:child/games"
+                  element={<FamilyGamesPage />}
+                />
+                <Route
+                  path="children/:child/games/:assignment/play"
+                  element={<GamePlayerPage />}
+                />
                 <Route path="updates" element={<NotificationPage />} />
                 <Route
                   path="children/:child/announcements"
@@ -405,9 +450,12 @@ export default function App() {
                   path="children/:child/progress"
                   element={<StudentProgressPage family />}
                 />
+                {/* Attendance now shows on the week; old links land there. */}
                 <Route
                   path="children/:child/attendance"
-                  element={<FamilyAttendancePage />}
+                  element={
+                    <Navigate to="../schedule" relative="path" replace />
+                  }
                 />
                 <Route
                   path="children/:child/tuition"

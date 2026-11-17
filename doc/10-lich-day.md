@@ -16,11 +16,11 @@ Mọi giờ hiển thị và nhập là giờ Việt Nam (UTC+7), kể cả khi 
 
 ## Xem lịch và tạo buổi riêng
 
-Vào **Lịch dạy**, chọn lớp/trạng thái và chuyển tuần bằng **Tuần trước**, **Tuần này**, **Tuần sau** hoặc ô ngày. Lịch sắp theo giờ bắt đầu, có phân trang khi nhiều buổi. Bộ lọc bổ sung nằm trong **Bộ lọc** trên mobile. **Lịch tuần của lớp** dẫn đến cấu hình lịch lặp.
+Vào **Lịch dạy**, chọn lớp/trạng thái và chuyển tuần bằng **Tuần trước**, **Tuần này**, **Tuần sau** hoặc ô ngày. Mỗi ngày Thứ 2 → CN là một cột, buổi nằm dưới đúng ngày theo giờ bắt đầu; ngày trống ghi "Không có buổi". Khi vùng lịch hẹp hơn 840 px (mobile, tablet dọc), mỗi ngày thành một hàng với ngày bên trái. Bấm vào một buổi là mở [điểm danh](11-diem-danh.md) của buổi đó; thẻ ghi "Chưa điểm danh" hoặc số bé đã đánh dấu. Đổi, hủy và lịch sử buổi nằm sau nút **Chi tiết buổi học** trên trang điểm danh; buổi đã hủy mở thẳng trang chi tiết. Có phân trang khi nhiều buổi. Bộ lọc bổ sung nằm trong **Bộ lọc** trên mobile. **Lịch tuần của lớp** dẫn đến cấu hình lịch lặp.
 
 Chọn **Thêm buổi học**, chọn lớp đang dạy, nhập thời gian, tên, địa điểm và kế hoạch riêng nếu cần. Tên để trống dùng tên lớp. Xem trước rồi xác nhận tạo. Kế hoạch riêng chỉ cô xem; tên, thời gian, địa điểm và lý do hủy được chia sẻ với gia đình đủ quyền.
 
-Dashboard hiển thị số buổi và danh sách tối đa sáu buổi hôm nay theo lớp đang chọn. Không gồm buổi hủy; đi qua giờ theo lịch chưa có nghĩa bé đã được điểm danh hoặc buổi đã hoàn thành.
+Dashboard hiển thị số buổi và danh sách tối đa sáu buổi hôm nay theo lớp đang chọn; bấm vào buổi để điểm danh như trên lịch tuần. Không gồm buổi hủy; đi qua giờ theo lịch chưa có nghĩa bé đã được điểm danh hoặc buổi đã hoàn thành.
 
 ## Trùng giờ
 
@@ -30,7 +30,7 @@ Thay đổi thông tin trên form sẽ bỏ xác nhận cũ. Nếu lịch thay �
 
 ## Đổi một buổi hoặc đổi lịch tuần
 
-- Mở buổi → **Đổi buổi học**, nhập giờ/nội dung và lý do, xem trước rồi xác nhận. Buổi trở thành ngoại lệ; không đổi lịch lặp của các tuần khác. Không đổi buổi đã bắt đầu, bị hủy, đã hoàn thành hoặc đã có danh sách điểm danh; không chuyển buổi sang lớp khác.
+- Mở **Chi tiết buổi học** → **Đổi buổi học**, nhập giờ/nội dung và lý do, xem trước rồi xác nhận. Buổi trở thành ngoại lệ; không đổi lịch lặp của các tuần khác. Không đổi buổi đã bắt đầu, bị hủy, đã hoàn thành hoặc đã có danh sách điểm danh; không chuyển buổi sang lớp khác.
 - Trong **Lịch tuần**, chọn **Chỉnh lịch** và ngày áp dụng mới. Chỉ đổi các buổi tương lai đã sinh từ ngày đó; giữ buổi trước ngày áp dụng, quá khứ, ngoại lệ, đã hủy hoặc được bảo vệ bởi danh sách điểm danh.
 - Đổi thứ sẽ chuyển buổi đủ điều kiện sang thứ mới trong cùng tuần gốc. Buổi nằm ngoài ngày hiệu lực/thời gian lớp hoặc rơi vào giờ đã qua sẽ được hủy với lý do, không sửa lại quá khứ.
 - Bỏ chọn **Đang áp dụng lịch tuần này** sẽ hủy các buổi tương lai đủ điều kiện từ ngày áp dụng. Các ngoại lệ được giữ. Muốn hủy ngoại lệ, mở từng buổi để xử lý.
@@ -38,7 +38,7 @@ Thay đổi thông tin trên form sẽ bỏ xác nhận cũ. Nếu lịch thay �
 
 ## Hủy và xem lịch sử
 
-Mở buổi → **Hủy buổi học** → nhập lý do chia sẻ với gia đình → **Xác nhận hủy buổi**. Giữ thời gian/kế hoạch cũ, trạng thái hủy và lịch sử; sinh lịch lại không tạo lại buổi đó. Có thể hủy một buổi quá khứ để sửa sai có lý do. Lớp đã lưu trữ cần được khôi phục trước khi hủy buổi.
+Mở **Chi tiết buổi học** → **Hủy buổi học** → nhập lý do chia sẻ với gia đình → **Xác nhận hủy buổi**. Giữ thời gian/kế hoạch cũ, trạng thái hủy và lịch sử; sinh lịch lại không tạo lại buổi đó. Có thể hủy một buổi quá khứ để sửa sai có lý do. Lớp đã lưu trữ cần được khôi phục trước khi hủy buổi.
 
 Phần **Lịch sử thay đổi** của buổi cho xem lần tạo, điều chỉnh/hủy, thời điểm, lý do và giờ trước/sau. Mỗi lần sửa kiểm tra phiên bản; màn hình cũ phải tải lại để sửa tiếp.
 
@@ -46,7 +46,7 @@ Phần **Lịch sử thay đổi** của buổi cho xem lần tạo, điều ch�
 
 Trong hồ sơ bé, mở **Lịch học của bé** hoặc dùng mục **Lịch học** ở điều hướng gia đình. Đổi bé giữ màn hình lịch và tải dữ liệu của bé mới. Bộ chọn lớp xuất hiện khi có nhiều lớp hoặc đang dùng bộ lọc lớp.
 
-Gia đình cần tài khoản đã xác minh và liên kết với bé còn hiệu lực. Lịch theo quyền lớp hiện tại: đang học được xem lịch từ lúc tham gia; lớp và thành viên đã hoàn thành chỉ xem các buổi đến thời điểm kết thúc. Rời lớp ẩn lịch của lớp đó; thu hồi liên kết chặn cả lịch của bé. Đây là lịch dự kiến, chưa phải danh sách điểm danh theo từng thời kỳ.
+Gia đình cần tài khoản đã xác minh và liên kết với bé còn hiệu lực. Lịch theo quyền lớp hiện tại: đang học được xem lịch từ lúc tham gia; lớp và thành viên đã hoàn thành chỉ xem các buổi đến thời điểm kết thúc. Rời lớp ẩn lịch của lớp đó; thu hồi liên kết chặn cả lịch của bé. Kết quả điểm danh của bé hiện ngay trên thẻ buổi (trạng thái, lời nhắn của cô, lịch sử); kết quả của lớp đã rời vẫn hiện ở đúng ngày theo [hướng dẫn điểm danh](11-diem-danh.md).
 
 ## Phần tiếp theo
 

@@ -157,11 +157,11 @@ export function LibraryPage() {
                     </button>
                   </div>
                 ))
-              ) : (
+              ) : topics.data && !topics.error ? (
                 <EmptyState title="Thêm chủ đề đầu tiên">
                   Ví dụ: Màu sắc, Thế giới quanh bé, Làm quen chữ cái.
                 </EmptyState>
-              )}
+              ) : null}
             </section>
           )
         ) : (
@@ -256,7 +256,7 @@ export function LibraryPage() {
                 </div>
                 <Pagination meta={items.data.meta} onChange={setPage} />
               </>
-            ) : (
+            ) : items.data && !items.error ? (
               <EmptyState
                 title={
                   tab === "lessons"
@@ -269,7 +269,7 @@ export function LibraryPage() {
                   ? "Chưa có học liệu phù hợp bộ lọc."
                   : "Bắt đầu bằng bản nháp, thêm nội dung rồi xuất bản khi sẵn sàng."}
               </EmptyState>
-            )}
+            ) : null}
           </>
         )}
       </div>

@@ -30,7 +30,7 @@ public class AssignmentService {
         result.remove("requestHash"); result.remove("teacherId");
         result.put("items",teacherItems(assignment));
         var recipients=db.rows("select r.id,r.student_id,s.full_name,r.granted_at,r.revoked_at,r.revoke_reason from assignment_recipients r join students s on s.id=r.student_id where r.assignment_id=? order by s.full_name,r.id",assignment);
-        recipients.forEach(row->progressSummary(row,id(row,"studentId"),assignment));
+        recipientProgress(recipients,assignment);
         result.put("recipients",recipients);
         return result;
     }
@@ -128,7 +128,8 @@ public class AssignmentService {
     public PageResponse<Map<String,Object>> familyList(UUID parent,UUID child,int page,int size) {
         guardians.child(parent,child); pagination(page,size);
         var rows=db.rows("select a.id,a.title,a.source_type,a.target_type,a.available_at,a.due_at,a.created_at,c.name as class_name"+FAMILY_FROM+" order by a.created_at desc,a.id desc limit ? offset ?",child,size,(long)page*size);
-        rows.forEach(row->{ row.put("locked",!available(row)); progressSummary(row,child,id(row,"id")); });
+        rows.forEach(row->row.put("locked",!available(row)));
+        assignmentProgress(rows,child);
         return db.page(rows,db.count("select count(*)"+FAMILY_FROM,child),page,size);
     }
     public Map<String,Object> familyAssignment(UUID parent,UUID child,UUID assignment) {
@@ -152,8 +153,36 @@ public class AssignmentService {
         result.put("continueAssignment",next.isEmpty()?null:next.getFirst());result.put("recentAssignments",familyList(parent,child,0,3).data());return result;
     }
     private void progressSummary(Map<String,Object> result,UUID child,UUID assignment) {
-        long total=db.count("select count(*) from assignment_items where assignment_id=? and is_required and completion_mode<>'REFERENCE'",assignment);
-        long completed=db.count("select count(*) from assignment_items i join student_progress p on p.assignment_item_id=i.id where i.assignment_id=? and i.is_required and i.completion_mode<>'REFERENCE' and p.student_id=? and p.status='COMPLETED'",assignment,child);
+        var summary=db.one("select count(*) as required_items,count(*) filter(where p.status='COMPLETED') as completed_items from assignment_items i left join student_progress p on p.assignment_item_id=i.id and p.student_id=? where i.assignment_id=? and i.is_required and i.completion_mode<>'REFERENCE'",child,assignment);
+        applyProgress(result,summary);
+    }
+    // Fetch progress only for the already authorized page, without one query per assignment.
+    private void assignmentProgress(List<Map<String,Object>> rows,UUID child) {
+        if(rows.isEmpty())return;
+        String placeholders=String.join(",",Collections.nCopies(rows.size(),"?"));
+        var args=new ArrayList<Object>();args.add(child);rows.forEach(row->args.add(row.get("id")));
+        var summaries=db.rows("select i.assignment_id,count(*) as required_items,count(*) filter(where p.status='COMPLETED') as completed_items from assignment_items i left join student_progress p on p.assignment_item_id=i.id and p.student_id=? where i.assignment_id in ("+placeholders+") and i.is_required and i.completion_mode<>'REFERENCE' group by i.assignment_id",args.toArray());
+        var byAssignment=new HashMap<UUID,Map<String,Object>>();summaries.forEach(row->byAssignment.put(id(row,"assignmentId"),row));
+        rows.forEach(row->applyProgress(row,byAssignment.getOrDefault(id(row,"id"),Map.of())));
+    }
+    private void recipientProgress(List<Map<String,Object>> recipients,UUID assignment) {
+        if(recipients.isEmpty())return;
+        // Count required items once, and aggregate existing completions before joining recipients.
+        var summaries=db.rows("""
+                with required as (
+                    select id from assignment_items where assignment_id=? and is_required and completion_mode<>'REFERENCE'
+                )
+                select r.student_id,(select count(*) from required) as required_items,coalesce(p.completed_items,0) as completed_items
+                from assignment_recipients r left join (
+                    select p.student_id,count(*) as completed_items from student_progress p join required i on i.id=p.assignment_item_id
+                    where p.status='COMPLETED' group by p.student_id
+                ) p on p.student_id=r.student_id where r.assignment_id=?
+                """,assignment,assignment);
+        var byStudent=new HashMap<UUID,Map<String,Object>>();summaries.forEach(row->byStudent.put(id(row,"studentId"),row));
+        recipients.forEach(row->applyProgress(row,byStudent.getOrDefault(id(row,"studentId"),Map.of())));
+    }
+    private void applyProgress(Map<String,Object> result,Map<String,Object> summary) {
+        long total=number(summary,"requiredItems"),completed=number(summary,"completedItems");
         result.put("requiredItems",total); result.put("completedItems",completed); result.put("completionPercent",total==0?null:(int)(completed*100/total));
     }
     public Map<String,Object> familyItem(UUID parent,UUID child,UUID item) {

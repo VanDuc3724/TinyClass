@@ -22,8 +22,9 @@ public class FileController {
     ApiResponse<List<ConnectionView>> connections(@AuthenticationPrincipal UserPrincipal user) { return ApiResponse.of(service.connections(user.id())); }
     @GetMapping("/files")
     PageResponse<FileView> list(@AuthenticationPrincipal UserPrincipal user,@RequestParam(required=false) String q,
-            @RequestParam(required=false) String purpose,@RequestParam(defaultValue="0") int page,@RequestParam(defaultValue="20") int size) {
-        return service.list(user.id(),q,purpose,page,size);
+            @RequestParam(required=false) String purpose,@RequestParam(required=false) String mediaType,
+            @RequestParam(required=false) String status,@RequestParam(defaultValue="0") int page,@RequestParam(defaultValue="20") int size) {
+        return service.list(user.id(),q,purpose,mediaType,status,page,size);
     }
     @PostMapping(value="/files",consumes=MediaType.MULTIPART_FORM_DATA_VALUE) @ResponseStatus(HttpStatus.CREATED)
     ApiResponse<FileView> upload(@AuthenticationPrincipal UserPrincipal user,@RequestPart MultipartFile file,
@@ -38,11 +39,17 @@ public class FileController {
     ResponseEntity<Resource> bytes(@AuthenticationPrincipal UserPrincipal user,@PathVariable UUID id,@PathVariable String action) {
         return response(service.content(user.id(),id),"download".equals(action));
     }
+    /**
+     * Callers run every access check before this. no-cache (not no-store) lets the browser keep the bytes but revalidate
+     * each open, so a revoked link still fails; the SHA-256 is a stable ETag because a file id never gets new bytes.
+     */
     public static ResponseEntity<Resource> response(FileService.Content content,boolean download) {
         var disposition=(download?ContentDisposition.attachment():ContentDisposition.inline()).filename(content.name(),StandardCharsets.UTF_8).build();
-        return ResponseEntity.ok().contentType(MediaType.parseMediaType(content.mime())).contentLength(content.size())
-                .header(HttpHeaders.CONTENT_DISPOSITION,disposition.toString()).header(HttpHeaders.CACHE_CONTROL,"private, no-store")
+        var response=ResponseEntity.ok().contentType(MediaType.parseMediaType(content.mime())).contentLength(content.size())
+                .header(HttpHeaders.CONTENT_DISPOSITION,disposition.toString()).header(HttpHeaders.CACHE_CONTROL,"private, no-cache")
                 .header("X-Content-Type-Options","nosniff").header(HttpHeaders.ACCEPT_RANGES,"bytes")
-                .header("Content-Security-Policy","sandbox; default-src 'none'; style-src 'unsafe-inline'").body(content.resource());
+                .header("Content-Security-Policy","sandbox; default-src 'none'; style-src 'unsafe-inline'");
+        if(content.checksum()!=null) response.eTag(content.checksum());
+        return response.body(content.resource());
     }
 }

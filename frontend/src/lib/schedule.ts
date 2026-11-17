@@ -32,6 +32,9 @@ export interface TeachingSession {
   occurrenceWeek?: string | null;
   isManualOverride?: boolean;
   rosterCreatedAt?: string | null;
+  /** Teacher week and dashboard only: active roster rows and how many are marked. */
+  attendanceTotal?: number;
+  attendanceMarked?: number;
   version?: number;
   canEdit?: boolean;
   canCancel?: boolean;

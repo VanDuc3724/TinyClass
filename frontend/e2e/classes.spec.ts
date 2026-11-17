@@ -13,6 +13,8 @@ import { registerInvoiceFlows } from "./invoices.flows";
 import { registerPaymentFlows } from "./payments.flows";
 import { registerCommunicationFlows } from "./communications.flows";
 import { registerDashboardFlows } from "./dashboard.flows";
+import { registerGameFlows } from "./games.flows";
+import { registerResilienceFlows } from "./resilience.flows";
 
 const email = "ui-teacher@example.test";
 const password = "E2e-synthetic-password-2026";
@@ -201,3 +203,5 @@ registerInvoiceFlows(email, password);
 registerPaymentFlows(email, password);
 registerCommunicationFlows(email, password);
 registerDashboardFlows(email, password);
+registerGameFlows(email, password);
+registerResilienceFlows(email, password);

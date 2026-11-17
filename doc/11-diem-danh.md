@@ -4,7 +4,7 @@ Cập nhật 02/11/2026. TC-018 triển khai điểm danh; **học bù tạm ho�
 
 ## Giáo viên sử dụng
 
-1. Vào **Lịch dạy**, chọn buổi, bấm **Điểm danh**. Trang **Điểm danh** trong menu dùng để tra cứu các buổi đã chốt danh sách.
+1. Vào **Lịch dạy** (hoặc **Lịch dạy hôm nay** trên dashboard) và bấm thẳng vào buổi để mở điểm danh. Thẻ buổi ghi "Chưa điểm danh", "Đã điểm danh 2/5 bé" hoặc "Đã điểm danh đủ 5 bé", chỉ tính bé còn trong danh sách buổi. Đổi, hủy hoặc xem lịch sử buổi qua nút **Chi tiết buổi học** trên trang điểm danh; buổi đã hủy mở thẳng trang chi tiết. Trang **Điểm danh** trong menu dùng để tra cứu các buổi đã chốt danh sách.
 2. Bấm **Chốt danh sách điểm danh**. Hệ thống giữ danh sách và tên bé riêng cho buổi; việc đổi tên, thêm bé hoặc bé rời lớp sau đó không tự viết lại danh sách này. Chốt lại trả về danh sách đã có, kể cả danh sách rỗng.
 3. Chọn trạng thái cho từng bé. **Đánh dấu các bé còn lại có mặt** chỉ điền những bé đang chưa đánh dấu; giữ nguyên lựa chọn báo nghỉ/đi muộn đã nhập. Thao tác nhanh áp dụng toàn bộ danh sách, kể cả bé đang bị ẩn bởi ô tìm kiếm. Bấm **Lưu … thay đổi** để ghi kết quả.
 4. Mở **Ghi chú riêng và gửi gia đình** khi cần. Ghi chú riêng chỉ cô xem; ghi chú gửi gia đình xuất hiện trong kết quả và lịch sử của bé. Khi sửa một kết quả đã đánh dấu, cần lý do riêng để đối chiếu.
@@ -31,7 +31,7 @@ Có mặt/đi muộn chỉ ghi từ khi buổi bắt đầu. Có thể ghi báo 
 
 ## Phụ huynh và số liệu hôm nay
 
-Từ hồ sơ bé chọn **Điểm danh của bé**, hoặc chọn mục tương ứng trong menu. Phụ huynh có email đã xác minh và liên kết còn hiệu lực được xem trạng thái, ghi chú chia sẻ và lịch sử đúng bé, kể cả sau khi rời lớp/lưu trữ. Thu hồi liên kết chặn cả kết quả và lịch sử ngay ở yêu cầu tiếp theo. Việc giữ lịch sử này không cấp lại quyền xem bài của lớp đã rời.
+Kết quả điểm danh nằm ngay trên **Lịch học** của bé (từ 05/11/2026 không còn trang riêng; đường dẫn `/attendance` cũ mở lịch học). Mỗi buổi đã điểm danh có trạng thái, lời nhắn của cô và nút **Lịch sử điểm danh**. Buổi của lớp bé đã rời không còn trong lịch nhưng kết quả vẫn hiện ở đúng ngày, không kèm địa điểm. Xem tuần khác bằng nút chuyển tuần. Phụ huynh có email đã xác minh và liên kết còn hiệu lực được xem trạng thái, ghi chú chia sẻ và lịch sử đúng bé, kể cả sau khi rời lớp/lưu trữ. Thu hồi liên kết chặn cả kết quả và lịch sử ngay ở yêu cầu tiếp theo. Việc giữ lịch sử này không cấp lại quyền xem bài của lớp đã rời.
 
 Danh sách tương lai chưa đánh dấu không hiện như kết quả đã học. Báo nghỉ sớm/buổi hủy có thể xuất hiện. Phụ huynh không nhận ghi chú riêng, lý do sửa riêng, phiên bản dòng, mã thành viên lớp hoặc dữ liệu bé khác.
 

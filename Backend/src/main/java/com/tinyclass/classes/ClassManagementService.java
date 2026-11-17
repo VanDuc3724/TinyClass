@@ -81,6 +81,7 @@ public class ClassManagementService {
             default -> throw missing();
         }
         classes.flush();
+        if (Set.of("archive","complete").contains(action)) jdbc.update("update game_recipients set revoked_at=now(),revoke_reason='Lớp đã kết thúc hoặc lưu trữ' where game_assignment_id in(select id from game_assignments where class_id=?) and revoked_at is null",id);
         record(actor, "CLASS_" + action.toUpperCase(Locale.ROOT), "CLASS", id,
                 Map.of("from", previous, "to", entity.getStatus()), input.reason(), trace);
         return view(entity);
@@ -131,6 +132,7 @@ public class ClassManagementService {
                     "STUDENT_HAS_ACTIVE_CLASSES", "Cho bé rời các lớp đang tham gia trước khi lưu trữ hồ sơ.");
             entity.archive();
             jdbc.update("update assignment_recipients set revoked_at=now(),revoke_reason='Hồ sơ bé đã được lưu trữ' where student_id=? and revoked_at is null",id);
+            jdbc.update("update game_recipients set revoked_at=now(),revoke_reason='Hồ sơ bé đã được lưu trữ' where student_id=? and revoked_at is null",id);
         } else if ("restore".equals(action)) {
             require("ARCHIVED".equals(previous), "INVALID_STATE", "Hồ sơ chưa được lưu trữ."); entity.restore();
         } else throw missing();
@@ -177,6 +179,7 @@ public class ClassManagementService {
         else require("ACTIVE".equals(previous), "INVALID_STATE", "Chỉ thay đổi trạng thái của bé đang tham gia.");
         reference.changeStatus(input.status(), input.reason().strip()); enrollments.flush();
         if("WITHDRAWN".equals(input.status())) jdbc.update("update assignment_recipients set revoked_at=now(),revoke_reason=? where source_enrollment_id=? and revoked_at is null",input.reason().strip(),id);
+        if(!"ACTIVE".equals(input.status())) jdbc.update("update game_recipients set revoked_at=now(),revoke_reason=? where source_enrollment_id=? and revoked_at is null",input.reason().strip(),id);
         record(actor, "ENROLLMENT_STATUS_CHANGED", "ENROLLMENT", id,
                 Map.of("from", previous, "to", input.status()), input.reason().strip(), trace);
         return EnrollmentView.from(reference, student);

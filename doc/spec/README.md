@@ -1,6 +1,6 @@
 # TinyClass — Bộ đặc tả hệ thống
 
-Ngày cập nhật: 03/11/2026. Bộ tài liệu mô tả sản phẩm mục tiêu; những phần đã code và kiểm tra được ghi riêng bên dưới, không coi toàn bộ đặc tả đã triển khai.
+Ngày cập nhật: 09/11/2026. Bộ tài liệu mô tả sản phẩm mục tiêu; những phần đã code và kiểm tra được ghi riêng bên dưới, không coi toàn bộ đặc tả đã triển khai.
 
 ## Danh mục
 
@@ -12,6 +12,7 @@ Ngày cập nhật: 03/11/2026. Bộ tài liệu mô tả sản phẩm mục ti�
 | [04-teaching-and-billing.md](04-teaching-and-billing.md) | Lịch, điểm danh, học bù, nhận xét, học phí và thông báo |
 | [05-data-api-and-quality.md](05-data-api-and-quality.md) | Quy ước dữ liệu, API, kiến trúc, chất lượng và dữ liệu kiểm thử |
 | [06-decisions.md](06-decisions.md) | Những quyết định đã xác nhận, dữ kiện trong mã và mặc định còn cần chốt |
+| [07-games.md](07-games.md) | Ba loại trò chơi, soạn/giao/chơi, snapshot/lượt/kết quả và quyền của bé |
 
 ## Cách sử dụng
 
@@ -35,8 +36,8 @@ Chi tiết schema và API hiện có vẫn được tra tại [mô hình dữ li
 |---|---|
 | `frontend/` | React/TypeScript/Vite, React Router 7; token tím/Nunito/CSS Modules theo Design.md, layout/guard/API client dùng API thật |
 | `Backend/` | Có Spring Boot 4.1.2, Java 21, Maven, lớp khởi động và các starter đã chọn |
-| Backend build | Wrapper verify đạt 196 test; executable JAR được tạo |
-| Database/runtime | PostgreSQL local/test riêng; Flyway V1–V17, schema rỗng/nâng V1, V7, V8, V9, V10, V11, V12, V15 và V16 có dữ liệu đã kiểm tra |
+| Backend build | Wrapper verify đạt 214 test; executable JAR được tạo |
+| Database/runtime | PostgreSQL local/test riêng; Flyway V1–V20, schema rỗng/nâng V1, V7, V8, V9, V10, V11, V12, V15, V16, V18 và V19 có dữ liệu đã kiểm tra |
 | Tài khoản/lớp | Setup một giáo viên, session/CSRF, lớp/bé/thành viên/version/audit; quyền kiểm tra tại backend |
 | Gia đình/email | Mời/đăng ký/xác minh/reset, liên kết nhiều bé/người giám hộ, DTO family riêng; SMTP Mailpit local/test |
 | Google/phương thức | OIDC, đăng ký qua lời mời, link/unlink, reauth và thêm mật khẩu; provider có chữ ký thử nghiệm, chưa Google thật |
@@ -48,7 +49,8 @@ Chi tiết schema và API hiện có vẫn được tra tại [mô hình dữ li
 | Ghi nhận thanh toán | V16 thu từng phần/đủ, ghi chú riêng/công khai, void có audit, version/idempotency/khóa chống thu vượt, chặn hủy phiếu còn khoản thu và lịch sử gia đình |
 | Thông báo/cập nhật | V17 bảng tin nháp/đăng/sửa/lưu trữ, read revision, nguồn hiện còn quyền trước page/count/badge/open, dedupe và rollback; chuông và hộp cá nhân |
 | Tổng quan | TC-025 lọc lớp/phiếu còn tiền/quá hạn/tháng Việt Nam, tổng nguyên dạng chuỗi; gia đình có tiến độ/tiếp tục/lịch/phí/phản hồi và cập nhật đúng bé, không migration mới |
-| Kiểm tra giao diện | Build/lint sạch; 44 E2E Edge, các breakpoint hiện có, học liệu/sản phẩm/lịch/điểm danh/nhận xét, lỗi mạng/xung đột/quyền theo bé; [bằng chứng mới nhất](../verification/2026-11-03-dashboard.md) |
+| Góc chơi | V20 CHOICE/MATCH/MEMORY, soạn/chơi thử/giao snapshot, server giữ trạng thái và lời giải, kết quả/sao/bộ sưu tập và quyền đúng bé; TC-029 |
+| Kiểm tra giao diện | Build/lint sạch; 47 E2E Edge, các breakpoint hiện có, các module cũ và ba trò chơi, lỗi mạng/xung đột/quyền theo bé; [bằng chứng mới nhất](../verification/2026-11-08-games.md) |
 | Định danh | Backend com.tinyclass / backend / tinyclass-backend; frontend tinyclass-frontend và title TinyClass |
 | Git | Repository hiện có tại gốc `TinyClass/`; giữ nguyên cấu trúc và lịch sử của người dùng |
 

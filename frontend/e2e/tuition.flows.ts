@@ -436,6 +436,7 @@ export function registerTuitionFlows(
     try {
       await login(teacher);
       await page.goto(`/family/children/${child}`);
+      await page.getByText("Xem thêm hoạt động", { exact: true }).click();
       await page
         .getByRole("main")
         .getByRole("link", { name: "Điều kiện học phí", exact: true })

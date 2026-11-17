@@ -324,16 +324,26 @@ export function registerDashboardFlows(
           })
         ).status(),
       ).toBe(200);
+      // Other flows also create tomorrow's sessions; explicitly review this fixture's overlaps.
+      const upcoming = {
+        clientRequestId: crypto.randomUUID(),
+        classId: classroom,
+        title: "Buổi khám phá sắp tới",
+        startsAt: `${day(1)}T09:00:00+07:00`,
+        endsAt: `${day(1)}T10:00:00+07:00`,
+        preview: true,
+        allowConflicts: false,
+      };
+      const upcomingPreview = await write(page.request, "/sessions", upcoming);
+      expect(upcomingPreview.status()).toBe(200);
+      const reviewed = (await upcomingPreview.json()).data;
       expect(
         (
           await write(page.request, "/sessions", {
-            clientRequestId: crypto.randomUUID(),
-            classId: classroom,
-            title: "Buổi khám phá sắp tới",
-            startsAt: `${day(1)}T09:00:00+07:00`,
-            endsAt: `${day(1)}T10:00:00+07:00`,
+            ...upcoming,
             preview: false,
-            allowConflicts: false,
+            allowConflicts: reviewed.conflictCount > 0,
+            conflictKey: reviewed.conflictKey,
           })
         ).status(),
       ).toBe(201);
@@ -466,14 +476,29 @@ export function registerDashboardFlows(
           .getByRole("heading", { name: childName, exact: true })
           .boundingBox())!.width,
       ).toBeGreaterThan(140);
+      const childActions = parent.getByRole("navigation", {
+        name: "Theo dõi hoạt động của bé",
+      });
+      await expect(childActions.getByRole("link", { name: "Bài của con", exact: true })).toBeVisible();
+      await expect(childActions.getByRole("link", { name: "Góc chơi của bé", exact: true })).toBeVisible();
+      const moreActions = childActions.locator("summary");
+      await expect(childActions.locator("details")).not.toHaveAttribute("open");
+      expect((await parent.getByRole("heading", { name: "Cùng con hôm nay", exact: true }).boundingBox())!.y).toBeLessThan(600);
+      await moreActions.focus();
+      await parent.keyboard.press("Enter");
+      await expect(childActions.getByRole("link", { name: "Nhận xét & tiến bộ", exact: true })).toBeVisible();
+      await parent.keyboard.press("Enter");
+      await expect(childActions.getByRole("link", { name: "Nhận xét & tiến bộ", exact: true })).not.toBeVisible();
       await capture(parent, "family-child-375");
       await parent
         .getByRole("link", { name: `Tiếp tục: ${activityTitle}`, exact: true })
         .click();
+      await expect(parent).toHaveURL(
+        new RegExp(`/family/children/${child}/learning/assignments/[^/]+$`),
+      );
       await parent
-        .getByRole("link", {
-          name: new RegExp(activityTitle.replace(/[()]/g, "\\$&")),
-        })
+        .locator(`a[href^="/family/children/${child}/learning/items/"]`)
+        .filter({ hasText: activityTitle })
         .click();
       await parent
         .getByLabel("Tôi đã cùng bé thực hiện hoạt động này.", { exact: true })

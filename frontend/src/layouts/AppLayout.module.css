@@ -8,10 +8,10 @@
     inset: 0 auto 0 0;
     width: var(--tc-sidebar-width);
     height: 100dvh;
-    padding: 32px 20px 20px;
+    padding: 24px 16px 16px;
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 16px;
     color: var(--tc-on-primary);
     background: linear-gradient(
       165deg,
@@ -24,12 +24,34 @@
     scrollbar-width: thin;
     scrollbar-color: var(--tc-sidebar-active) transparent;
   }
+  /* Soft light in the top corner keeps the long purple column from feeling flat. */
+  .sidebar::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: 220px;
+    background: radial-gradient(
+      120% 100% at 0% 0%,
+      rgb(255 255 255 / 14%),
+      transparent 60%
+    );
+    pointer-events: none;
+  }
+  .sidebar > * {
+    position: relative;
+  }
   .sidebar :global(.brand) {
     color: var(--tc-on-primary);
+    font-size: 24px;
+    gap: 10px;
   }
   .sidebar :global(.brand-symbol) {
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
     color: var(--tc-on-primary);
     background: var(--tc-sidebar-active);
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 18%);
   }
   .sidebar :global(.brand-dot) {
     color: inherit;
@@ -44,11 +66,11 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 8px 12px;
-    background: var(--tc-sidebar-active);
-    border-radius: 12px;
+    padding: 6px 12px;
+    background: rgb(255 255 255 / 14%);
+    border-radius: var(--tc-radius-pill);
     align-self: flex-start;
-    margin-top: -8px;
+    margin: -4px 0 4px 2px;
     font-size: 12px;
     font-weight: 700;
   }
@@ -56,69 +78,108 @@
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: currentColor;
+    background: #8ff0c6;
+    box-shadow: 0 0 0 3px rgb(143 240 198 / 25%);
   }
   .navigation {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 2px;
   }
   .navigation a,
   .settingsLink {
+    position: relative;
     display: flex;
     gap: 12px;
     align-items: center;
-    padding: 12px 16px;
-    min-height: 48px;
-    border-radius: 12px;
-    color: var(--tc-on-primary);
-    font-size: 16px;
+    padding: 10px 12px;
+    min-height: 44px;
+    border-radius: var(--tc-radius-md);
+    color: rgb(255 255 255 / 88%);
+    font-size: 15px;
     font-weight: 600;
-    transition: background var(--tc-motion-fast);
+    transition:
+      background-color var(--tc-motion-fast) var(--tc-ease),
+      color var(--tc-motion-fast) var(--tc-ease);
+  }
+  .navigation a svg,
+  .settingsLink svg {
+    opacity: 0.85;
   }
   .navigation a:hover,
-  .settingsLink:hover,
+  .settingsLink:hover {
+    background: var(--tc-sidebar-hover);
+    color: var(--tc-on-primary);
+  }
   .navigation a:global(.active),
   .settingsLink:global(.active) {
     background: var(--tc-sidebar-active);
-  }
-  .navigation a:global(.active),
-  .settingsLink:global(.active) {
+    color: var(--tc-on-primary);
     font-weight: 800;
-    box-shadow: inset 3px 0 0 var(--tc-on-primary);
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 12%);
+  }
+  .navigation a:global(.active) svg,
+  .settingsLink:global(.active) svg {
+    opacity: 1;
+  }
+  /* A short bar on the sidebar edge marks the current page without relying on tint alone. */
+  .navigation a:global(.active)::before,
+  .settingsLink:global(.active)::before {
+    content: "";
+    position: absolute;
+    left: -16px;
+    top: 50%;
+    width: 4px;
+    height: 20px;
+    border-radius: 0 4px 4px 0;
+    background: var(--tc-on-primary);
+    transform: translateY(-50%);
   }
   .sidebar :focus-visible {
     outline-color: var(--tc-on-primary);
+    outline-offset: 2px;
   }
   .groupLabel {
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 1.5px;
-    margin: 16px 16px 4px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    color: var(--tc-sidebar-muted);
+    margin: 14px 12px 4px;
   }
   .sidebarBottom {
     margin-top: auto;
-    padding-top: 16px;
+    padding-top: 8px;
   }
   .mascot {
     text-align: center;
-    margin: 8px auto 24px;
+    margin: 0 0 12px;
+    padding: 16px 12px 14px;
+    border-radius: var(--tc-radius-lg);
+    background: rgb(255 255 255 / 8%);
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 10%);
   }
   .mascot svg {
-    width: 124px;
-    height: 108px;
+    width: 112px;
+    height: 98px;
   }
   .mascot p {
     font-size: 12px;
-    margin-top: 8px;
+    font-weight: 600;
+    margin-top: 6px;
+    color: var(--tc-sidebar-muted);
   }
   .sidebarAccount {
-    margin-top: 20px;
-    padding-top: 20px;
-    border-top: 1px solid var(--tc-sidebar-active);
+    margin-top: 12px;
+    padding: 12px 4px 0;
+    border-top: 1px solid rgb(255 255 255 / 14%);
     display: flex;
     align-items: center;
     gap: 12px;
+  }
+  .sidebarAccount :global(.avatar) {
+    color: var(--tc-on-primary);
+    background: rgb(255 255 255 / 18%);
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 22%);
   }
   .sidebarAccount > div {
     min-width: 0;
@@ -133,6 +194,7 @@
   .sidebarAccount div > span {
     display: block;
     font-size: 12px;
+    color: var(--tc-sidebar-muted);
   }
   .workspace {
     margin-left: var(--tc-sidebar-width);
@@ -150,7 +212,16 @@
     justify-content: space-between;
     gap: 16px;
     border-bottom: 1px solid var(--tc-border);
-    background: var(--tc-surface);
+    background: rgb(255 255 255 / 88%);
+    backdrop-filter: saturate(1.6) blur(14px);
+  }
+  /* Pinned from tablet up; on phones the bar can grow with the child picker, so it scrolls away. */
+  @media (min-width: 768px) {
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: var(--tc-z-sticky);
+    }
   }
   .topbarLeft,
   .topbarRight {
@@ -194,15 +265,28 @@
     align-items: center;
     gap: 12px;
     min-height: 48px;
+    padding: 4px 8px 4px 4px;
     list-style: none;
-    border-radius: 12px;
+    border-radius: var(--tc-radius-pill);
+    transition: background-color var(--tc-motion-fast) var(--tc-ease);
+  }
+  .accountMenu summary:hover,
+  .accountMenu[open] summary {
+    background: var(--tc-primary-soft);
+  }
+  .accountMenu summary > svg {
+    color: var(--tc-text-muted);
+    transition: transform var(--tc-motion-fast) var(--tc-ease);
+  }
+  .accountMenu[open] summary > svg {
+    transform: rotate(180deg);
   }
   .accountMenu summary::-webkit-details-marker {
     display: none;
   }
   .accountMenu summary :global(.avatar) {
-    width: 48px;
-    height: 48px;
+    width: 44px;
+    height: 44px;
   }
   .accountName {
     min-width: 0;
@@ -231,9 +315,19 @@
     border: 1px solid var(--tc-border);
     box-shadow: var(--tc-shadow-overlay);
     z-index: var(--tc-z-popover);
+    animation: popIn var(--tc-motion-normal) var(--tc-ease);
+    transform-origin: top right;
+  }
+  @keyframes popIn {
+    from {
+      opacity: 0;
+      transform: translateY(-4px) scale(0.98);
+    }
   }
   .accountPopover p {
-    padding: 8px 12px;
+    padding: 8px 12px 12px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid var(--tc-border);
     color: var(--tc-text-muted);
     font-size: 12px;
     overflow-wrap: anywhere;
@@ -248,13 +342,21 @@
     min-height: 48px;
     border: 0;
     background: transparent;
-    border-radius: 8px;
+    border-radius: 10px;
     font-size: 14px;
+    font-weight: 600;
+  }
+  .accountPopover svg {
+    color: var(--tc-text-muted);
   }
   .accountPopover a:hover,
   .accountPopover button:hover {
     background: var(--tc-primary-soft);
     color: var(--tc-primary);
+  }
+  .accountPopover a:hover svg,
+  .accountPopover button:hover svg {
+    color: inherit;
   }
   .menuButton {
     display: none;
@@ -266,6 +368,10 @@
     margin: 0 auto;
     flex: 1;
     min-width: 0;
+  }
+  /* This landmark receives programmatic focus; its controls keep their visible focus rings. */
+  .main:focus-visible {
+    outline: none;
   }
   .footer {
     display: flex;
@@ -297,9 +403,11 @@
   .childSelect > select {
     width: auto;
     max-width: 240px;
-    background: var(--tc-primary-soft);
-    border-color: var(--tc-primary);
+    background-color: var(--tc-primary-soft);
+    border-color: var(--tc-primary-border);
+    border-radius: var(--tc-radius-pill);
     font-size: 14px;
+    font-weight: 700;
     color: var(--tc-primary);
   }
   .childContext {
@@ -310,11 +418,18 @@
     font-size: 14px;
     color: var(--tc-text-muted);
     margin-bottom: 24px;
+    padding: 4px 14px 4px 4px;
+    width: fit-content;
+    max-width: 100%;
+    border-radius: var(--tc-radius-lg);
+    background: var(--tc-surface);
+    border: 1px solid var(--tc-border);
+    box-shadow: var(--tc-shadow-xs);
   }
   .childContext :global(.avatar) {
-    width: 32px;
-    height: 32px;
-    font-size: 12px;
+    width: 28px;
+    height: 28px;
+    font-size: 11px;
   }
   .childContext strong {
     color: var(--tc-text);
@@ -355,7 +470,13 @@
       margin-inline: 48px;
     }
   }
-  @media (max-height: 850px) {
+  /* The teacher menu is long: the mascot only shows when Settings and the account still fit below it. */
+  @media (max-height: 1099px) {
+    .shell:not(.family) .mascot {
+      display: none;
+    }
+  }
+  @media (max-height: 900px) {
     .mascot {
       display: none;
     }
@@ -377,7 +498,17 @@
       display: flex;
     }
     .drawer::backdrop {
-      background: rgb(29 24 53 / 45%);
+      background: var(--tc-backdrop);
+      backdrop-filter: blur(2px);
+    }
+    .drawer[open] {
+      animation: drawerIn var(--tc-motion-normal) var(--tc-ease);
+    }
+    @keyframes drawerIn {
+      from {
+        transform: translateX(-24px);
+        opacity: 0;
+      }
     }
     .topbar {
       min-height: 64px;
@@ -423,9 +554,10 @@
     .footer {
       margin-inline: 16px;
     }
+    /* The fixed bar is exactly --tc-bottom-nav-height tall; 8px more keeps the footer clear of it. */
     .family .workspace {
       padding-bottom: calc(
-        var(--tc-bottom-nav-height) + env(safe-area-inset-bottom)
+        var(--tc-bottom-nav-height) + env(safe-area-inset-bottom) + 8px
       );
     }
     .family .menuButton,
@@ -448,6 +580,15 @@
     .childSelect > span {
       display: none;
     }
+    /* Long names wrap here, so the context line drops its pill frame and reads as plain text. */
+    .childContext {
+      width: auto;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: none;
+      box-shadow: none;
+    }
     .bottomNav {
       display: flex;
       position: fixed;
@@ -459,8 +600,12 @@
         var(--tc-bottom-nav-height) + env(safe-area-inset-bottom)
       );
       padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
-      background: var(--tc-surface);
-      border-top: 1px solid var(--tc-border);
+      background: rgb(255 255 255 / 92%);
+      backdrop-filter: saturate(1.6) blur(14px);
+      /* Hairline drawn as a shadow: a real border would make the bar 1px taller than the space reserved for it. */
+      box-shadow:
+        inset 0 1px 0 var(--tc-border),
+        0 -6px 20px -12px rgb(29 24 53 / 18%);
       z-index: var(--tc-z-sticky);
     }
     .bottomNav a {
@@ -476,9 +621,19 @@
       color: var(--tc-text-muted);
       min-height: 56px;
     }
+    .bottomNav a svg {
+      box-sizing: border-box;
+      width: 52px;
+      height: 28px;
+      padding: 2px 14px;
+      border-radius: var(--tc-radius-pill);
+      transition: background-color var(--tc-motion-fast) var(--tc-ease);
+    }
     .bottomNav a:global(.active) {
-      background: var(--tc-primary-soft);
       color: var(--tc-primary);
+    }
+    .bottomNav a:global(.active) svg {
+      background: var(--tc-primary-soft);
     }
     .studying .topbarLeft {
       flex-wrap: wrap;

@@ -180,11 +180,14 @@ export function registerAttendanceFlows(
     });
     expect(response.status()).toBe(201);
     sessionId = (await response.json()).data.session.id;
-    await page.goto(`/teacher/schedule/sessions/${sessionId}`);
-    await page
-      .getByRole("main")
-      .getByRole("link", { name: "Điểm danh", exact: true })
-      .click();
+    // The week card opens attendance straight away.
+    await page.goto("/teacher/schedule");
+    const card = page.getByRole("link").filter({ hasText: title });
+    await expect(card).toContainText("Chưa điểm danh");
+    await card.click();
+    await expect(page).toHaveURL(
+      new RegExp(`/teacher/sessions/${sessionId}/attendance$`),
+    );
     await page
       .getByRole("button", { name: "Chốt danh sách điểm danh", exact: true })
       .click();
@@ -234,6 +237,22 @@ export function registerAttendanceFlows(
       UNMARKED: 0,
     });
     await capture(page, "teacher-saved-1440");
+    await page
+      .getByRole("link", { name: "← Về lịch dạy", exact: true })
+      .click();
+    await expect(card).toContainText("Đã điểm danh đủ 3 bé");
+    await capture(page, "teacher-week-progress-1440");
+    await card.click();
+    await page
+      .getByRole("link", { name: "Chi tiết buổi học", exact: true })
+      .click();
+    await expect(page).toHaveURL(
+      new RegExp(`/teacher/schedule/sessions/${sessionId}$`),
+    );
+    await page
+      .getByRole("main")
+      .getByRole("link", { name: "Điểm danh", exact: true })
+      .click();
     await complete(page);
     await row(page, 0).getByLabel("Trạng thái điểm danh").selectOption("LATE");
     await page
@@ -396,10 +415,40 @@ export function registerAttendanceFlows(
       .click();
     await expect(row(page, 0)).toBeVisible();
     await page.goto(`/teacher/attendance?classId=${classId}`);
-    await expect(
-      page.getByRole("combobox", { name: "Lớp học", exact: true }),
-    ).toHaveValue(classId);
     await expect(page.getByRole("article")).toHaveCount(4);
+    const filters = page.getByRole("button", {
+      name: "Bộ lọc điểm danh",
+      exact: true,
+    });
+    await expect(filters).toHaveAttribute("aria-expanded", "false");
+    await expect(page.getByLabel("Từ ngày", { exact: true })).toBeHidden();
+    await expect(page.getByRole("article").first()).toBeInViewport();
+    await filters.focus();
+    await filters.press("Enter");
+    await expect(filters).toHaveAttribute("aria-expanded", "true");
+    await expect(page.getByLabel("Từ ngày", { exact: true })).toBeVisible();
+    await expect(page.getByRole("combobox", { name: "Lớp học", exact: true })).toHaveValue(classId);
+    const appliedFrom = await page.getByLabel("Đến ngày", { exact: true }).inputValue();
+    await expect(page.getByLabel("Từ ngày", { exact: true })).not.toHaveValue(appliedFrom);
+    await page.getByLabel("Từ ngày", { exact: true }).fill(appliedFrom);
+    const filteredAttendance = page.waitForResponse((result) => {
+      const url = new URL(result.url());
+      return url.pathname === "/api/v1/attendance" &&
+        url.searchParams.get("from") === appliedFrom &&
+        url.searchParams.get("classId") === classId;
+    });
+    await page.getByRole("button", { name: "Xem kết quả", exact: true }).click();
+    expect((await filteredAttendance).status()).toBe(200);
+    await expect(page).toHaveURL((url) => url.searchParams.get("from") === appliedFrom);
+    await expect(filters).toHaveAttribute("aria-expanded", "false");
+    await expect(filters).toBeFocused();
+    await expect(page.getByRole("article")).toHaveCount(4);
+    await filters.press("Space");
+    await expect(filters).toHaveAttribute("aria-expanded", "true");
+    await expect(page.getByLabel("Từ ngày", { exact: true })).toHaveValue(appliedFrom);
+    await expect(page.getByRole("combobox", { name: "Lớp học", exact: true })).toHaveValue(classId);
+    await filters.press("Enter");
+    await expect(page.getByLabel("Từ ngày", { exact: true })).toBeHidden();
     await capture(page, "teacher-list-375");
     await page.goto(`/teacher?classId=${classId}`);
     await expect(
@@ -407,7 +456,7 @@ export function registerAttendanceFlows(
     ).toContainText("2");
   });
 
-  test("điểm danh gia đình chỉ thấy bé được liên kết, xem lịch sử sau rời lớp và mất quyền ngay khi thu hồi", async ({
+  test("điểm danh gia đình nằm trên lịch học, chỉ thấy bé được liên kết, giữ kết quả sau rời lớp và mất quyền ngay khi thu hồi", async ({
     page,
     browser,
   }) => {
@@ -420,14 +469,16 @@ export function registerAttendanceFlows(
     try {
       await login(parent, true);
       await parent.goto(`/family/children/${children[0]}`);
+      await expect(
+        parent.getByRole("link", { name: "Điểm danh của bé", exact: true }),
+      ).toHaveCount(0);
+      await parent.getByText("Xem thêm hoạt động", { exact: true }).click();
       await parent
         .getByRole("main")
-        .getByRole("link", { name: "Điểm danh của bé", exact: true })
+        .getByRole("link", { name: "Lịch học", exact: true })
         .click();
-      const result = parent.getByRole("article", {
-        name: `Kết quả ${title}`,
-        exact: true,
-      });
+      // The child has left the class, so this card comes from the kept attendance result.
+      const result = parent.getByRole("article", { name: title, exact: true });
       await expect(result).toContainText(familyNote);
       await expect(result).toContainText("Đi muộn");
       await expect(parent.getByText(privateNote, { exact: true })).toHaveCount(
@@ -466,11 +517,11 @@ export function registerAttendanceFlows(
         .getByLabel("Chọn bé", { exact: true })
         .selectOption(children[4]);
       await expect(parent).toHaveURL(
-        new RegExp(`/children/${children[4]}/attendance$`),
+        new RegExp(`/children/${children[4]}/schedule$`),
       );
       await expect(
         parent.getByRole("heading", {
-          name: "Chưa có kết quả trong khoảng này",
+          name: "Tuần này chưa có buổi phù hợp",
           exact: true,
         }),
       ).toBeVisible();
@@ -493,9 +544,16 @@ export function registerAttendanceFlows(
           })
         ).status(),
       ).toBe(200);
+      // The old attendance address now opens the same week.
       await parent.goto(`/family/children/${children[0]}/attendance`);
+      await expect(parent).toHaveURL(
+        new RegExp(`/children/${children[0]}/schedule$`),
+      );
       await parent.setViewportSize({ width: 320, height: 900 });
-      await expect(result).toContainText("Buổi đã hủy:");
+      await expect(result).toContainText(
+        "Lý do hủy: Cô hủy buổi để kiểm tra lịch sử vẫn được giữ.",
+      );
+      await expect(result).toContainText("Buổi đã hủy nên không tính kết quả.");
       await expect(result).toContainText(familyNote);
       await capture(parent, "family-cancelled-320", result);
       await page.goto(`/teacher/sessions/${sessionId}/attendance`);

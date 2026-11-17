@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from "react";
-import type { FormEvent } from "react";
+import type { FormEvent, MouseEvent } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ActionModal } from "../components/ActionModal";
 import type { ActionRequest } from "../components/ActionModal";
@@ -22,6 +22,7 @@ import type {
   TeacherAttendance,
 } from "../lib/attendance";
 import { dateTimeLabel } from "../lib/format";
+import { businessLocal } from "../lib/schedule";
 import { useResource, useUnsavedChanges } from "../lib/hooks";
 import { AttendanceHistory } from "./AttendanceParts";
 import styles from "./Attendance.module.css";
@@ -161,22 +162,35 @@ function AttendanceEditor({
     actionResult.current = null;
     setAction(request);
   }
+  function leave(event: MouseEvent) {
+    if (!confirmDiscard()) event.preventDefault();
+  }
   return (
     <>
       <Link
         className="back-link"
-        to={`/teacher/schedule/sessions/${session.id}`}
-        onClick={(event) => {
-          if (!confirmDiscard()) event.preventDefault();
-        }}
+        to={`/teacher/schedule?week=${businessLocal(session.startsAt).slice(0, 10)}`}
+        onClick={leave}
       >
-        ← Về buổi học
+        ← Về lịch dạy
       </Link>
       <PageHeader
         eyebrow={session.className}
         title={`Điểm danh · ${session.title}`}
         description={`${dateTimeLabel(session.startsAt)} – ${dateTimeLabel(session.endsAt)} · Giờ Việt Nam`}
-        action={<Badge status={session.status} />}
+        action={
+          <div className="header-actions">
+            <Badge status={session.status} />
+            {/* The week opens this page directly, so changing or cancelling the session goes through here. */}
+            <Link
+              className="button button-ghost"
+              to={`/teacher/schedule/sessions/${session.id}`}
+              onClick={leave}
+            >
+              Chi tiết buổi học
+            </Link>
+          </div>
+        }
       />
       {notice && (
         <p className={styles.notice} role="status">
@@ -355,9 +369,7 @@ function AttendanceEditor({
                           <Link
                             className="text-link"
                             to={`/teacher/students/${row.studentId}`}
-                            onClick={(event) => {
-                              if (!confirmDiscard()) event.preventDefault();
-                            }}
+                            onClick={leave}
                           >
                             {row.studentName}
                           </Link>

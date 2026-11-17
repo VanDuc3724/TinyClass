@@ -1,6 +1,14 @@
-import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import {
   Link,
+  matchPath,
   NavLink,
   Navigate,
   Outlet,
@@ -21,6 +29,7 @@ import { useResource } from "../lib/hooks";
 import { trapDialogFocus } from "../lib/accessibility";
 import styles from "./AppLayout.module.css";
 import NotificationBell from "../components/NotificationBell";
+import PageErrorBoundary from "../components/PageErrorBoundary";
 
 export function RequireAccount({ role }: { role: "TEACHER" | "PARENT" }) {
   const auth = useAuth(),
@@ -47,6 +56,43 @@ interface ChildChoice {
   id: string;
   fullName: string;
   preferredName: string | null;
+}
+function SectionLink({
+  to,
+  paths = [to],
+  end = false,
+  children,
+}: {
+  to: string;
+  paths?: string[];
+  end?: boolean;
+  children: ReactNode;
+}) {
+  const { pathname } = useLocation();
+  const active = paths.some((path) => matchPath({ path, end }, pathname));
+  return (
+    <Link
+      to={to}
+      className={active ? "active" : undefined}
+      aria-current={active ? "page" : undefined}
+    >
+      {children}
+    </Link>
+  );
+}
+// A sibling of Outlet inside Suspense runs only once the new lazy screen commits.
+function RouteFocus() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      // Let drawer cleanup restore focus first; an open modal owns focus and scrolling.
+      if (document.querySelector('dialog[open], [aria-modal="true"]')) return;
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+      document.getElementById("main-content")?.focus({ preventScroll: true });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [pathname]);
+  return null;
 }
 export default function AppLayout() {
   const { account, logout } = useAuth();
@@ -158,8 +204,8 @@ export default function AppLayout() {
     const section =
       [
         "/learning",
+        "/games",
         "/schedule",
-        "/attendance",
         "/progress",
         "/tuition",
         "/invoices",
@@ -193,10 +239,10 @@ export default function AppLayout() {
         aria-label="Điều hướng chính"
         onClick={() => setOpen(false)}
       >
-        <NavLink to={root} end>
+        <SectionLink to={root} paths={teacher ? [root] : [root, "/family/children/:child"]} end>
           <Icon name="home" />
           {teacher ? "Tổng quan" : "Trang chủ"}
-        </NavLink>
+        </SectionLink>
         <NavLink to={`${root}/updates`}>
           <Icon name="clock" />
           Cập nhật của bạn
@@ -209,10 +255,13 @@ export default function AppLayout() {
               <Icon name="calendar" />
               Lịch dạy
             </NavLink>
-            <NavLink to="/teacher/attendance">
+            <SectionLink
+              to="/teacher/attendance"
+              paths={["/teacher/attendance", "/teacher/sessions/:session/attendance"]}
+            >
               <Icon name="check" />
               Điểm danh
-            </NavLink>
+            </SectionLink>
             <NavLink to="/teacher/reviews">
               <Icon name="message" />
               Phản hồi
@@ -231,6 +280,13 @@ export default function AppLayout() {
               Thông báo lớp
             </NavLink>
             <p className={styles.groupLabel}>HỌC LIỆU</p>
+            <SectionLink
+              to="/teacher/games"
+              paths={["/teacher/games", "/teacher/game-assignments"]}
+            >
+              <Icon name="game" />
+              Kho trò chơi
+            </SectionLink>
             <NavLink to="/teacher/library">
               <Icon name="book" />
               Thư viện học liệu
@@ -251,26 +307,35 @@ export default function AppLayout() {
           </>
         ) : (
           <>
-            <NavLink
+            <SectionLink
               to={
                 selectedChild
                   ? `/family/children/${selectedChild}/announcements`
                   : "/family"
               }
+              paths={
+                selectedChild
+                  ? [`/family/children/${selectedChild}/announcements`]
+                  : []
+              }
             >
               <Icon name="megaphone" />
               Thông báo lớp
-            </NavLink>
+            </SectionLink>
             <p className={styles.groupLabel}>HỌC TẬP</p>
-            <NavLink
+            <SectionLink
               to={learningLink}
-              className={
-                location.pathname.includes("/learning") ? "active" : ""
-              }
+              paths={selectedChild ? [learningLink] : []}
             >
               <Icon name="book" />
               Bài của con
-            </NavLink>
+            </SectionLink>
+            {selectedChild && (
+              <NavLink to={`/family/children/${selectedChild}/games`}>
+                <Icon name="game" />
+                Góc chơi của bé
+              </NavLink>
+            )}
             {selectedChild && (
               <NavLink to={`/family/children/${selectedChild}/submissions`}>
                 <Icon name="message" />
@@ -284,22 +349,21 @@ export default function AppLayout() {
               </NavLink>
             )}
             <p className={styles.groupLabel}>LỊCH HỌC</p>
-            <NavLink
+            <SectionLink
               to={
                 selectedChild
                   ? `/family/children/${selectedChild}/schedule`
                   : "/family"
               }
+              paths={
+                selectedChild
+                  ? [`/family/children/${selectedChild}/schedule`]
+                  : []
+              }
             >
               <Icon name="calendar" />
               Lịch học
-            </NavLink>
-            {selectedChild && (
-              <NavLink to={`/family/children/${selectedChild}/attendance`}>
-                <Icon name="check" />
-                Điểm danh của bé
-              </NavLink>
-            )}
+            </SectionLink>
             {selectedChild && (
               <>
                 <p className={styles.groupLabel}>HỌC PHÍ</p>
@@ -466,14 +530,17 @@ export default function AppLayout() {
             routeChild &&
             child &&
             location.pathname !== `/family/children/${routeChild}` && (
-            <p className={styles.childContext}>
-              <Avatar name={child.fullName} />
-              Hành trình của <strong>{child.fullName}</strong>
-            </p>
-          )}
-          <Suspense fallback={<Loading />}>
-            <Outlet />
-          </Suspense>
+              <p className={styles.childContext}>
+                <Avatar name={child.fullName} />
+                Hành trình của <strong>{child.fullName}</strong>
+              </p>
+            )}
+          <PageErrorBoundary resetKey={location.key}>
+            <Suspense fallback={<Loading />}>
+              <RouteFocus />
+              <Outlet />
+            </Suspense>
+          </PageErrorBoundary>
         </main>
         <footer className={styles.footer}>
           <span>TinyClass</span>
@@ -482,17 +549,17 @@ export default function AppLayout() {
       </div>
       {!teacher && (
         <nav className={styles.bottomNav} aria-label="Điều hướng gia đình">
-          <NavLink to="/family" end>
+          <SectionLink to="/family" paths={["/family", "/family/children/:child"]} end>
             <Icon name="home" />
             <span>Trang chủ</span>
-          </NavLink>
-          <NavLink
+          </SectionLink>
+          <SectionLink
             to={learningLink}
-            className={location.pathname.includes("/learning") ? "active" : ""}
+            paths={selectedChild ? [learningLink] : []}
           >
             <Icon name="book" />
             <span>Bài của con</span>
-          </NavLink>
+          </SectionLink>
           {selectedChild && (
             <NavLink to={`/family/children/${selectedChild}/schedule`}>
               <Icon name="calendar" />

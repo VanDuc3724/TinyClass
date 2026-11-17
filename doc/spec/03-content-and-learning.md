@@ -24,7 +24,7 @@ Nội dung chữ ban đầu là plain text. Nhập URL/nhúng video ngoài, rich
 |---|---|
 | FILE-01 | Giáo viên upload trực tiếp, chọn máy chủ hệ thống (`LOCAL`) hoặc Drive cá nhân (`GOOGLE_DRIVE`). |
 | FILE-02 | Một nơi mặc định, có thể đổi khi upload. Mặc định chỉ tác động tệp mới; một lớp có thể dùng tệp từ cả hai kho. |
-| FILE-03 | Database lưu metadata và connection/key; byte tệp nằm trong kho riêng tư. |
+| FILE-03 | Database lưu metadata và connection/key. Với LOCAL, byte tệp cũng nằm trong PostgreSQL (`file_chunks`); với Drive, byte nằm trong Drive của cô. |
 | FILE-04 | Backend kiểm tra quyền và stream qua API, hỗ trợ Range cho video; không phát link Drive công khai để bỏ qua kiểm tra lớp. |
 | FILE-05 | Mỗi học liệu có `learner_download_allowed`; gia đình cần quyền xem hiện tại và cờ cho phép mới gọi được download. |
 | FILE-06 | Upload/sản phẩm của phụ huynh dùng kho mặc định do giáo viên chọn; phụ huynh không sửa kết nối/kho/cờ học liệu. |
@@ -32,7 +32,7 @@ Nội dung chữ ban đầu là plain text. Nhập URL/nhúng video ngoài, rich
 
 ### LOCAL
 
-Thư mục upload nằm ngoài public/static/gói build; đường dẫn tương đối do server tạo và kiểm tra luôn trong root cấu hình. Cần ổ bền vững khi triển khai/redeploy và sao lưu folder cùng dữ liệu tham chiếu. Tệp không được đưa vào Git hoặc cột BLOB chỉ để phục vụ lưu trữ học liệu.
+Byte tệp nằm trong bảng `file_chunks` của PostgreSQL, chia khối 1 MiB cạnh metadata; không có thư mục upload, đường dẫn trên ổ đĩa hay URL công khai. Sao lưu/khôi phục database là đủ cho cả metadata và tệp; dung lượng database tăng theo quota. Tệp không đưa vào Git.
 
 ### Drive cá nhân
 
@@ -107,9 +107,9 @@ Tham chiếu `AC-08`–`AC-22`, `AC-31`, `AC-34`–`AC-37`, `AC-41` ở [bộ g�
 
 ## 7. Các lựa chọn đã áp dụng cho LOCAL và giao bài
 
-- V5 lưu storage/files; byte ở root riêng cấu hình qua TINYCLASS_UPLOAD_ROOT, mặc định `../.local/uploads` khi chạy từ Backend/. LOCAL mặc định được tạo lười dưới khóa user. Quota kỹ thuật mặc định 5 GiB, điều chỉnh bằng TINYCLASS_STORAGE_QUOTA_BYTES; kiểm tra cả các upload đang đặt chỗ để chống vượt đồng thời.
-- Kiểm tra bằng Tika Core 3.3.3 và allowlist đuôi/MIME, WebM xác minh EBML DocType. Dung lượng theo MiB; server giới hạn multipart 200 MiB/tệp, 201 MiB/request. Khóa tương đối là teacher UUID/file UUID/đuôi, không dùng tên trình duyệt làm đường dẫn. Root không nằm trong static/public/build hoặc symlink.
-- Upload giữ metadata UPLOADING, ghi tệp tạm/atomic move, checksum SHA-256, rồi READY; lỗi chuyển FAILED, cố dọn byte vừa ghi và giữ metadata. Preview/download qua Resource hỗ trợ Range; response no-store/nosniff. Không có đường public đến root.
+- V5 lưu storage/files; V19 thêm `file_chunks` giữ byte LOCAL (BYTEA khối 1 MiB, `STORAGE EXTERNAL` vì media đã nén). Tệp READY còn thiếu khối được nhập lúc khởi động từ thư mục cũ `TINYCLASS_UPLOAD_ROOT` (profile local mặc định `../.local/uploads`) khi khớp kích thước và SHA-256. LOCAL mặc định được tạo lười dưới khóa user. Quota kỹ thuật mặc định 5 GiB, điều chỉnh bằng TINYCLASS_STORAGE_QUOTA_BYTES; kiểm tra cả các upload đang đặt chỗ để chống vượt đồng thời.
+- Kiểm tra bằng Tika Core 3.3.3 và allowlist đuôi/MIME, WebM xác minh EBML DocType. Dung lượng theo MiB; server giới hạn multipart 200 MiB/tệp, 201 MiB/request. `storage_key` vẫn sinh dạng teacher UUID/file UUID/đuôi, không dùng tên trình duyệt; việc nhập tệp cũ chỉ đọc khóa đúng dạng này bên trong thư mục cũ, không theo symlink.
+- Upload giữ metadata UPLOADING, rồi ghi các khối, checksum SHA-256 và READY trong cùng giao dịch; lỗi rollback các khối, chuyển FAILED và giữ metadata. Preview/download stream từng khối, mỗi khối một truy vấn ngắn nên client chậm không giữ kết nối database; Range bỏ qua các khối không cần; response `private, no-cache` kèm ETag SHA-256 và nosniff: trình duyệt giữ bản sao nhưng mỗi lần mở vẫn kiểm tra quyền, chỉ trả 304 khi còn quyền; đăng xuất gửi `Clear-Site-Data: "cache"`. Không có đường public đến byte.
 - V6 dùng plain text và khối upload TEXT/IMAGE/AUDIO/VIDEO/PDF; không bật LINK/external URL. Khóa giữ thứ tự/required; bài tham khảo là tùy chọn. Sửa published cần acknowledgeSharedUpdate; archive giữ nội dung đã giao. Restore giữ trạng thái trước lưu trữ.
 - V7 sao chép item từ bài/khóa vào draft, chỉnh yêu cầu với version. Khi publish khóa target/assignment, xác minh nguồn và tệp READY, tạo người nhận trong cùng giao dịch; class lấy enrollment ACTIVE/profile ACTIVE. class/bé không hợp lệ hoặc lớp chưa có người nhận bị chặn.
 - client_request_id kèm request hash chống tạo lặp; publish retry không tạo lại recipients. Cấp bài cũ chỉ thực hiện khi cô chọn bé đang ở lớp và ghi lý do. Rút lớp thu hồi recipient trong cùng giao dịch, quay lại không tự phục hồi; giao riêng độc lập.

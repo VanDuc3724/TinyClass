@@ -427,7 +427,7 @@ export function registerScheduleFlows(
       ).toHaveCount(0);
       await expect(
         parent.getByText(
-          `Theo dõi các buổi học của ${otherName}, địa điểm và thay đổi từ cô.`,
+          `Theo dõi các buổi học của ${otherName}, điểm danh và lời nhắn của cô.`,
           { exact: true },
         ),
       ).toBeVisible();

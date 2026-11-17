@@ -458,6 +458,7 @@ export function registerStudentNoteFlows(
     try {
       await login(parent, true);
       await parent.goto(`/family/children/${child}`);
+      await parent.getByText("Xem thêm hoạt động", { exact: true }).click();
       await parent
         .getByRole("main")
         .getByRole("link", { name: "Nhận xét & tiến bộ", exact: true })

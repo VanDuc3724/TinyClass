@@ -1,8 +1,8 @@
 openapi: "3.1.0"
 info:
   title: "TinyClass API"
-  version: "0.0.15"
-  description: "Implemented through V16: accounts/classes/family, LOCAL learning/products/reviews, teaching/attendance/observations, tuition and reviewed invoices, manual payment recording/void, atomic integer balance limits, idempotent retries and public exact-child finance history. Google setup and makeup deferred. No bank gateway/refunds; Drive and notifications remain later work."
+  version: "0.0.16"
+  description: "Implemented through V20: accounts/classes/family, database-backed LOCAL media, learning/products/reviews, schedule/attendance/notes, tuition/invoices/payments, class announcements/personal updates/dashboard, and three learning games with authoritative persisted play, snapshot assignments and child collections. Real Google configuration, Drive adapter, makeup and production release work remain deferred."
 servers:
   -
     url: "/api/v1"
@@ -42,6 +42,8 @@ tags:
   -
     name: "Communications"
     description: "Class announcements, revision acknowledgement and personal updates under current source permissions."
+  -
+    name: "Games"
 paths:
   "/storage-connections":
     get:
@@ -126,7 +128,7 @@ paths:
         - "Storage"
       operationId: "listFiles"
       summary: "List owned files"
-      description: "TEACHER-only private library, including failed uploads; ordered by createdAt DESC/id DESC."
+      description: "TEACHER-only private library, including failed uploads by default; ordered by createdAt DESC/id DESC. Purpose, mediaType, status and search filters apply before pagination and result counts."
       security:
         -
           sessionCookie: []
@@ -148,6 +150,20 @@ paths:
           in: "query"
           schema:
             type: "string"
+        -
+          name: "mediaType"
+          in: "query"
+          description: "Optional image/audio MIME family for asset pickers."
+          schema:
+            type: "string"
+            enum: ["image", "audio"]
+        -
+          name: "status"
+          in: "query"
+          description: "Optional upload state; deleted files are always excluded."
+          schema:
+            type: "string"
+            enum: ["UPLOADING", "READY", "FAILED"]
       responses:
         "200":
           description: "List owned files"
@@ -484,7 +500,7 @@ paths:
         - "Storage"
       operationId: "teacherFilecontent"
       summary: "Stream an owned file (content)"
-      description: "Session and current resource access are checked before streaming. Resource support handles RFC 9110 ranges. Responses are private/no-store and nosniff; family download also requires the live learnerDownloadAllowed flag. No public filesystem/Drive URL."
+      description: "Session and current resource access are checked before streaming. Resource support handles RFC 9110 ranges. Responses are private, no-cache with a SHA-256 ETag (If-None-Match gives 304 only after the same checks pass) and nosniff; family download also requires the live learnerDownloadAllowed flag. No public filesystem/Drive URL."
       security:
         -
           sessionCookie: []
@@ -503,10 +519,19 @@ paths:
           in: "header"
           schema:
             type: "string"
+        -
+          name: "If-None-Match"
+          in: "header"
+          schema:
+            type: "string"
       responses:
         "200":
           description: "Whole file, inline for content or attachment for download."
           headers:
+            ETag:
+              description: "Quoted SHA-256 of the stored bytes; a file id never receives new bytes."
+              schema:
+                type: "string"
             Content-Disposition:
               schema:
                 type: "string"
@@ -530,6 +555,8 @@ paths:
               schema:
                 type: "string"
                 format: "binary"
+        "304":
+          description: "Unchanged since the ETag sent in If-None-Match; returned only after the same access checks pass."
         "400":
           description: "Invalid input, MIME/extension/purpose, dates, completion mode or assignment snapshot."
           headers:
@@ -596,7 +623,7 @@ paths:
         - "Storage"
       operationId: "teacherFiledownload"
       summary: "Stream an owned file (download)"
-      description: "Session and current resource access are checked before streaming. Resource support handles RFC 9110 ranges. Responses are private/no-store and nosniff; family download also requires the live learnerDownloadAllowed flag. No public filesystem/Drive URL."
+      description: "Session and current resource access are checked before streaming. Resource support handles RFC 9110 ranges. Responses are private, no-cache with a SHA-256 ETag (If-None-Match gives 304 only after the same checks pass) and nosniff; family download also requires the live learnerDownloadAllowed flag. No public filesystem/Drive URL."
       security:
         -
           sessionCookie: []
@@ -615,10 +642,19 @@ paths:
           in: "header"
           schema:
             type: "string"
+        -
+          name: "If-None-Match"
+          in: "header"
+          schema:
+            type: "string"
       responses:
         "200":
           description: "Whole file, inline for content or attachment for download."
           headers:
+            ETag:
+              description: "Quoted SHA-256 of the stored bytes; a file id never receives new bytes."
+              schema:
+                type: "string"
             Content-Disposition:
               schema:
                 type: "string"
@@ -642,6 +678,8 @@ paths:
               schema:
                 type: "string"
                 format: "binary"
+        "304":
+          description: "Unchanged since the ETag sent in If-None-Match; returned only after the same access checks pass."
         "400":
           description: "Invalid input, MIME/extension/purpose, dates, completion mode or assignment snapshot."
           headers:
@@ -3301,7 +3339,7 @@ paths:
         - "Family learning"
       operationId: "familyFilecontent"
       summary: "Stream the child's assigned file (content)"
-      description: "Session and current resource access are checked before streaming. Resource support handles RFC 9110 ranges. Responses are private/no-store and nosniff; family download also requires the live learnerDownloadAllowed flag. No public filesystem/Drive URL."
+      description: "Session and current resource access are checked before streaming. Resource support handles RFC 9110 ranges. Responses are private, no-cache with a SHA-256 ETag (If-None-Match gives 304 only after the same checks pass) and nosniff; family download also requires the live learnerDownloadAllowed flag. No public filesystem/Drive URL."
       security:
         -
           sessionCookie: []
@@ -3334,10 +3372,19 @@ paths:
           in: "header"
           schema:
             type: "string"
+        -
+          name: "If-None-Match"
+          in: "header"
+          schema:
+            type: "string"
       responses:
         "200":
           description: "Whole file, inline for content or attachment for download."
           headers:
+            ETag:
+              description: "Quoted SHA-256 of the stored bytes; a file id never receives new bytes."
+              schema:
+                type: "string"
             Content-Disposition:
               schema:
                 type: "string"
@@ -3361,6 +3408,8 @@ paths:
               schema:
                 type: "string"
                 format: "binary"
+        "304":
+          description: "Unchanged since the ETag sent in If-None-Match; returned only after the same access checks pass."
         "400":
           description: "Invalid input, MIME/extension/purpose, dates, completion mode or assignment snapshot."
           headers:
@@ -3427,7 +3476,7 @@ paths:
         - "Family learning"
       operationId: "familyFiledownload"
       summary: "Stream the child's assigned file (download)"
-      description: "Session and current resource access are checked before streaming. Resource support handles RFC 9110 ranges. Responses are private/no-store and nosniff; family download also requires the live learnerDownloadAllowed flag. No public filesystem/Drive URL."
+      description: "Session and current resource access are checked before streaming. Resource support handles RFC 9110 ranges. Responses are private, no-cache with a SHA-256 ETag (If-None-Match gives 304 only after the same checks pass) and nosniff; family download also requires the live learnerDownloadAllowed flag. No public filesystem/Drive URL."
       security:
         -
           sessionCookie: []
@@ -3460,10 +3509,19 @@ paths:
           in: "header"
           schema:
             type: "string"
+        -
+          name: "If-None-Match"
+          in: "header"
+          schema:
+            type: "string"
       responses:
         "200":
           description: "Whole file, inline for content or attachment for download."
           headers:
+            ETag:
+              description: "Quoted SHA-256 of the stored bytes; a file id never receives new bytes."
+              schema:
+                type: "string"
             Content-Disposition:
               schema:
                 type: "string"
@@ -3487,6 +3545,8 @@ paths:
               schema:
                 type: "string"
                 format: "binary"
+        "304":
+          description: "Unchanged since the ETag sent in If-None-Match; returned only after the same access checks pass."
         "400":
           description: "Invalid input, MIME/extension/purpose, dates, completion mode or assignment snapshot."
           headers:
@@ -7935,10 +7995,19 @@ paths:
           in: "header"
           schema:
             type: "string"
+        -
+          name: "If-None-Match"
+          in: "header"
+          schema:
+            type: "string"
       responses:
         "200":
           description: "Whole file, inline for content or attachment for download."
           headers:
+            ETag:
+              description: "Quoted SHA-256 of the stored bytes; a file id never receives new bytes."
+              schema:
+                type: "string"
             Content-Disposition:
               schema:
                 type: "string"
@@ -7962,6 +8031,8 @@ paths:
               schema:
                 type: "string"
                 format: "binary"
+        "304":
+          description: "Unchanged since the ETag sent in If-None-Match; returned only after the same access checks pass."
         "400":
           description: "Invalid input, MIME/extension/purpose, dates, completion mode or assignment snapshot."
           headers:
@@ -8061,10 +8132,19 @@ paths:
           in: "header"
           schema:
             type: "string"
+        -
+          name: "If-None-Match"
+          in: "header"
+          schema:
+            type: "string"
       responses:
         "200":
           description: "Whole file, inline for content or attachment for download."
           headers:
+            ETag:
+              description: "Quoted SHA-256 of the stored bytes; a file id never receives new bytes."
+              schema:
+                type: "string"
             Content-Disposition:
               schema:
                 type: "string"
@@ -8088,6 +8168,8 @@ paths:
               schema:
                 type: "string"
                 format: "binary"
+        "304":
+          description: "Unchanged since the ETag sent in If-None-Match; returned only after the same access checks pass."
         "400":
           description: "Invalid input, MIME/extension/purpose, dates, completion mode or assignment snapshot."
           headers:
@@ -8180,10 +8262,19 @@ paths:
           in: "header"
           schema:
             type: "string"
+        -
+          name: "If-None-Match"
+          in: "header"
+          schema:
+            type: "string"
       responses:
         "200":
           description: "Whole file, inline for content or attachment for download."
           headers:
+            ETag:
+              description: "Quoted SHA-256 of the stored bytes; a file id never receives new bytes."
+              schema:
+                type: "string"
             Content-Disposition:
               schema:
                 type: "string"
@@ -8207,6 +8298,8 @@ paths:
               schema:
                 type: "string"
                 format: "binary"
+        "304":
+          description: "Unchanged since the ETag sent in If-None-Match; returned only after the same access checks pass."
         "400":
           description: "Invalid input, MIME/extension/purpose, dates, completion mode or assignment snapshot."
           headers:
@@ -8299,10 +8392,19 @@ paths:
           in: "header"
           schema:
             type: "string"
+        -
+          name: "If-None-Match"
+          in: "header"
+          schema:
+            type: "string"
       responses:
         "200":
           description: "Whole file, inline for content or attachment for download."
           headers:
+            ETag:
+              description: "Quoted SHA-256 of the stored bytes; a file id never receives new bytes."
+              schema:
+                type: "string"
             Content-Disposition:
               schema:
                 type: "string"
@@ -8326,6 +8428,8 @@ paths:
               schema:
                 type: "string"
                 format: "binary"
+        "304":
+          description: "Unchanged since the ETag sent in If-None-Match; returned only after the same access checks pass."
         "400":
           description: "Invalid input, MIME/extension/purpose, dates, completion mode or assignment snapshot."
           headers:
@@ -10742,7 +10846,7 @@ paths:
         - "Student notes and progress"
       operationId: "teacherStudentNoteFileContent"
       summary: "View a current note attachment"
-      description: "TEACHER owner. Requires READY NOTE_ASSET, permanent binding to this note and current attachment membership. Teacher can inspect current attachments even on archived notes. Removed historical attachment bytes remain in the teacher file library. Supports Range and private/no-store responses; attachment download permission follows the shared note."
+      description: "TEACHER owner. Requires READY NOTE_ASSET, permanent binding to this note and current attachment membership. Teacher can inspect current attachments even on archived notes. Removed historical attachment bytes remain in the teacher file library. Supports Range and private, no-cache responses with ETag revalidation after the same checks; attachment download permission follows the shared note."
       security:
         -
           sessionCookie: []
@@ -10768,9 +10872,19 @@ paths:
           in: "header"
           schema:
             type: "string"
+        -
+          name: "If-None-Match"
+          in: "header"
+          schema:
+            type: "string"
       responses:
         "200":
           description: "Inline file content."
+          headers:
+            ETag:
+              description: "Quoted SHA-256 of the stored bytes; a file id never receives new bytes."
+              schema:
+                type: "string"
           content:
             "application/octet-stream":
               schema:
@@ -10783,6 +10897,8 @@ paths:
               schema:
                 type: "string"
                 format: "binary"
+        "304":
+          description: "Unchanged since the ETag sent in If-None-Match; returned only after the same access checks pass."
         "400":
           description: "Invalid fields, date, visibility, context, attachment type/size or pagination."
           content:
@@ -10825,7 +10941,7 @@ paths:
         - "Student notes and progress"
       operationId: "teacherStudentNoteFileDownload"
       summary: "Download a current note attachment"
-      description: "TEACHER owner. Requires READY NOTE_ASSET, permanent binding to this note and current attachment membership. Teacher can inspect current attachments even on archived notes. Removed historical attachment bytes remain in the teacher file library. Supports Range and private/no-store responses; attachment download permission follows the shared note."
+      description: "TEACHER owner. Requires READY NOTE_ASSET, permanent binding to this note and current attachment membership. Teacher can inspect current attachments even on archived notes. Removed historical attachment bytes remain in the teacher file library. Supports Range and private, no-cache responses with ETag revalidation after the same checks; attachment download permission follows the shared note."
       security:
         -
           sessionCookie: []
@@ -10851,9 +10967,19 @@ paths:
           in: "header"
           schema:
             type: "string"
+        -
+          name: "If-None-Match"
+          in: "header"
+          schema:
+            type: "string"
       responses:
         "200":
           description: "Attachment download."
+          headers:
+            ETag:
+              description: "Quoted SHA-256 of the stored bytes; a file id never receives new bytes."
+              schema:
+                type: "string"
           content:
             "application/octet-stream":
               schema:
@@ -10866,6 +10992,8 @@ paths:
               schema:
                 type: "string"
                 format: "binary"
+        "304":
+          description: "Unchanged since the ETag sent in If-None-Match; returned only after the same access checks pass."
         "400":
           description: "Invalid fields, date, visibility, context, attachment type/size or pagination."
           content:
@@ -10908,7 +11036,7 @@ paths:
         - "Student notes and progress"
       operationId: "familyStudentNoteFileContent"
       summary: "View a current note attachment"
-      description: "Verified PARENT with an active guardian link to this exact child. Rechecked on each request. Requires READY NOTE_ASSET, permanent binding to this note and current attachment membership. The note must currently be SHARED and non-archived. Private/archive/remove/revoke blocks old URLs; no public storage URL. Supports Range and private/no-store responses; attachment download permission follows the shared note."
+      description: "Verified PARENT with an active guardian link to this exact child. Rechecked on each request. Requires READY NOTE_ASSET, permanent binding to this note and current attachment membership. The note must currently be SHARED and non-archived. Private/archive/remove/revoke blocks old URLs; no public storage URL. Supports Range and private, no-cache responses with ETag revalidation after the same checks; attachment download permission follows the shared note."
       security:
         -
           sessionCookie: []
@@ -10941,9 +11069,19 @@ paths:
           in: "header"
           schema:
             type: "string"
+        -
+          name: "If-None-Match"
+          in: "header"
+          schema:
+            type: "string"
       responses:
         "200":
           description: "Inline file content."
+          headers:
+            ETag:
+              description: "Quoted SHA-256 of the stored bytes; a file id never receives new bytes."
+              schema:
+                type: "string"
           content:
             "application/octet-stream":
               schema:
@@ -10956,6 +11094,8 @@ paths:
               schema:
                 type: "string"
                 format: "binary"
+        "304":
+          description: "Unchanged since the ETag sent in If-None-Match; returned only after the same access checks pass."
         "400":
           description: "Invalid fields, date, visibility, context, attachment type/size or pagination."
           content:
@@ -10998,7 +11138,7 @@ paths:
         - "Student notes and progress"
       operationId: "familyStudentNoteFileDownload"
       summary: "Download a current note attachment"
-      description: "Verified PARENT with an active guardian link to this exact child. Rechecked on each request. Requires READY NOTE_ASSET, permanent binding to this note and current attachment membership. The note must currently be SHARED and non-archived. Private/archive/remove/revoke blocks old URLs; no public storage URL. Supports Range and private/no-store responses; attachment download permission follows the shared note."
+      description: "Verified PARENT with an active guardian link to this exact child. Rechecked on each request. Requires READY NOTE_ASSET, permanent binding to this note and current attachment membership. The note must currently be SHARED and non-archived. Private/archive/remove/revoke blocks old URLs; no public storage URL. Supports Range and private, no-cache responses with ETag revalidation after the same checks; attachment download permission follows the shared note."
       security:
         -
           sessionCookie: []
@@ -11031,9 +11171,19 @@ paths:
           in: "header"
           schema:
             type: "string"
+        -
+          name: "If-None-Match"
+          in: "header"
+          schema:
+            type: "string"
       responses:
         "200":
           description: "Attachment download."
+          headers:
+            ETag:
+              description: "Quoted SHA-256 of the stored bytes; a file id never receives new bytes."
+              schema:
+                type: "string"
           content:
             "application/octet-stream":
               schema:
@@ -11046,6 +11196,8 @@ paths:
               schema:
                 type: "string"
                 format: "binary"
+        "304":
+          description: "Unchanged since the ETag sent in If-None-Match; returned only after the same access checks pass."
         "400":
           description: "Invalid fields, date, visibility, context, attachment type/size or pagination."
           content:
@@ -13835,6 +13987,1918 @@ paths:
             "application/json":
               schema:
                 "$ref": "#/components/schemas/ApiError"
+  "/games":
+    get:
+      tags:
+        - "Games"
+      operationId: "listLearningGames"
+      summary: "listLearningGames"
+      description: "TEACHER owner only. Filters before count/page."
+      security:
+        -
+          sessionCookie: []
+      parameters:
+        -
+          "$ref": "#/components/parameters/RequestId"
+        -
+          name: "q"
+          in: "query"
+          schema:
+            type: "string"
+        -
+          name: "status"
+          in: "query"
+          schema:
+            type: "string"
+            enum:
+              - "DRAFT"
+              - "PUBLISHED"
+              - "ARCHIVED"
+        -
+          name: "gameType"
+          in: "query"
+          schema:
+            type: "string"
+            enum:
+              - "CHOICE"
+              - "MATCH"
+              - "MEMORY"
+        -
+          name: "page"
+          in: "query"
+          schema:
+            type: "integer"
+            minimum: 0
+            default: 0
+        -
+          name: "size"
+          in: "query"
+          schema:
+            type: "integer"
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        "200":
+          description: "Current authorized game data."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/LearningGameSummaryPage"
+        "400":
+          description: "Invalid game configuration or move."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "401":
+          description: "Active session required."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "403":
+          description: "Role, verified email, CSRF, future opening or download restriction."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "404":
+          description: "Unknown ID, other owner/creator or current source rights revoked."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "409":
+          description: "Stale version, wrong lifecycle state or reused UUID with different input."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+    post:
+      tags:
+        - "Games"
+      operationId: "createLearningGame"
+      summary: "createLearningGame"
+      description: "TEACHER owner only. Create idempotent draft."
+      security:
+        -
+          sessionCookie: []
+      parameters:
+        -
+          "$ref": "#/components/parameters/RequestId"
+        -
+          name: "X-CSRF-TOKEN"
+          in: "header"
+          required: true
+          schema:
+            type: "string"
+          description: "Use headerName and token from GET /auth/csrf."
+      responses:
+        "201":
+          description: "Current authorized game data."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/LearningGameResponse"
+        "400":
+          description: "Invalid game configuration or move."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "401":
+          description: "Active session required."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "403":
+          description: "Role, verified email, CSRF, future opening or download restriction."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "404":
+          description: "Unknown ID, other owner/creator or current source rights revoked."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "409":
+          description: "Stale version, wrong lifecycle state or reused UUID with different input."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              "$ref": "#/components/schemas/SaveGameInput"
+  "/games/{id}":
+    get:
+      tags:
+        - "Games"
+      operationId: "readLearningGame"
+      summary: "readLearningGame"
+      description: "TEACHER owner only. Full editable content includes solutions."
+      security:
+        -
+          sessionCookie: []
+      parameters:
+        -
+          "$ref": "#/components/parameters/RequestId"
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: "Current authorized game data."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/LearningGameResponse"
+        "400":
+          description: "Invalid game configuration or move."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "401":
+          description: "Active session required."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "403":
+          description: "Role, verified email, CSRF, future opening or download restriction."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "404":
+          description: "Unknown ID, other owner/creator or current source rights revoked."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "409":
+          description: "Stale version, wrong lifecycle state or reused UUID with different input."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+    put:
+      tags:
+        - "Games"
+      operationId: "updateLearningGame"
+      summary: "updateLearningGame"
+      description: "TEACHER owner only. Versioned edit; published changes need reason and increment revision. Prior assignments remain unchanged."
+      security:
+        -
+          sessionCookie: []
+      parameters:
+        -
+          "$ref": "#/components/parameters/RequestId"
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+        -
+          name: "X-CSRF-TOKEN"
+          in: "header"
+          required: true
+          schema:
+            type: "string"
+          description: "Use headerName and token from GET /auth/csrf."
+      responses:
+        "200":
+          description: "Current authorized game data."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/LearningGameResponse"
+        "400":
+          description: "Invalid game configuration or move."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "401":
+          description: "Active session required."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "403":
+          description: "Role, verified email, CSRF, future opening or download restriction."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "404":
+          description: "Unknown ID, other owner/creator or current source rights revoked."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "409":
+          description: "Stale version, wrong lifecycle state or reused UUID with different input."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              "$ref": "#/components/schemas/SaveGameInput"
+  "/games/{id}/publish":
+    post:
+      tags:
+        - "Games"
+      operationId: "publishLearningGame"
+      summary: "publishLearningGame"
+      description: "TEACHER owner only. Validate complete content before publication."
+      security:
+        -
+          sessionCookie: []
+      parameters:
+        -
+          "$ref": "#/components/parameters/RequestId"
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+        -
+          name: "X-CSRF-TOKEN"
+          in: "header"
+          required: true
+          schema:
+            type: "string"
+          description: "Use headerName and token from GET /auth/csrf."
+      responses:
+        "200":
+          description: "Current authorized game data."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/LearningGameResponse"
+        "400":
+          description: "Invalid game configuration or move."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "401":
+          description: "Active session required."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "403":
+          description: "Role, verified email, CSRF, future opening or download restriction."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "404":
+          description: "Unknown ID, other owner/creator or current source rights revoked."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "409":
+          description: "Stale version, wrong lifecycle state or reused UUID with different input."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              "$ref": "#/components/schemas/GameActionInput"
+  "/games/{id}/archive":
+    post:
+      tags:
+        - "Games"
+      operationId: "archiveLearningGame"
+      summary: "archiveLearningGame"
+      description: "TEACHER owner only. Reason required. Existing snapshot assignments remain playable until revoked."
+      security:
+        -
+          sessionCookie: []
+      parameters:
+        -
+          "$ref": "#/components/parameters/RequestId"
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+        -
+          name: "X-CSRF-TOKEN"
+          in: "header"
+          required: true
+          schema:
+            type: "string"
+          description: "Use headerName and token from GET /auth/csrf."
+      responses:
+        "200":
+          description: "Current authorized game data."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/LearningGameResponse"
+        "400":
+          description: "Invalid game configuration or move."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "401":
+          description: "Active session required."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "403":
+          description: "Role, verified email, CSRF, future opening or download restriction."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "404":
+          description: "Unknown ID, other owner/creator or current source rights revoked."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "409":
+          description: "Stale version, wrong lifecycle state or reused UUID with different input."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              "$ref": "#/components/schemas/GameActionInput"
+  "/games/{id}/restore":
+    post:
+      tags:
+        - "Games"
+      operationId: "restoreLearningGame"
+      summary: "restoreLearningGame"
+      description: "TEACHER owner only. Return to previous draft/published state."
+      security:
+        -
+          sessionCookie: []
+      parameters:
+        -
+          "$ref": "#/components/parameters/RequestId"
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+        -
+          name: "X-CSRF-TOKEN"
+          in: "header"
+          required: true
+          schema:
+            type: "string"
+          description: "Use headerName and token from GET /auth/csrf."
+      responses:
+        "200":
+          description: "Current authorized game data."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/LearningGameResponse"
+        "400":
+          description: "Invalid game configuration or move."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "401":
+          description: "Active session required."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "403":
+          description: "Role, verified email, CSRF, future opening or download restriction."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "404":
+          description: "Unknown ID, other owner/creator or current source rights revoked."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "409":
+          description: "Stale version, wrong lifecycle state or reused UUID with different input."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              "$ref": "#/components/schemas/GameActionInput"
+  "/games/{id}/preview-attempts":
+    post:
+      tags:
+        - "Games"
+      operationId: "previewLearningGame"
+      summary: "previewLearningGame"
+      description: "TEACHER owner only. Fully validated non-archived draft/published content. Same engine, persisted isolated preview; no child scores. Retry same UUID resumes the created preview."
+      security:
+        -
+          sessionCookie: []
+      parameters:
+        -
+          "$ref": "#/components/parameters/RequestId"
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+        -
+          name: "X-CSRF-TOKEN"
+          in: "header"
+          required: true
+          schema:
+            type: "string"
+          description: "Use headerName and token from GET /auth/csrf."
+      responses:
+        "200":
+          description: "Current authorized game data."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/GameAttemptResponse"
+        "400":
+          description: "Invalid game configuration or move."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "401":
+          description: "Active session required."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "403":
+          description: "Role, verified email, CSRF, future opening or download restriction."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "404":
+          description: "Unknown ID, other owner/creator or current source rights revoked."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "409":
+          description: "Stale version, wrong lifecycle state or reused UUID with different input."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              "$ref": "#/components/schemas/StartGameInput"
+  "/game-assignments":
+    get:
+      tags:
+        - "Games"
+      operationId: "listGameAssignments"
+      summary: "listGameAssignments"
+      description: "TEACHER owner only. Filter before page."
+      security:
+        -
+          sessionCookie: []
+      parameters:
+        -
+          "$ref": "#/components/parameters/RequestId"
+        -
+          name: "gameId"
+          in: "query"
+          schema:
+            type: "string"
+            format: "uuid"
+        -
+          name: "classId"
+          in: "query"
+          schema:
+            type: "string"
+            format: "uuid"
+        -
+          name: "page"
+          in: "query"
+          schema:
+            type: "integer"
+            minimum: 0
+            default: 0
+        -
+          name: "size"
+          in: "query"
+          schema:
+            type: "integer"
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        "200":
+          description: "Current authorized game data."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/GameAssignmentSummaryPage"
+        "400":
+          description: "Invalid game configuration or move."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "401":
+          description: "Active session required."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "403":
+          description: "Role, verified email, CSRF, future opening or download restriction."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "404":
+          description: "Unknown ID, other owner/creator or current source rights revoked."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "409":
+          description: "Stale version, wrong lifecycle state or reused UUID with different input."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+    post:
+      tags:
+        - "Games"
+      operationId: "assignLearningGame"
+      summary: "assignLearningGame"
+      description: "TEACHER owner only. Idempotent snapshot and active roster transaction."
+      security:
+        -
+          sessionCookie: []
+      parameters:
+        -
+          "$ref": "#/components/parameters/RequestId"
+        -
+          name: "X-CSRF-TOKEN"
+          in: "header"
+          required: true
+          schema:
+            type: "string"
+          description: "Use headerName and token from GET /auth/csrf."
+      responses:
+        "201":
+          description: "Current authorized game data."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/GameAssignmentResponse"
+        "400":
+          description: "Invalid game configuration or move."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "401":
+          description: "Active session required."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "403":
+          description: "Role, verified email, CSRF, future opening or download restriction."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "404":
+          description: "Unknown ID, other owner/creator or current source rights revoked."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "409":
+          description: "Stale version, wrong lifecycle state or reused UUID with different input."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              "$ref": "#/components/schemas/CreateGameAssignmentInput"
+  "/game-assignments/{id}":
+    get:
+      tags:
+        - "Games"
+      operationId: "readGameAssignment"
+      summary: "readGameAssignment"
+      description: "TEACHER owner only. Snapshot and recipient counts."
+      security:
+        -
+          sessionCookie: []
+      parameters:
+        -
+          "$ref": "#/components/parameters/RequestId"
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: "Current authorized game data."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/GameAssignmentResponse"
+        "400":
+          description: "Invalid game configuration or move."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "401":
+          description: "Active session required."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "403":
+          description: "Role, verified email, CSRF, future opening or download restriction."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "404":
+          description: "Unknown ID, other owner/creator or current source rights revoked."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "409":
+          description: "Stale version, wrong lifecycle state or reused UUID with different input."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+  "/game-assignments/{id}/revoke":
+    post:
+      tags:
+        - "Games"
+      operationId: "revokeGameAssignment"
+      summary: "revokeGameAssignment"
+      description: "TEACHER owner only. Reason/version required. Stop content/play/files for all recipients; keep completed summary history."
+      security:
+        -
+          sessionCookie: []
+      parameters:
+        -
+          "$ref": "#/components/parameters/RequestId"
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+        -
+          name: "X-CSRF-TOKEN"
+          in: "header"
+          required: true
+          schema:
+            type: "string"
+          description: "Use headerName and token from GET /auth/csrf."
+      responses:
+        "200":
+          description: "Current authorized game data."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/GameAssignmentResponse"
+        "400":
+          description: "Invalid game configuration or move."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "401":
+          description: "Active session required."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "403":
+          description: "Role, verified email, CSRF, future opening or download restriction."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "404":
+          description: "Unknown ID, other owner/creator or current source rights revoked."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "409":
+          description: "Stale version, wrong lifecycle state or reused UUID with different input."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              "$ref": "#/components/schemas/GameActionInput"
+  "/game-assignments/{id}/recipients":
+    post:
+      tags:
+        - "Games"
+      operationId: "grantGameRecipients"
+      summary: "grantGameRecipients"
+      description: "TEACHER owner only. Explicit grant/regrant only for current eligible class or individual target. Does not resume revoked assignment."
+      security:
+        -
+          sessionCookie: []
+      parameters:
+        -
+          "$ref": "#/components/parameters/RequestId"
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+        -
+          name: "X-CSRF-TOKEN"
+          in: "header"
+          required: true
+          schema:
+            type: "string"
+          description: "Use headerName and token from GET /auth/csrf."
+      responses:
+        "200":
+          description: "Current authorized game data."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/GameAssignmentResponse"
+        "400":
+          description: "Invalid game configuration or move."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "401":
+          description: "Active session required."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "403":
+          description: "Role, verified email, CSRF, future opening or download restriction."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "404":
+          description: "Unknown ID, other owner/creator or current source rights revoked."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "409":
+          description: "Stale version, wrong lifecycle state or reused UUID with different input."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              "$ref": "#/components/schemas/GrantGameRecipientsInput"
+  "/game-assignments/{id}/results":
+    get:
+      tags:
+        - "Games"
+      operationId: "gameRecipientResults"
+      summary: "gameRecipientResults"
+      description: "TEACHER owner only. All recipients including revoked, counts of real attempts and best stars. No previews."
+      security:
+        -
+          sessionCookie: []
+      parameters:
+        -
+          "$ref": "#/components/parameters/RequestId"
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+        -
+          name: "page"
+          in: "query"
+          schema:
+            type: "integer"
+            minimum: 0
+            default: 0
+        -
+          name: "size"
+          in: "query"
+          schema:
+            type: "integer"
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        "200":
+          description: "Current authorized game data."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/GameRecipientResultPage"
+        "400":
+          description: "Invalid game configuration or move."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "401":
+          description: "Active session required."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "403":
+          description: "Role, verified email, CSRF, future opening or download restriction."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "404":
+          description: "Unknown ID, other owner/creator or current source rights revoked."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "409":
+          description: "Stale version, wrong lifecycle state or reused UUID with different input."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+  "/game-assignments/{id}/students/{child}/results":
+    get:
+      tags:
+        - "Games"
+      operationId: "gameChildResults"
+      summary: "gameChildResults"
+      description: "TEACHER owner only. Paginated summaries of all real attempt statuses for this exact assignment/child."
+      security:
+        -
+          sessionCookie: []
+      parameters:
+        -
+          "$ref": "#/components/parameters/RequestId"
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+        -
+          name: "child"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+        -
+          name: "page"
+          in: "query"
+          schema:
+            type: "integer"
+            minimum: 0
+            default: 0
+        -
+          name: "size"
+          in: "query"
+          schema:
+            type: "integer"
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        "200":
+          description: "Current authorized game data."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/GameResultPage"
+        "400":
+          description: "Invalid game configuration or move."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "401":
+          description: "Active session required."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "403":
+          description: "Role, verified email, CSRF, future opening or download restriction."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "404":
+          description: "Unknown ID, other owner/creator or current source rights revoked."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "409":
+          description: "Stale version, wrong lifecycle state or reused UUID with different input."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+  "/family/children/{child}/games":
+    get:
+      tags:
+        - "Games"
+      operationId: "familyGames"
+      summary: "familyGames"
+      description: "Verified PARENT with active guardian for the exact child. Current active child/recipient/class/enrollment required. Metadata only; opening-time lock; include own active attempt ID. Rights before count/page."
+      security:
+        -
+          sessionCookie: []
+      parameters:
+        -
+          "$ref": "#/components/parameters/RequestId"
+        -
+          name: "child"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+        -
+          name: "page"
+          in: "query"
+          schema:
+            type: "integer"
+            minimum: 0
+            default: 0
+        -
+          name: "size"
+          in: "query"
+          schema:
+            type: "integer"
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        "200":
+          description: "Current authorized game data."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/FamilyGamePage"
+        "400":
+          description: "Invalid game configuration or move."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "401":
+          description: "Active session required."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "403":
+          description: "Role, verified email, CSRF, future opening or download restriction."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "404":
+          description: "Unknown ID, other owner/creator or current source rights revoked."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "409":
+          description: "Stale version, wrong lifecycle state or reused UUID with different input."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+  "/family/children/{child}/games/collection":
+    get:
+      tags:
+        - "Games"
+      operationId: "familyGameCollection"
+      summary: "familyGameCollection"
+      description: "Verified PARENT with active guardian. Historical child collection retained after withdrawal/archive/assignment revoke."
+      security:
+        -
+          sessionCookie: []
+      parameters:
+        -
+          "$ref": "#/components/parameters/RequestId"
+        -
+          name: "child"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: "Current authorized game data."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/GameCollectionResponse"
+        "400":
+          description: "Invalid game configuration or move."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "401":
+          description: "Active session required."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "403":
+          description: "Role, verified email, CSRF, future opening or download restriction."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "404":
+          description: "Unknown ID, other owner/creator or current source rights revoked."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "409":
+          description: "Stale version, wrong lifecycle state or reused UUID with different input."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+  "/family/children/{child}/games/history":
+    get:
+      tags:
+        - "Games"
+      operationId: "familyGameHistory"
+      summary: "familyGameHistory"
+      description: "Verified PARENT with active guardian. Completed summary history only, preserved after withdrawal/archive/revoke. No playable content."
+      security:
+        -
+          sessionCookie: []
+      parameters:
+        -
+          "$ref": "#/components/parameters/RequestId"
+        -
+          name: "child"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+        -
+          name: "page"
+          in: "query"
+          schema:
+            type: "integer"
+            minimum: 0
+            default: 0
+        -
+          name: "size"
+          in: "query"
+          schema:
+            type: "integer"
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        "200":
+          description: "Current authorized game data."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/GameResultPage"
+        "400":
+          description: "Invalid game configuration or move."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "401":
+          description: "Active session required."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "403":
+          description: "Role, verified email, CSRF, future opening or download restriction."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "404":
+          description: "Unknown ID, other owner/creator or current source rights revoked."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "409":
+          description: "Stale version, wrong lifecycle state or reused UUID with different input."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+  "/family/children/{child}/game-assignments/{id}":
+    get:
+      tags:
+        - "Games"
+      operationId: "familyGameAssignment"
+      summary: "familyGameAssignment"
+      description: "Verified PARENT with active guardian for the exact child. Current active child/recipient/class/enrollment required. Metadata only, no answers; future lock visible."
+      security:
+        -
+          sessionCookie: []
+      parameters:
+        -
+          "$ref": "#/components/parameters/RequestId"
+        -
+          name: "child"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: "Current authorized game data."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/FamilyGameAssignmentResponse"
+        "400":
+          description: "Invalid game configuration or move."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "401":
+          description: "Active session required."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "403":
+          description: "Role, verified email, CSRF, future opening or download restriction."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "404":
+          description: "Unknown ID, other owner/creator or current source rights revoked."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "409":
+          description: "Stale version, wrong lifecycle state or reused UUID with different input."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+  "/family/children/{child}/game-assignments/{id}/attempts":
+    post:
+      tags:
+        - "Games"
+      operationId: "startFamilyGame"
+      summary: "startFamilyGame"
+      description: "Verified PARENT with active guardian for the exact child. Current active child/recipient/class/enrollment required. Must be open. Resume creator active attempt; otherwise create shuffled attempt. Same UUID remains bound to its original attempt even after completion/abandon."
+      security:
+        -
+          sessionCookie: []
+      parameters:
+        -
+          "$ref": "#/components/parameters/RequestId"
+        -
+          name: "child"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+        -
+          name: "X-CSRF-TOKEN"
+          in: "header"
+          required: true
+          schema:
+            type: "string"
+          description: "Use headerName and token from GET /auth/csrf."
+      responses:
+        "200":
+          description: "Current authorized game data."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/GameAttemptResponse"
+        "400":
+          description: "Invalid game configuration or move."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "401":
+          description: "Active session required."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "403":
+          description: "Role, verified email, CSRF, future opening or download restriction."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "404":
+          description: "Unknown ID, other owner/creator or current source rights revoked."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "409":
+          description: "Stale version, wrong lifecycle state or reused UUID with different input."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              "$ref": "#/components/schemas/StartGameInput"
+  "/game-attempts/{id}":
+    get:
+      tags:
+        - "Games"
+      operationId: "readGameAttempt"
+      summary: "readGameAttempt"
+      description: "Creator only; all current source permissions are checked on every request, including idempotent retries. Teacher preview or parent real attempt; not shared between guardians."
+      security:
+        -
+          sessionCookie: []
+      parameters:
+        -
+          "$ref": "#/components/parameters/RequestId"
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: "Current authorized game data."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/GameAttemptResponse"
+        "400":
+          description: "Invalid game configuration or move."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "401":
+          description: "Active session required."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "403":
+          description: "Role, verified email, CSRF, future opening or download restriction."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "404":
+          description: "Unknown ID, other owner/creator or current source rights revoked."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "409":
+          description: "Stale version, wrong lifecycle state or reused UUID with different input."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+  "/game-attempts/{id}/moves":
+    post:
+      tags:
+        - "Games"
+      operationId: "moveGameAttempt"
+      summary: "moveGameAttempt"
+      description: "Creator only; all current source permissions are checked on every request, including idempotent retries. Authoritative engine with UUID/hash/version; max1000 events including hints."
+      security:
+        -
+          sessionCookie: []
+      parameters:
+        -
+          "$ref": "#/components/parameters/RequestId"
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+        -
+          name: "X-CSRF-TOKEN"
+          in: "header"
+          required: true
+          schema:
+            type: "string"
+          description: "Use headerName and token from GET /auth/csrf."
+      responses:
+        "200":
+          description: "Current authorized game data."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/GameAttemptResponse"
+        "400":
+          description: "Invalid game configuration or move."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "401":
+          description: "Active session required."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "403":
+          description: "Role, verified email, CSRF, future opening or download restriction."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "404":
+          description: "Unknown ID, other owner/creator or current source rights revoked."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "409":
+          description: "Stale version, wrong lifecycle state or reused UUID with different input."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              "$ref": "#/components/schemas/GameMoveInput"
+  "/game-attempts/{id}/abandon":
+    post:
+      tags:
+        - "Games"
+      operationId: "abandonGameAttempt"
+      summary: "abandonGameAttempt"
+      description: "Creator only; all current source permissions are checked on every request, including idempotent retries. Versioned stop of active attempt. Repeated abandon safe. Start with a new UUID to play again."
+      security:
+        -
+          sessionCookie: []
+      parameters:
+        -
+          "$ref": "#/components/parameters/RequestId"
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+        -
+          name: "X-CSRF-TOKEN"
+          in: "header"
+          required: true
+          schema:
+            type: "string"
+          description: "Use headerName and token from GET /auth/csrf."
+      responses:
+        "200":
+          description: "Current authorized game data."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/GameAttemptResponse"
+        "400":
+          description: "Invalid game configuration or move."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "401":
+          description: "Active session required."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "403":
+          description: "Role, verified email, CSRF, future opening or download restriction."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "404":
+          description: "Unknown ID, other owner/creator or current source rights revoked."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "409":
+          description: "Stale version, wrong lifecycle state or reused UUID with different input."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              "$ref": "#/components/schemas/GameActionInput"
+  "/family/children/{child}/assignments/{assignment}/games":
+    get:
+      tags:
+        - "Games"
+      operationId: "gamesForLearningAssignment"
+      summary: "gamesForLearningAssignment"
+      description: "Verified PARENT with active guardian for the exact child. Current active child/recipient/class/enrollment required. Check learning source and match linked course or included lesson; max100."
+      security:
+        -
+          sessionCookie: []
+      parameters:
+        -
+          "$ref": "#/components/parameters/RequestId"
+        -
+          name: "child"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+        -
+          name: "assignment"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: "Current authorized game data."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/LinkedGamesResponse"
+        "400":
+          description: "Invalid game configuration or move."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "401":
+          description: "Active session required."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "403":
+          description: "Role, verified email, CSRF, future opening or download restriction."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "404":
+          description: "Unknown ID, other owner/creator or current source rights revoked."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "409":
+          description: "Stale version, wrong lifecycle state or reused UUID with different input."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+  "/family/children/{child}/assignment-items/{item}/games":
+    get:
+      tags:
+        - "Games"
+      operationId: "gamesForLearningItem"
+      summary: "gamesForLearningItem"
+      description: "Verified PARENT with active guardian for the exact child. Current active child/recipient/class/enrollment required. Check learning item source and match linked lesson; max100."
+      security:
+        -
+          sessionCookie: []
+      parameters:
+        -
+          "$ref": "#/components/parameters/RequestId"
+        -
+          name: "child"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+        -
+          name: "item"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: "Current authorized game data."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/LinkedGamesResponse"
+        "400":
+          description: "Invalid game configuration or move."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "401":
+          description: "Active session required."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "403":
+          description: "Role, verified email, CSRF, future opening or download restriction."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "404":
+          description: "Unknown ID, other owner/creator or current source rights revoked."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "409":
+          description: "Stale version, wrong lifecycle state or reused UUID with different input."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+  "/family/children/{child}/game-assignments/{id}/files/{file}/content":
+    get:
+      tags:
+        - "Games"
+      operationId: "gameFilecontent"
+      summary: "gameFilecontent"
+      description: "Verified PARENT with active guardian for the exact child. Current active child/recipient/class/enrollment required. Must be open and asset must belong to assignment snapshot. Download requires current learnerDownloadAllowed. Auth before stream/Range."
+      security:
+        -
+          sessionCookie: []
+      parameters:
+        -
+          "$ref": "#/components/parameters/RequestId"
+        -
+          name: "child"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+        -
+          name: "file"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+        -
+          name: "Range"
+          in: "header"
+          schema:
+            type: "string"
+        -
+          name: "If-None-Match"
+          in: "header"
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "Authorized file stream."
+          content:
+            "application/octet-stream":
+              schema:
+                type: "string"
+                format: "binary"
+          headers:
+            ETag:
+              description: "Stable SHA-256 of immutable file bytes."
+              schema:
+                type: "string"
+            Cache-Control:
+              schema:
+                type: "string"
+        "206":
+          description: "Authorized byte range."
+          content:
+            "application/octet-stream":
+              schema:
+                type: "string"
+                format: "binary"
+        "304":
+          description: "Unchanged ETag, returned only after the same current authorization checks. Private, no-cache revalidation."
+        "400":
+          description: "Invalid game configuration or move."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "401":
+          description: "Active session required."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "403":
+          description: "Role, verified email, CSRF, future opening or download restriction."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "404":
+          description: "Unknown ID, other owner/creator or current source rights revoked."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "409":
+          description: "Stale version, wrong lifecycle state or reused UUID with different input."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "416":
+          description: "Unsatisfiable byte range."
+  "/family/children/{child}/game-assignments/{id}/files/{file}/download":
+    get:
+      tags:
+        - "Games"
+      operationId: "gameFiledownload"
+      summary: "gameFiledownload"
+      description: "Verified PARENT with active guardian for the exact child. Current active child/recipient/class/enrollment required. Must be open and asset must belong to assignment snapshot. Download requires current learnerDownloadAllowed. Auth before stream/Range."
+      security:
+        -
+          sessionCookie: []
+      parameters:
+        -
+          "$ref": "#/components/parameters/RequestId"
+        -
+          name: "child"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+        -
+          name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+        -
+          name: "file"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+        -
+          name: "Range"
+          in: "header"
+          schema:
+            type: "string"
+        -
+          name: "If-None-Match"
+          in: "header"
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "Authorized file stream."
+          content:
+            "application/octet-stream":
+              schema:
+                type: "string"
+                format: "binary"
+          headers:
+            ETag:
+              description: "Stable SHA-256 of immutable file bytes."
+              schema:
+                type: "string"
+            Cache-Control:
+              schema:
+                type: "string"
+        "206":
+          description: "Authorized byte range."
+          content:
+            "application/octet-stream":
+              schema:
+                type: "string"
+                format: "binary"
+        "304":
+          description: "Unchanged ETag, returned only after the same current authorization checks. Private, no-cache revalidation."
+        "400":
+          description: "Invalid game configuration or move."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "401":
+          description: "Active session required."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "403":
+          description: "Role, verified email, CSRF, future opening or download restriction."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "404":
+          description: "Unknown ID, other owner/creator or current source rights revoked."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "409":
+          description: "Stale version, wrong lifecycle state or reused UUID with different input."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "416":
+          description: "Unsatisfiable byte range."
 components:
   securitySchemes:
     sessionCookie:
@@ -16143,7 +18207,7 @@ components:
         todaySessions:
           type: "array"
           items:
-            "$ref": "#/components/schemas/FamilyTeachingSession"
+            "$ref": "#/components/schemas/TodayTeachingSession"
           maxItems: 6
         presentToday:
           type: "integer"
@@ -16858,6 +18922,30 @@ components:
         - "location"
         - "status"
         - "cancellationReason"
+    TodayTeachingSession:
+      allOf:
+        -
+          "$ref": "#/components/schemas/FamilyTeachingSession"
+        -
+          type: "object"
+          properties:
+            rosterCreatedAt:
+              type:
+                - "string"
+                - "null"
+              format: "date-time"
+            attendanceTotal:
+              type: "integer"
+              minimum: 0
+              description: "Active roster rows; 0 before the roster is fixed."
+            attendanceMarked:
+              type: "integer"
+              minimum: 0
+              description: "Active roster rows with a status other than UNMARKED."
+          required:
+            - "rosterCreatedAt"
+            - "attendanceTotal"
+            - "attendanceMarked"
     TeachingSession:
       type: "object"
       properties:
@@ -16927,6 +19015,14 @@ components:
         version:
           type: "integer"
           minimum: 0
+        attendanceTotal:
+          type: "integer"
+          minimum: 0
+          description: "Active roster rows; 0 before the roster is fixed."
+        attendanceMarked:
+          type: "integer"
+          minimum: 0
+          description: "Active roster rows with a status other than UNMARKED."
       required:
         - "id"
         - "classId"
@@ -16945,6 +19041,8 @@ components:
         - "rosterCreatedAt"
         - "cancelledAt"
         - "version"
+        - "attendanceTotal"
+        - "attendanceMarked"
     TeachingSessionDetail:
       type: "object"
       properties:
@@ -21839,3 +23937,1292 @@ components:
           "$ref": "#/components/schemas/FamilyHomeDashboard"
       required:
         - "data"
+    GameFace:
+      type: "object"
+      properties:
+        label:
+          type:
+            - "string"
+            - "null"
+          maxLength: 120
+        imageFileId:
+          type:
+            - "string"
+            - "null"
+          format: "uuid"
+        audioFileId:
+          type:
+            - "string"
+            - "null"
+          format: "uuid"
+      required: []
+    GameOption:
+      type: "object"
+      properties:
+        label:
+          type:
+            - "string"
+            - "null"
+          maxLength: 120
+        imageFileId:
+          type:
+            - "string"
+            - "null"
+          format: "uuid"
+        audioFileId:
+          type:
+            - "string"
+            - "null"
+          format: "uuid"
+        id:
+          type: "string"
+          format: "uuid"
+      required:
+        - "id"
+    GameQuestion:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        prompt:
+          type:
+            - "string"
+            - "null"
+          maxLength: 500
+        imageFileId:
+          type:
+            - "string"
+            - "null"
+          format: "uuid"
+        audioFileId:
+          type:
+            - "string"
+            - "null"
+          format: "uuid"
+        hint:
+          type:
+            - "string"
+            - "null"
+          maxLength: 300
+        options:
+          type: "array"
+          items:
+            "$ref": "#/components/schemas/GameOption"
+          maxItems: 4
+        correctOptionId:
+          type:
+            - "string"
+            - "null"
+          format: "uuid"
+      required:
+        - "id"
+        - "options"
+    GamePair:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        left:
+          anyOf:
+            -
+              "$ref": "#/components/schemas/GameFace"
+            -
+              type: "null"
+        right:
+          anyOf:
+            -
+              "$ref": "#/components/schemas/GameFace"
+            -
+              type: "null"
+      required:
+        - "id"
+    GameContent:
+      type: "object"
+      properties:
+        instructionAudioFileId:
+          type:
+            - "string"
+            - "null"
+          format: "uuid"
+        questions:
+          type: "array"
+          items:
+            "$ref": "#/components/schemas/GameQuestion"
+          maxItems: 12
+        pairs:
+          type: "array"
+          items:
+            "$ref": "#/components/schemas/GamePair"
+          maxItems: 8
+      required:
+        - "questions"
+        - "pairs"
+      description: "Drafts may be incomplete. Publish/preview requires CHOICE 1-12 questions, 2-4 distinct labeled options and one correct ID per question; MATCH/MEMORY 2-8 distinct labeled pairs, equal faces within each MEMORY pair. IDs globally distinct. Assets are owner READY LESSON_ASSET images/audio. Teacher-only answer keys never appear in family views."
+    SaveGameInput:
+      type: "object"
+      properties:
+        title:
+          type: "string"
+          minLength: 1
+          maxLength: 200
+        gameType:
+          type: "string"
+          enum:
+            - "CHOICE"
+            - "MATCH"
+            - "MEMORY"
+        instructions:
+          type:
+            - "string"
+            - "null"
+          maxLength: 2000
+        minAgeMonths:
+          type: "integer"
+          minimum: 0
+          maximum: 216
+        maxAgeMonths:
+          type: "integer"
+          minimum: 0
+          maximum: 216
+        content:
+          "$ref": "#/components/schemas/GameContent"
+        version:
+          type: "integer"
+          minimum: 0
+        reason:
+          type:
+            - "string"
+            - "null"
+          maxLength: 1000
+        clientRequestId:
+          type: "string"
+          format: "uuid"
+      required:
+        - "title"
+        - "gameType"
+        - "content"
+      description: "Creation requires clientRequestId and no version. PUT requires current version; editing published content requires reason and a fully valid game. Each edit increments contentRevision. Reusing creation UUID with changed body is 409."
+    GameActionInput:
+      type: "object"
+      properties:
+        version:
+          type: "integer"
+          minimum: 0
+        reason:
+          type:
+            - "string"
+            - "null"
+          maxLength: 1000
+      required:
+        - "version"
+    LearningGameSummary:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        title:
+          type: "string"
+        gameType:
+          type: "string"
+          enum:
+            - "CHOICE"
+            - "MATCH"
+            - "MEMORY"
+        instructions:
+          type:
+            - "string"
+            - "null"
+        minAgeMonths:
+          type: "integer"
+          minimum: 0
+        maxAgeMonths:
+          type: "integer"
+          minimum: 0
+        status:
+          type: "string"
+          enum:
+            - "DRAFT"
+            - "PUBLISHED"
+            - "ARCHIVED"
+        contentRevision:
+          type: "integer"
+          minimum: 0
+        version:
+          type: "integer"
+          minimum: 0
+        createdAt:
+          type: "string"
+          format: "date-time"
+        updatedAt:
+          type: "string"
+          format: "date-time"
+      required:
+        - "id"
+        - "title"
+        - "gameType"
+        - "instructions"
+        - "minAgeMonths"
+        - "maxAgeMonths"
+        - "status"
+        - "contentRevision"
+        - "version"
+        - "createdAt"
+        - "updatedAt"
+    LearningGame:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        title:
+          type: "string"
+        gameType:
+          type: "string"
+          enum:
+            - "CHOICE"
+            - "MATCH"
+            - "MEMORY"
+        instructions:
+          type:
+            - "string"
+            - "null"
+        minAgeMonths:
+          type: "integer"
+          minimum: 0
+        maxAgeMonths:
+          type: "integer"
+          minimum: 0
+        status:
+          type: "string"
+          enum:
+            - "DRAFT"
+            - "PUBLISHED"
+            - "ARCHIVED"
+        contentRevision:
+          type: "integer"
+          minimum: 0
+        version:
+          type: "integer"
+          minimum: 0
+        createdAt:
+          type: "string"
+          format: "date-time"
+        updatedAt:
+          type: "string"
+          format: "date-time"
+        teacherId:
+          type: "string"
+          format: "uuid"
+        content:
+          "$ref": "#/components/schemas/GameContent"
+        archivedFrom:
+          type:
+            - "string"
+            - "null"
+          enum:
+            - "DRAFT"
+            - "PUBLISHED"
+            - null
+      required:
+        - "id"
+        - "title"
+        - "gameType"
+        - "instructions"
+        - "minAgeMonths"
+        - "maxAgeMonths"
+        - "status"
+        - "contentRevision"
+        - "version"
+        - "createdAt"
+        - "updatedAt"
+        - "content"
+        - "teacherId"
+    GameSnapshot:
+      type: "object"
+      properties:
+        title:
+          type: "string"
+        gameType:
+          type: "string"
+          enum:
+            - "CHOICE"
+            - "MATCH"
+            - "MEMORY"
+        instructions:
+          type:
+            - "string"
+            - "null"
+        minAgeMonths:
+          type: "integer"
+          minimum: 0
+        maxAgeMonths:
+          type: "integer"
+          minimum: 0
+        contentRevision:
+          type: "integer"
+          minimum: 0
+        content:
+          "$ref": "#/components/schemas/GameContent"
+      required:
+        - "title"
+        - "gameType"
+        - "instructions"
+        - "minAgeMonths"
+        - "maxAgeMonths"
+        - "contentRevision"
+        - "content"
+    CreateGameAssignmentInput:
+      type: "object"
+      properties:
+        clientRequestId:
+          type: "string"
+          format: "uuid"
+        gameId:
+          type: "string"
+          format: "uuid"
+        title:
+          type: "string"
+          minLength: 1
+          maxLength: 200
+        targetType:
+          type: "string"
+          enum:
+            - "CLASS"
+            - "STUDENT"
+        classId:
+          type:
+            - "string"
+            - "null"
+          format: "uuid"
+        studentId:
+          type:
+            - "string"
+            - "null"
+          format: "uuid"
+        availableAt:
+          type: "string"
+          format: "date-time"
+        dueAt:
+          type:
+            - "string"
+            - "null"
+          format: "date-time"
+        linkedLessonId:
+          type:
+            - "string"
+            - "null"
+          format: "uuid"
+        linkedCourseId:
+          type:
+            - "string"
+            - "null"
+          format: "uuid"
+      required:
+        - "clientRequestId"
+        - "gameId"
+        - "title"
+        - "targetType"
+        - "availableAt"
+      description: "Published game only. Exactly one ACTIVE class or child. Snapshot current content and active recipients. At most one related published lesson/course. Due hint >= availableAt; due is not a hard cutoff. Late roster additions/rejoins need explicit grant. Same request UUID/body returns existing assignment."
+    GameAssignmentSummary:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        gameId:
+          type: "string"
+          format: "uuid"
+        title:
+          type: "string"
+        gameType:
+          type: "string"
+          enum:
+            - "CHOICE"
+            - "MATCH"
+            - "MEMORY"
+        targetType:
+          type: "string"
+          enum:
+            - "CLASS"
+            - "STUDENT"
+        classId:
+          type:
+            - "string"
+            - "null"
+          format: "uuid"
+        studentId:
+          type:
+            - "string"
+            - "null"
+          format: "uuid"
+        className:
+          type:
+            - "string"
+            - "null"
+        studentName:
+          type:
+            - "string"
+            - "null"
+        availableAt:
+          type: "string"
+          format: "date-time"
+        dueAt:
+          type:
+            - "string"
+            - "null"
+          format: "date-time"
+        status:
+          type: "string"
+          enum:
+            - "ACTIVE"
+            - "REVOKED"
+        version:
+          type: "integer"
+          minimum: 0
+        linkedLessonId:
+          type:
+            - "string"
+            - "null"
+          format: "uuid"
+        linkedCourseId:
+          type:
+            - "string"
+            - "null"
+          format: "uuid"
+        createdAt:
+          type: "string"
+          format: "date-time"
+      required:
+        - "id"
+        - "gameId"
+        - "title"
+        - "gameType"
+        - "targetType"
+        - "classId"
+        - "studentId"
+        - "className"
+        - "studentName"
+        - "availableAt"
+        - "dueAt"
+        - "status"
+        - "version"
+        - "linkedLessonId"
+        - "linkedCourseId"
+        - "createdAt"
+    GameAssignment:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        gameId:
+          type: "string"
+          format: "uuid"
+        title:
+          type: "string"
+        gameType:
+          type: "string"
+          enum:
+            - "CHOICE"
+            - "MATCH"
+            - "MEMORY"
+        targetType:
+          type: "string"
+          enum:
+            - "CLASS"
+            - "STUDENT"
+        classId:
+          type:
+            - "string"
+            - "null"
+          format: "uuid"
+        studentId:
+          type:
+            - "string"
+            - "null"
+          format: "uuid"
+        className:
+          type:
+            - "string"
+            - "null"
+        studentName:
+          type:
+            - "string"
+            - "null"
+        availableAt:
+          type: "string"
+          format: "date-time"
+        dueAt:
+          type:
+            - "string"
+            - "null"
+          format: "date-time"
+        status:
+          type: "string"
+          enum:
+            - "ACTIVE"
+            - "REVOKED"
+        version:
+          type: "integer"
+          minimum: 0
+        linkedLessonId:
+          type:
+            - "string"
+            - "null"
+          format: "uuid"
+        linkedCourseId:
+          type:
+            - "string"
+            - "null"
+          format: "uuid"
+        createdAt:
+          type: "string"
+          format: "date-time"
+        snapshot:
+          "$ref": "#/components/schemas/GameSnapshot"
+        recipientCount:
+          type: "integer"
+          minimum: 0
+        revokedCount:
+          type: "integer"
+          minimum: 0
+      required:
+        - "id"
+        - "gameId"
+        - "title"
+        - "gameType"
+        - "targetType"
+        - "classId"
+        - "studentId"
+        - "className"
+        - "studentName"
+        - "availableAt"
+        - "dueAt"
+        - "status"
+        - "version"
+        - "linkedLessonId"
+        - "linkedCourseId"
+        - "createdAt"
+        - "snapshot"
+        - "recipientCount"
+        - "revokedCount"
+    GrantGameRecipientsInput:
+      type: "object"
+      properties:
+        version:
+          type: "integer"
+          minimum: 0
+        studentIds:
+          type: "array"
+          items:
+            type: "string"
+            format: "uuid"
+          minItems: 1
+          maxItems: 100
+          uniqueItems: true
+        reason:
+          type: "string"
+          minLength: 1
+          maxLength: 1000
+      required:
+        - "version"
+        - "studentIds"
+        - "reason"
+    GameRecipientResult:
+      type: "object"
+      properties:
+        studentId:
+          type: "string"
+          format: "uuid"
+        studentName:
+          type: "string"
+        revokedAt:
+          type:
+            - "string"
+            - "null"
+          format: "date-time"
+        revokeReason:
+          type:
+            - "string"
+            - "null"
+        attempts:
+          type: "integer"
+          minimum: 0
+        completedAttempts:
+          type: "integer"
+          minimum: 0
+        bestStars:
+          type: "integer"
+          minimum: 0
+          maximum: 3
+        lastCompletedAt:
+          type:
+            - "string"
+            - "null"
+          format: "date-time"
+      required:
+        - "studentId"
+        - "studentName"
+        - "revokedAt"
+        - "revokeReason"
+        - "attempts"
+        - "completedAttempts"
+        - "bestStars"
+        - "lastCompletedAt"
+    FamilyGame:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        title:
+          type: "string"
+        gameType:
+          type: "string"
+          enum:
+            - "CHOICE"
+            - "MATCH"
+            - "MEMORY"
+        availableAt:
+          type: "string"
+          format: "date-time"
+        dueAt:
+          type:
+            - "string"
+            - "null"
+          format: "date-time"
+        className:
+          type:
+            - "string"
+            - "null"
+        locked:
+          type: "boolean"
+        bestStars:
+          type: "integer"
+          minimum: 0
+          maximum: 3
+        activeAttemptId:
+          type:
+            - "string"
+            - "null"
+          format: "uuid"
+      required:
+        - "id"
+        - "title"
+        - "gameType"
+        - "availableAt"
+        - "dueAt"
+        - "className"
+        - "locked"
+        - "bestStars"
+        - "activeAttemptId"
+      description: "Metadata only, no answers or content snapshot. Current active guardian, child, recipient and class/enrollment rights filtered before count/page. Future metadata visible but start/media forbidden. Completed/archived classes cannot play games."
+    FamilyGameAssignment:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        title:
+          type: "string"
+        availableAt:
+          type: "string"
+          format: "date-time"
+        dueAt:
+          type:
+            - "string"
+            - "null"
+          format: "date-time"
+        className:
+          type:
+            - "string"
+            - "null"
+        gameType:
+          type: "string"
+          enum:
+            - "CHOICE"
+            - "MATCH"
+            - "MEMORY"
+        instructions:
+          type:
+            - "string"
+            - "null"
+        minAgeMonths:
+          type: "integer"
+          minimum: 0
+        maxAgeMonths:
+          type: "integer"
+          minimum: 0
+        locked:
+          type: "boolean"
+      required:
+        - "id"
+        - "title"
+        - "availableAt"
+        - "dueAt"
+        - "className"
+        - "gameType"
+        - "instructions"
+        - "minAgeMonths"
+        - "maxAgeMonths"
+        - "locked"
+    GameCollection:
+      type: "object"
+      properties:
+        totalStars:
+          type: "integer"
+          minimum: 0
+        completedAssignments:
+          type: "integer"
+          minimum: 0
+        badges:
+          type: "array"
+          items:
+            type: "object"
+            properties:
+              code:
+                type: "string"
+              label:
+                type: "string"
+            required:
+              - "code"
+              - "label"
+          maxItems: 3
+      required:
+        - "totalStars"
+        - "completedAssignments"
+        - "badges"
+      description: "Best stars once per distinct assignment across this child's completed attempts, all active guardians share child achievements. Badges at 1/3/5 completed assignments. Retained on withdrawal/archive/assignment revoke; guardian revocation blocks access. Preview excluded."
+    GameResult:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        gameAssignmentId:
+          type: "string"
+          format: "uuid"
+        title:
+          type: "string"
+        gameType:
+          type: "string"
+          enum:
+            - "CHOICE"
+            - "MATCH"
+            - "MEMORY"
+        className:
+          type:
+            - "string"
+            - "null"
+        status:
+          type: "string"
+          enum:
+            - "IN_PROGRESS"
+            - "COMPLETED"
+            - "ABANDONED"
+        totalSteps:
+          type: "integer"
+          minimum: 0
+        correctCount:
+          type: "integer"
+          minimum: 0
+        wrongCount:
+          type: "integer"
+          minimum: 0
+        moveCount:
+          type: "integer"
+          minimum: 0
+        hintCount:
+          type: "integer"
+          minimum: 0
+        stars:
+          type: "integer"
+          minimum: 0
+          maximum: 3
+        startedAt:
+          type: "string"
+          format: "date-time"
+        completedAt:
+          type:
+            - "string"
+            - "null"
+          format: "date-time"
+        durationSeconds:
+          type: "integer"
+          minimum: 0
+      required:
+        - "id"
+        - "gameAssignmentId"
+        - "title"
+        - "gameType"
+        - "className"
+        - "status"
+        - "totalSteps"
+        - "correctCount"
+        - "wrongCount"
+        - "moveCount"
+        - "hintCount"
+        - "stars"
+        - "startedAt"
+        - "completedAt"
+        - "durationSeconds"
+    StartGameInput:
+      type: "object"
+      properties:
+        clientRequestId:
+          type: "string"
+          format: "uuid"
+      required:
+        - "clientRequestId"
+    GameMoveInput:
+      type: "object"
+      properties:
+        clientRequestId:
+          type: "string"
+          format: "uuid"
+        version:
+          type: "integer"
+          minimum: 0
+        action:
+          type: "string"
+          enum:
+            - "ANSWER"
+            - "MATCH"
+            - "FLIP"
+            - "HINT"
+        optionId:
+          type: "string"
+          format: "uuid"
+        leftId:
+          type: "string"
+          format: "uuid"
+        rightId:
+          type: "string"
+          format: "uuid"
+        cardId:
+          type: "string"
+          format: "uuid"
+      required:
+        - "clientRequestId"
+        - "version"
+        - "action"
+      description: "ANSWER optionId; MATCH leftId+rightId; FLIP cardId; HINT no selection. Server checks rights before replay cache, current version, solution and max 1000 events including hints. Same UUID/body applies once; reuse with changed content 409. A stale tab receives 409 and must GET current attempt."
+    PublicGameQuestion:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        prompt:
+          type: "string"
+        imageFileId:
+          type:
+            - "string"
+            - "null"
+          format: "uuid"
+        audioFileId:
+          type:
+            - "string"
+            - "null"
+          format: "uuid"
+        options:
+          type: "array"
+          items:
+            "$ref": "#/components/schemas/GameOption"
+          maxItems: 4
+      required:
+        - "id"
+        - "prompt"
+        - "imageFileId"
+        - "audioFileId"
+        - "options"
+    PublicMatchCard:
+      type: "object"
+      properties:
+        label:
+          type:
+            - "string"
+            - "null"
+          maxLength: 120
+        imageFileId:
+          type:
+            - "string"
+            - "null"
+          format: "uuid"
+        audioFileId:
+          type:
+            - "string"
+            - "null"
+          format: "uuid"
+        id:
+          type: "string"
+          format: "uuid"
+        matched:
+          type: "boolean"
+      required:
+        - "id"
+        - "label"
+        - "imageFileId"
+        - "audioFileId"
+        - "matched"
+    PublicMemoryCard:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        matched:
+          type: "boolean"
+        revealed:
+          type: "boolean"
+        face:
+          "$ref": "#/components/schemas/GameOption"
+      required:
+        - "id"
+        - "matched"
+        - "revealed"
+      description: "Face omitted entirely when hidden; pairId never returned. A mismatched pair stays revealed until the next flip; UI shows it briefly and covers it locally. Refresh resumes server board."
+    GameAttempt:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        status:
+          type: "string"
+          enum:
+            - "IN_PROGRESS"
+            - "COMPLETED"
+            - "ABANDONED"
+        version:
+          type: "integer"
+          minimum: 0
+        isPreview:
+          type: "boolean"
+        studentId:
+          type:
+            - "string"
+            - "null"
+          format: "uuid"
+        gameAssignmentId:
+          type:
+            - "string"
+            - "null"
+          format: "uuid"
+        gameType:
+          type: "string"
+          enum:
+            - "CHOICE"
+            - "MATCH"
+            - "MEMORY"
+        title:
+          type: "string"
+        instructions:
+          type:
+            - "string"
+            - "null"
+        instructionAudioFileId:
+          type:
+            - "string"
+            - "null"
+          format: "uuid"
+        startedAt:
+          type: "string"
+          format: "date-time"
+        completedAt:
+          type:
+            - "string"
+            - "null"
+          format: "date-time"
+        durationSeconds:
+          type: "integer"
+          minimum: 0
+        totalSteps:
+          type: "integer"
+          minimum: 1
+          maximum: 12
+        correctCount:
+          type: "integer"
+          minimum: 0
+        wrongCount:
+          type: "integer"
+          minimum: 0
+        moveCount:
+          type: "integer"
+          minimum: 0
+        hintCount:
+          type: "integer"
+          minimum: 0
+        stars:
+          type: "integer"
+          minimum: 0
+          maximum: 3
+        feedback:
+          type:
+            - "string"
+            - "null"
+          enum:
+            - "CORRECT"
+            - "TRY_AGAIN"
+            - null
+        hintText:
+          type:
+            - "string"
+            - "null"
+        accuracyPercent:
+          type:
+            - "integer"
+            - "null"
+          minimum: 0
+          maximum: 100
+        questionNumber:
+          type: "integer"
+          minimum: 0
+        question:
+          "$ref": "#/components/schemas/PublicGameQuestion"
+        left:
+          type: "array"
+          items:
+            "$ref": "#/components/schemas/PublicMatchCard"
+          maxItems: 8
+        right:
+          type: "array"
+          items:
+            "$ref": "#/components/schemas/PublicMatchCard"
+          maxItems: 8
+        cards:
+          type: "array"
+          items:
+            "$ref": "#/components/schemas/PublicMemoryCard"
+          maxItems: 16
+        mismatch:
+          type: "boolean"
+      required:
+        - "id"
+        - "status"
+        - "version"
+        - "isPreview"
+        - "studentId"
+        - "gameAssignmentId"
+        - "gameType"
+        - "title"
+        - "instructions"
+        - "instructionAudioFileId"
+        - "startedAt"
+        - "completedAt"
+        - "durationSeconds"
+        - "totalSteps"
+        - "correctCount"
+        - "wrongCount"
+        - "moveCount"
+        - "hintCount"
+        - "stars"
+        - "feedback"
+        - "hintText"
+        - "accuracyPercent"
+      description: "Own creator only. Variant fields depend on type; CHOICE only current question and no correctOptionId, MATCH opaque cards without pair keys, MEMORY visible faces only. Server computes counts/completion/stars: 3 perfect with no hint; 2 if wrong<=totalSteps and hints<=1; else 1 when completed. Incomplete/abandoned 0. Resume unique active creator/child/assignment; new start UUIDs alias resumed attempt even after completion. Preview teacher-only excluded from collections/results. Abandon frees active slot; completed history returned through summary endpoints after withdrawal."
+    LearningGameSummaryPage:
+      type: "object"
+      properties:
+        data:
+          type: "array"
+          items:
+            "$ref": "#/components/schemas/LearningGameSummary"
+          maxItems: 100
+        meta:
+          type: "object"
+          properties:
+            page:
+              type: "integer"
+              minimum: 0
+            size:
+              type: "integer"
+              minimum: 1
+              maximum: 100
+            totalElements:
+              type: "integer"
+              minimum: 0
+            totalPages:
+              type: "integer"
+              minimum: 0
+          required:
+            - "page"
+            - "totalElements"
+            - "totalPages"
+      required:
+        - "data"
+        - "meta"
+    GameAssignmentSummaryPage:
+      type: "object"
+      properties:
+        data:
+          type: "array"
+          items:
+            "$ref": "#/components/schemas/GameAssignmentSummary"
+          maxItems: 100
+        meta:
+          type: "object"
+          properties:
+            page:
+              type: "integer"
+              minimum: 0
+            size:
+              type: "integer"
+              minimum: 1
+              maximum: 100
+            totalElements:
+              type: "integer"
+              minimum: 0
+            totalPages:
+              type: "integer"
+              minimum: 0
+          required:
+            - "page"
+            - "totalElements"
+            - "totalPages"
+      required:
+        - "data"
+        - "meta"
+    GameRecipientResultPage:
+      type: "object"
+      properties:
+        data:
+          type: "array"
+          items:
+            "$ref": "#/components/schemas/GameRecipientResult"
+          maxItems: 100
+        meta:
+          type: "object"
+          properties:
+            page:
+              type: "integer"
+              minimum: 0
+            size:
+              type: "integer"
+              minimum: 1
+              maximum: 100
+            totalElements:
+              type: "integer"
+              minimum: 0
+            totalPages:
+              type: "integer"
+              minimum: 0
+          required:
+            - "page"
+            - "totalElements"
+            - "totalPages"
+      required:
+        - "data"
+        - "meta"
+    GameResultPage:
+      type: "object"
+      properties:
+        data:
+          type: "array"
+          items:
+            "$ref": "#/components/schemas/GameResult"
+          maxItems: 100
+        meta:
+          type: "object"
+          properties:
+            page:
+              type: "integer"
+              minimum: 0
+            size:
+              type: "integer"
+              minimum: 1
+              maximum: 100
+            totalElements:
+              type: "integer"
+              minimum: 0
+            totalPages:
+              type: "integer"
+              minimum: 0
+          required:
+            - "page"
+            - "totalElements"
+            - "totalPages"
+      required:
+        - "data"
+        - "meta"
+    FamilyGamePage:
+      type: "object"
+      properties:
+        data:
+          type: "array"
+          items:
+            "$ref": "#/components/schemas/FamilyGame"
+          maxItems: 100
+        meta:
+          type: "object"
+          properties:
+            page:
+              type: "integer"
+              minimum: 0
+            size:
+              type: "integer"
+              minimum: 1
+              maximum: 100
+            totalElements:
+              type: "integer"
+              minimum: 0
+            totalPages:
+              type: "integer"
+              minimum: 0
+          required:
+            - "page"
+            - "totalElements"
+            - "totalPages"
+      required:
+        - "data"
+        - "meta"
+    LearningGameResponse:
+      type: "object"
+      properties:
+        data:
+          "$ref": "#/components/schemas/LearningGame"
+      required:
+        - "data"
+    GameAssignmentResponse:
+      type: "object"
+      properties:
+        data:
+          "$ref": "#/components/schemas/GameAssignment"
+      required:
+        - "data"
+    FamilyGameAssignmentResponse:
+      type: "object"
+      properties:
+        data:
+          "$ref": "#/components/schemas/FamilyGameAssignment"
+      required:
+        - "data"
+    GameCollectionResponse:
+      type: "object"
+      properties:
+        data:
+          "$ref": "#/components/schemas/GameCollection"
+      required:
+        - "data"
+    GameAttemptResponse:
+      type: "object"
+      properties:
+        data:
+          "$ref": "#/components/schemas/GameAttempt"
+      required:
+        - "data"
+    LinkedGamesResponse:
+      type: "object"
+      properties:
+        data:
+          type: "array"
+          items:
+            "$ref": "#/components/schemas/FamilyGame"
+          maxItems: 100
+      required:
+        - "data"
+      description: "Up to 100 currently authorized related games, newest opening first. Main child games list provides full pagination. Learning source rights checked first; games never complete existing lesson requirements."

@@ -9,9 +9,9 @@ Các trường hợp AC giữ nguyên mã ở [bộ nghiệm thu tổng quan](..
 | Frontend build/lint | Hai lệnh build/lint đều thành công sau chuẩn hóa nhãn và proxy |
 | Backend | com.tinyclass, Java 21, Spring Boot 4.1.2, artifact backend |
 | Maven Wrapper | Đã sửa Target nullable; compile và verify thành công |
-| Database/email | Local/test PostgreSQL và Mailpit riêng; V1–V17 schema rỗng, nâng V1, V7, V8, V9, V10, V11, V12, V15 và V16 có dữ liệu; SMTP đã kiểm tra |
-| Kiểm thử backend | 196 test đạt; thêm 12 DashboardTests về số tiền chính xác, ngày Việt Nam, lớp/bé và quyền nguồn/lịch sử; giữ 15 CommunicationTests và tổng 10 test migration |
-| Kiểm thử UI | 44 E2E Edge đạt, API/database/SMTP/OIDC thử nghiệm, học liệu/sản phẩm/lịch/điểm danh/nhận xét, tệp thật, lỗi upload/lưu/xung đột và quyền gia đình |
+| Database/email | Local/test PostgreSQL và Mailpit riêng; V1–V20 schema rỗng, nâng V1, V7, V8, V9, V10, V11, V12, V15, V16, V18 và V19 có dữ liệu; SMTP đã kiểm tra |
+| Kiểm thử backend | 214 test đạt khi database phát triển đang chạy (LocalProfileStartupTests cần nó); gồm 13 GameTests với grant/rời lớp cạnh tranh và 12 MigrationTests, giữ các kiểm tra module cũ |
+| Kiểm thử UI | 47 E2E Edge đạt, API/database/SMTP/OIDC thử nghiệm, các module cũ và ba trò chơi, ảnh/âm thanh/tệp thật, lỗi upload/lưu/xung đột và quyền gia đình |
 | Tài khoản/lớp | Setup giáo viên/session/CSRF, lớp/bé/thành viên/audit đã chạy qua UI/API |
 | Gia đình/email | Lời mời/đăng ký/xác minh/reset, nhận đồng thời một lần, nhiều quan hệ và thu hồi có bằng chứng |
 | Google | UI/API và protocol đã kiểm tra bằng provider thử nghiệm; còn OAuth client/callback và nghiệm thu Google thật |
@@ -26,7 +26,7 @@ Các trường hợp AC giữ nguyên mã ở [bộ nghiệm thu tổng quan](..
 | Tổng quan/trải nghiệm | 12 HTTP test + 3 luồng UI mới: rỗng/tiến độ/tiếp tục, tổng lớn hơn Number.MAX_SAFE_INTEGER, paidAt tháng Việt Nam, filter trước page, đổi lớp/bé và rời/lưu trữ/thu hồi; preview có giới hạn, lỗi 503/404 và mobile 320/375px |
 | Drive/dịch vụ ngoài | Theo backlog; học bù tạm hoãn; SMTP nhà cung cấp thật chưa nghiệm thu |
 
-Bằng chứng mới nhất: [tổng quan](../verification/2026-11-03-dashboard.md), cùng [thông báo](../verification/2026-11-03-notifications.md), cùng [thanh toán](../verification/2026-11-03-payments.md), cùng [phiếu](../verification/2026-11-02-invoices.md), cùng [cấu hình](../verification/2026-11-02-tuition-settings.md), [nhận xét](../verification/2026-11-02-student-notes.md), [điểm danh](../verification/2026-11-02-attendance.md), [lịch](../verification/2026-11-02-schedule.md) và các mốc trước. Google thật/học bù tạm hoãn. Drive và vận hành thật chưa nghiệm thu; không coi toàn bộ 48 AC đã đạt.
+Bằng chứng mới nhất: [hiệu năng/giao diện](../verification/2026-11-04-performance.md), cùng [tổng quan](../verification/2026-11-03-dashboard.md), cùng [thông báo](../verification/2026-11-03-notifications.md), cùng [thanh toán](../verification/2026-11-03-payments.md), cùng [phiếu](../verification/2026-11-02-invoices.md), cùng [cấu hình](../verification/2026-11-02-tuition-settings.md), [nhận xét](../verification/2026-11-02-student-notes.md), [điểm danh](../verification/2026-11-02-attendance.md), [lịch](../verification/2026-11-02-schedule.md) và các mốc trước. Google thật/học bù tạm hoãn. Drive và vận hành thật chưa nghiệm thu; không coi toàn bộ 48 AC đã đạt.
 
 ## 2. Tầng kiểm tra phù hợp
 

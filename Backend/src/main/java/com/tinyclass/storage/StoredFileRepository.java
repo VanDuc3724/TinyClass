@@ -11,4 +11,6 @@ public interface StoredFileRepository extends JpaRepository<StoredFile,UUID>, Jp
     long used(@Param("actor") UUID actor);
     @Lock(LockModeType.PESSIMISTIC_WRITE) @Query("select f from StoredFile f where f.id=:id and f.uploadedBy=:actor")
     Optional<StoredFile> lockOwned(@Param("id") UUID id,@Param("actor") UUID actor);
+    @Query(value="select f.* from files f where f.status='READY' and not exists (select 1 from file_chunks c where c.file_id=f.id)",nativeQuery=true)
+    List<StoredFile> readyWithoutContent();
 }

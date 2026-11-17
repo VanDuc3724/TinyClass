@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import type { FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { Badge, ErrorNotice, Field, Icon } from "../components/ui";
 import { api, ApiError } from "../lib/api";
+import type { AttendanceRow } from "../lib/attendance";
 import { businessToday, dateLabel, dateTimeLabel } from "../lib/format";
 import { useUnsavedChanges } from "../lib/hooks";
 import {
@@ -21,12 +22,24 @@ import styles from "./Schedule.module.css";
 export function SessionCard({
   session,
   teacher = false,
+  compact = false,
+  attendance,
+  historyOnly = false,
+  onHistory,
 }: {
   session: TeachingSession;
   teacher?: boolean;
+  compact?: boolean;
+  /** The child's own result, shown on the family week. */
+  attendance?: AttendanceRow;
+  /** Rebuilt from a kept attendance result; the family schedule no longer lists the session itself. */
+  historyOnly?: boolean;
+  onHistory?: () => void;
 }) {
   const [asOf] = useState(() => Date.now());
+  const titleId = useId();
   const cancelled = session.status === "CANCELLED";
+  const className = `${styles.sessionCard} ${compact ? styles.compact : ""} ${cancelled ? styles.cancelled : ""}`;
   const body = (
     <>
       <span className={styles.timeIcon}>
@@ -34,16 +47,19 @@ export function SessionCard({
       </span>
       <div>
         <div className={styles.sessionTime}>{sessionHours(session)}</div>
-        <h3>{session.title}</h3>
+        <h3 id={titleId}>{session.title}</h3>
         {session.title !== session.className && (
           <p className="muted">{session.className}</p>
         )}
-        <p className="muted">
-          {session.location || "Cô sẽ thông báo địa điểm"}
-        </p>
+        {!historyOnly && (
+          <p className="muted">
+            {session.location || "Cô sẽ thông báo địa điểm"}
+          </p>
+        )}
         <div className={styles.meta}>
           <Badge status={session.status} />
           {session.status === "SCHEDULED" &&
+            !attendance &&
             new Date(session.endsAt).getTime() < asOf && (
               <small>Đã qua giờ theo lịch</small>
             )}
@@ -54,21 +70,61 @@ export function SessionCard({
           )}
         </div>
         {cancelled && <p>Lý do hủy: {session.cancellationReason}</p>}
+        {teacher && !cancelled && session.attendanceTotal !== undefined && (
+          <p className={styles.rosterProgress}>
+            <Icon name="check" />
+            {!session.rosterCreatedAt
+              ? "Chưa điểm danh"
+              : !session.attendanceTotal
+                ? "Danh sách buổi trống"
+                : session.attendanceMarked === session.attendanceTotal
+                  ? `Đã điểm danh đủ ${session.attendanceTotal} bé`
+                  : `Đã điểm danh ${session.attendanceMarked}/${session.attendanceTotal} bé`}
+          </p>
+        )}
+        {attendance && (
+          <div className={styles.attendance}>
+            <p className={styles.attendanceStatus}>
+              Điểm danh <Badge status={attendance.status} />
+            </p>
+            {!attendance.isActive && (
+              <p className="muted">
+                Bé không còn trong danh sách buổi; kết quả chỉ để đối chiếu.
+              </p>
+            )}
+            {cancelled && (
+              <p className="muted">Buổi đã hủy nên không tính kết quả.</p>
+            )}
+            {attendance.familyNote && (
+              <p className={styles.familyNote}>
+                <strong>Lời nhắn của cô:</strong> {attendance.familyNote}
+              </p>
+            )}
+            {onHistory && (
+              <button type="button" className="text-button" onClick={onHistory}>
+                Lịch sử điểm danh
+              </button>
+            )}
+          </div>
+        )}
       </div>
       {teacher && <Icon name="arrow" />}
     </>
   );
+  // Attendance is the everyday task, so a teacher card opens it; a cancelled session has nothing to mark and opens its details.
   return teacher ? (
     <Link
-      className={`${styles.sessionCard} ${cancelled ? styles.cancelled : ""}`}
-      to={`/teacher/schedule/sessions/${session.id}`}
+      className={className}
+      to={
+        cancelled
+          ? `/teacher/schedule/sessions/${session.id}`
+          : `/teacher/sessions/${session.id}/attendance`
+      }
     >
       {body}
     </Link>
   ) : (
-    <article
-      className={`${styles.sessionCard} ${cancelled ? styles.cancelled : ""}`}
-    >
+    <article className={className} aria-labelledby={titleId}>
       {body}
     </article>
   );
@@ -405,22 +461,91 @@ export function WeekBar({
           />
         </div>
       </div>
-      <ol className={styles.days} aria-label="Bảy ngày trong tuần">
-        {Array.from({ length: 7 }, (_, index) => {
-          const day = addDays(start, index);
-          return (
-            <li
-              key={day}
-              className={day === businessToday() ? styles.today : undefined}
-            >
-              <span>{index === 6 ? "CN" : `Thứ ${index + 2}`}</span>
-              <strong>
-                <time dateTime={day}>{day.slice(8)}</time>
-              </strong>
-            </li>
-          );
-        })}
-      </ol>
     </>
+  );
+}
+
+/** One column per day, so each session sits under its own date; narrow screens turn the columns into rows. */
+export function WeekGrid({
+  start,
+  sessions,
+  teacher,
+  attendance = [],
+  onHistory,
+}: {
+  start: string;
+  sessions: TeachingSession[];
+  teacher: boolean;
+  attendance?: AttendanceRow[];
+  onHistory?: (row: AttendanceRow) => void;
+}) {
+  const today = businessToday();
+  const results = new Map(attendance.map((row) => [row.sessionId, row]));
+  const listed = new Set(sessions.map((session) => session.id));
+  // Q-08: results stay visible after the child leaves a class, although that class drops off the family schedule.
+  const kept = attendance
+    .filter((row) => !listed.has(row.sessionId))
+    .map(
+      (row): TeachingSession => ({
+        id: row.sessionId,
+        classId: row.classId,
+        className: row.className,
+        title: row.sessionTitle,
+        startsAt: row.startsAt,
+        endsAt: row.endsAt,
+        location: null,
+        status: row.sessionStatus,
+        cancellationReason: row.cancellationReason,
+      }),
+    );
+  const all = [...sessions, ...kept].sort(
+    (a, b) => Date.parse(a.startsAt) - Date.parse(b.startsAt),
+  );
+  return (
+    <ol className={styles.week} aria-label="Bảy ngày trong tuần">
+      {Array.from({ length: 7 }, (_, index) => {
+        const day = addDays(start, index);
+        const items = all.filter(
+          (session) => businessLocal(session.startsAt).slice(0, 10) === day,
+        );
+        return (
+          <li
+            key={day}
+            className={`${styles.weekDay} ${day === today ? styles.today : ""}`}
+            aria-current={day === today ? "date" : undefined}
+          >
+            <h2 className={styles.dayLabel}>
+              <span>{index === 6 ? "CN" : `Thứ ${index + 2}`}</span>
+              <time dateTime={day} aria-hidden="true">
+                {day.slice(8)}
+              </time>
+              <span className="sr-only">{dateLabel(day)}</span>
+            </h2>
+            <div className={styles.daySessions}>
+              {items.length ? (
+                items.map((session) => {
+                  const result = results.get(session.id);
+                  return (
+                    <SessionCard
+                      key={session.id}
+                      session={session}
+                      teacher={teacher}
+                      compact
+                      attendance={result}
+                      historyOnly={!listed.has(session.id)}
+                      onHistory={
+                        result && onHistory ? () => onHistory(result) : undefined
+                      }
+                    />
+                  );
+                })
+              ) : (
+                <p className={styles.noSession}>Không có buổi</p>
+              )}
+            </div>
+          </li>
+        );
+      })}
+    </ol>
   );
 }

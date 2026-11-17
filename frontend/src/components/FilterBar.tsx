@@ -27,7 +27,7 @@ export default function FilterBar({
         aria-controls={id}
         onClick={() => setOpen(!open)}
       >
-        <Icon name="settings" />
+        <Icon name="filter" />
         Bộ lọc{active ? " · Đang lọc" : ""}
       </button>
       <div id={id} className={`${styles.options} ${open ? styles.open : ""}`}>

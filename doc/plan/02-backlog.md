@@ -297,3 +297,15 @@ Khi bắt đầu task, ghi quyết định Q liên quan. Khi hoàn thành, thêm
 - Đầu ra: hướng dẫn giáo viên/phụ huynh, hướng dẫn vận hành/build/migration/backup, bản ghi phiên bản, các giới hạn và quyết định cuối cùng; cập nhật spec/plan theo hành vi đã nghiệm thu.
 - Hoàn thành khi: người dùng thử được các luồng bàn giao, phạm vi phát hành đối chiếu từng mục, mọi task DONE có bằng chứng và việc còn lại có backlog rõ ràng.
 
+## G5 — Góc chơi được người dùng duyệt ngày 08/11/2026
+
+<a id="tc-029"></a>
+### TC-029 — Góc chơi của bé
+
+- Trạng thái: DONE (09/11/2026).
+- Phụ thuộc: tài khoản/gia đình, kho học liệu, lớp/bé, giao bài và quyền lịch sử hiện có.
+- Spec: [Góc chơi](../spec/07-games.md), [plan triển khai](2026-11-08-games.md).
+- Đầu ra: ba mẫu Chọn hình đúng/Ghép cặp/Lật thẻ, soạn/chơi thử/giao lớp hoặc bé, liên kết bài/khóa, lưu lượt/kết quả/sao và báo cáo theo bé; bảo vệ quyền nguồn và tệp.
+- Hoàn thành khi: trọn luồng cô–gia đình dùng API/database thật, số liệu và snapshot/retry đúng, rời lớp/thu hồi chặn nội dung, có kiểm tra/ảnh/hướng dẫn và dữ liệu để review.
+- Bằng chứng: [nghiệm thu](../verification/2026-11-08-games.md), [hướng dẫn](../18-goc-choi.md); 214 test backend, 47 E2E, build/lint đạt. OpenAPI 181 path/213 operation/309 schema; ba mẫu/sáu lần giao demo tại 5175, giữ tài khoản và dữ liệu cũ.
+

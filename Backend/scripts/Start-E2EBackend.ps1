@@ -39,7 +39,6 @@ $env:SPRING_MAIL_PORT = '11026'
 $env:TINYCLASS_MAIL_ENABLED = 'true'
 $env:TINYCLASS_MAIL_COOLDOWN_SECONDS = '0'
 $env:TINYCLASS_AUTH_ATTEMPT_LIMIT = '200'
-$env:TINYCLASS_UPLOAD_ROOT = Join-Path $taskRoot '.local/e2e-uploads'
 Push-Location (Join-Path $taskRoot 'Backend')
 try {
     if ($GoogleMock) {

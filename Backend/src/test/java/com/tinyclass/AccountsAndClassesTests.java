@@ -89,7 +89,9 @@ class AccountsAndClassesTests {
                     csrf.data().path("headerName").stringValue(), csrf.data().path("token").stringValue()).status()).isEqualTo(403);
             assertThat(client.post("/classes", Map.of("name", "Valid new CSRF")).status()).isEqualTo(201);
             assertThat(client.write("POST", "/auth/logout", Map.of(), false).status()).isEqualTo(403);
-            assertThat(client.post("/auth/logout", Map.of()).status()).isEqualTo(200);
+            var logout = client.post("/auth/logout", Map.of());
+            assertThat(logout.status()).isEqualTo(200);
+            assertThat(logout.headers().firstValue("Clear-Site-Data")).hasValue("\"cache\"");
             assertThat(client.get("/auth/me").status()).isEqualTo(401);
             assertThat(client.get("/classes").status()).isEqualTo(401);
         }

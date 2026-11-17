@@ -4,6 +4,7 @@ import com.tinyclass.auth.UserPrincipal;
 import com.tinyclass.common.api.ApiResponse;
 import com.tinyclass.common.persistence.DomainStore;
 import com.tinyclass.communication.NotificationService;
+import com.tinyclass.teaching.ScheduleService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,7 +45,7 @@ public class DashboardController {
         String sessionWhere=" from class_sessions s join classes c on c.id=s.class_id where c.teacher_id=? and c.status in ('ACTIVE','COMPLETED') and s.status in ('SCHEDULED','COMPLETED') and s.starts_at>=? and s.starts_at<?"+classFilter;
         long todaySessionCount=db.count("select count(*)"+sessionWhere,sessionArgs);
         long presentToday=db.count("select count(distinct ar.student_id) from attendance_records ar join (select s.id"+sessionWhere+") eligible on eligible.id=ar.session_id where ar.is_active and ar.status in ('PRESENT','LATE')",sessionArgs);
-        var todaySessions=db.rows("select s.id,s.class_id,c.name as class_name,s.title,s.starts_at,s.ends_at,s.location,s.status,s.cancellation_reason"+sessionWhere+" order by s.starts_at,s.id limit 6",sessionArgs);
+        var todaySessions=db.rows("select s.id,s.class_id,c.name as class_name,s.title,s.starts_at,s.ends_at,s.location,s.status,s.cancellation_reason,s.roster_created_at,"+ScheduleService.ROSTER_PROGRESS+sessionWhere+" order by s.starts_at,s.id limit 6",sessionArgs);
         String assignmentSql = "select a.id,a.title,'ASSIGNMENT' as type,a.published_at,c.name as class_name from assignments a left join classes c on c.id=a.class_id where a.teacher_id=? and a.status='PUBLISHED' and a.published_at>=? and a.published_at<?" + assignmentFilter;
         List<Map<String,Object>> activity;
         if (classId != null) activity = db.rows(assignmentSql + " order by published_at desc,id desc limit 6",actor,start,end,classId);

@@ -16,6 +16,7 @@ Ngày lập/cập nhật: 03/11/2026. TC-001–008 và TC-010/012/013/014/015/01
 | [2026-11-02-payments.md](2026-11-02-payments.md) | Ghi thu/void, tổng tiền, chống lặp/thu vượt và lịch sử TC-022/023 |
 | [2026-11-03-notifications.md](2026-11-03-notifications.md) | Bảng tin lớp, read revision, cập nhật theo nguồn/dedupe và giao diện TC-024 |
 | [2026-11-03-dashboard.md](2026-11-03-dashboard.md) | Tổng quan cô/gia đình, khoản phải thu, tổng chính xác và trải nghiệm TC-025 |
+| [2026-11-08-games.md](2026-11-08-games.md) | Góc chơi TC-029: ba kiểu chơi, soạn/giao/kết quả, bộ sưu tập và quyền |
 
 ## Cách dùng
 

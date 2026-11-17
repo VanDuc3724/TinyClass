@@ -29,7 +29,9 @@ import {
   weekStart,
 } from "../lib/schedule";
 import type { ScheduleHistory, TeachingSession } from "../lib/schedule";
-import { SessionCard, SessionForm, WeekBar } from "./ScheduleParts";
+import type { AttendanceRow, FamilyAttendance } from "../lib/attendance";
+import { AttendanceHistory } from "./AttendanceParts";
+import { SessionForm, WeekBar, WeekGrid } from "./ScheduleParts";
 import styles from "./Schedule.module.css";
 
 export function CalendarPage({ family = false }: { family?: boolean }) {
@@ -43,14 +45,35 @@ export function CalendarPage({ family = false }: { family?: boolean }) {
     setParams({ ...Object.fromEntries(params), page: "0", ...values });
   const data = useResource(
     useCallback(
-      (signal) =>
-        api.list<TeachingSession>(
-          `${family ? `/family/children/${child}` : ""}/sessions${query({ from: start, to: addDays(start, 6), classId, status, page, size: 50 })}`,
-          signal,
-        ),
+      async (signal) => {
+        const week = { from: start, to: addDays(start, 6) };
+        // Families read the child's attendance on the same week instead of a separate page.
+        const [sessions, attendance] = await Promise.all([
+          api.list<TeachingSession>(
+            `${family ? `/family/children/${child}` : ""}/sessions${query({ ...week, classId, status, page, size: 50 })}`,
+            signal,
+          ),
+          family
+            ? api.list<FamilyAttendance>(
+                `/family/children/${child}/attendance${query({ ...week, page: 0, size: 100 })}`,
+                signal,
+              )
+            : Promise.resolve(null),
+        ]);
+        return {
+          sessions,
+          attendance: (attendance?.data || []).filter(
+            (row) => !classId || row.classId === classId,
+          ),
+        };
+      },
       [family, child, start, classId, status, page],
     ),
   );
+  const [history, setHistory] = useState<{
+    child: string;
+    row: AttendanceRow;
+  } | null>(null);
   const options = useResource(
     useCallback(
       async (signal) => {
@@ -68,11 +91,6 @@ export function CalendarPage({ family = false }: { family?: boolean }) {
       [family, child],
     ),
   );
-  const groups = new Map<string, TeachingSession[]>();
-  data.data?.data.forEach((session) => {
-    const day = businessLocal(session.startsAt).slice(0, 10);
-    groups.set(day, [...(groups.get(day) || []), session]);
-  });
   const classSelect = (
     <select
       aria-label="Lọc lớp trong lịch"
@@ -99,7 +117,7 @@ export function CalendarPage({ family = false }: { family?: boolean }) {
         title={family ? "Lịch học của bé" : "Lịch dạy"}
         description={
           family
-            ? `Theo dõi các buổi học${options.data?.name ? ` của ${options.data.name}` : ""}, địa điểm và thay đổi từ cô.`
+            ? `Theo dõi các buổi học${options.data?.name ? ` của ${options.data.name}` : ""}, điểm danh và lời nhắn của cô.`
             : "Sắp xếp những buổi học nhỏ, giữ thời gian cho từng lớp."
         }
         action={
@@ -172,30 +190,17 @@ export function CalendarPage({ family = false }: { family?: boolean }) {
         <Loading text="Đang mở lịch tuần…" />
       ) : (
         data.data && (
-          <div aria-busy={data.loading}>
-            {data.data.data.length ? (
-              [...groups].map(([day, sessions]) => (
-                <section className={styles.dayGroup} key={day}>
-                  <div className={styles.dayHeading}>
-                    <h2>
-                      {new Date(`${day}T00:00:00Z`).toLocaleDateString(
-                        "vi-VN",
-                        { weekday: "long", timeZone: "UTC" },
-                      )}{" "}
-                      · {dateLabel(day)}
-                    </h2>
-                  </div>
-                  <div className={styles.sessionGrid}>
-                    {sessions.map((session) => (
-                      <SessionCard
-                        key={session.id}
-                        session={session}
-                        teacher={!family}
-                      />
-                    ))}
-                  </div>
-                </section>
-              ))
+          <div className={styles.weekArea} aria-busy={data.loading}>
+            {data.data.sessions.data.length || data.data.attendance.length ? (
+              <WeekGrid
+                start={start}
+                sessions={data.data.sessions.data}
+                teacher={!family}
+                attendance={data.data.attendance}
+                onHistory={
+                  family ? (row) => setHistory({ child: child!, row }) : undefined
+                }
+              />
             ) : (
               <section className={`panel ${styles.emptyPanel}`}>
                 <EmptyState
@@ -209,11 +214,20 @@ export function CalendarPage({ family = false }: { family?: boolean }) {
               </section>
             )}
             <Pagination
-              meta={data.data.meta}
+              meta={data.data.sessions.meta}
               onChange={(value) => filter({ page: String(value) })}
             />
           </div>
         )
+      )}
+      {family && history && history.child === child && (
+        <AttendanceHistory
+          key={`${child}:${history.row.id}`}
+          child={child}
+          id={history.row.id}
+          name={history.row.studentName}
+          onClose={() => setHistory(null)}
+        />
       )}
     </>
   );

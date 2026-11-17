@@ -1,6 +1,6 @@
 # TinyClass — Quy chuẩn thiết kế giao diện
 
-Phiên bản: **1.1** · Ngày cập nhật: **02/11/2026**
+Phiên bản: **1.3** · Ngày cập nhật: **17/11/2026**
 Áp dụng cho: **frontend React + TypeScript + Vite**.  
 Tham chiếu nghiệp vụ: [Đặc tả hệ thống TinyClass](../doc/01-mo-ta-he-thong.md).
 
@@ -30,22 +30,30 @@ Các mã màu và kích thước là giá trị thiết kế được chọn g�
 
 ### 2.1. Màu sắc, kích thước và hiệu ứng
 
-Mẫu cho `src/styles/tokens.css` khi triển khai:
+Nội dung hiện hành của `src/styles/tokens.css`:
 
 ```css
 :root {
   color-scheme: light;
 
-  --tc-font: 'Nunito', 'Segoe UI', Arial, sans-serif;
+  --tc-font: "Nunito", "Segoe UI", Arial, sans-serif;
 
+  /* Brand */
   --tc-primary: #5926cf;
   --tc-primary-hover: #4c1db5;
+  --tc-primary-active: #41189c;
   --tc-primary-soft: #f2ecff;
-  --tc-sidebar-start: #5826d2;
-  --tc-sidebar-end: #4820bd;
-  --tc-sidebar-active: rgb(255 255 255 / 20%);
+  --tc-primary-soft-hover: #e8dfff;
+  /* Tinted outline for secondary buttons and interactive cards on hover. */
+  --tc-primary-border: #d6c8f7;
+  --tc-sidebar-start: #5b29d6;
+  --tc-sidebar-end: #4520b4;
+  --tc-sidebar-hover: rgb(255 255 255 / 10%);
+  --tc-sidebar-active: rgb(255 255 255 / 18%);
+  --tc-sidebar-muted: rgb(255 255 255 / 68%);
   --tc-on-primary: #ffffff;
 
+  /* Semantic tones: text/icon colour + pastel background */
   --tc-accent: #c72570;
   --tc-accent-soft: #fff1f7;
   --tc-success: #137a5a;
@@ -55,16 +63,22 @@ Mẫu cho `src/styles/tokens.css` khi triển khai:
   --tc-warning: #986100;
   --tc-warning-soft: #fff6de;
   --tc-danger: #c43755;
+  --tc-danger-hover: #a82a46;
   --tc-danger-soft: #fff0f3;
 
-  --tc-canvas: #fcfcfe;
+  /* Surfaces: the canvas carries a faint lavender so white cards read as layers. */
+  --tc-canvas: #f5f4fa;
   --tc-surface: #ffffff;
-  --tc-surface-muted: #f7f6fb;
+  --tc-surface-muted: #f8f7fc;
+  --tc-surface-hover: #faf9fd;
   --tc-text: #1d1835;
   --tc-text-muted: #6d687d;
-  --tc-border: #eeecf4;
+  --tc-border: #e9e6f2;
+  --tc-border-strong: #dcd8e8;
   --tc-control-border: #8f899e;
+  --tc-control-hover: #6d687d;
   --tc-focus: #7c3aed;
+  --tc-ring: 0 0 0 4px rgb(89 38 207 / 16%);
 
   --tc-space-1: 4px;
   --tc-space-2: 8px;
@@ -79,11 +93,20 @@ Mẫu cho `src/styles/tokens.css` khi triển khai:
   --tc-radius-sm: 8px;
   --tc-radius-md: 12px;
   --tc-radius-lg: 20px;
+  --tc-radius-xl: 24px;
   --tc-radius-pill: 999px;
 
-  --tc-shadow-card: 0 2px 10px rgb(29 24 53 / 6%);
-  --tc-shadow-hover: 0 6px 18px rgb(29 24 53 / 10%);
-  --tc-shadow-overlay: 0 16px 48px rgb(29 24 53 / 18%);
+  /* Two-layer shadows: a tight contact shadow plus a soft ambient one. */
+  --tc-shadow-xs: 0 1px 2px rgb(29 24 53 / 5%);
+  --tc-shadow-card: 0 1px 2px rgb(29 24 53 / 4%),
+    0 4px 16px -4px rgb(29 24 53 / 7%);
+  --tc-shadow-hover: 0 2px 4px rgb(29 24 53 / 5%),
+    0 14px 32px -10px rgb(29 24 53 / 16%);
+  --tc-shadow-overlay: 0 4px 12px rgb(29 24 53 / 8%),
+    0 24px 64px -12px rgb(29 24 53 / 28%);
+  --tc-shadow-primary: 0 1px 2px rgb(65 24 156 / 24%),
+    0 6px 14px -4px rgb(89 38 207 / 36%);
+  --tc-backdrop: rgb(29 24 53 / 45%);
 
   --tc-sidebar-width: 264px;
   --tc-topbar-height: 80px;
@@ -102,6 +125,12 @@ Mẫu cho `src/styles/tokens.css` khi triển khai:
   --tc-motion-normal: 220ms;
   --tc-ease: cubic-bezier(0.2, 0, 0, 1);
 }
+
+@media (max-width: 1199px) {
+  :root {
+    --tc-topbar-height: 64px;
+  }
+}
 ```
 
 | Vai trò | Màu chữ/icon | Màu nền | Ví dụ |
@@ -114,7 +143,9 @@ Mẫu cho `src/styles/tokens.css` khi triển khai:
 | Lỗi hoặc cần xử lý gấp | `--tc-danger` | `--tc-danger-soft` | Lỗi tải, nghỉ chưa báo, khoản quá hạn. |
 | Trung tính | `--tc-text-muted` | `--tc-surface-muted` | Nháp, chưa đánh dấu, lưu trữ. |
 
-Màu hồng là màu nhấn, không thay thế màu báo lỗi. Viền thẻ dùng `--tc-border`; ô nhập liệu và đường bao của điều khiển cần nhận diện dùng `--tc-control-border`.
+Màu hồng là màu nhấn, không thay thế màu báo lỗi. Viền thẻ dùng `--tc-border`; ô nhập liệu và đường bao của điều khiển cần nhận diện dùng `--tc-control-border` (tối thiểu 3:1 trên nền trắng), hover đậm lên `--tc-control-hover`.
+
+Nền trang `--tc-canvas` có sắc tím rất nhạt để thẻ trắng tách lớp rõ; khối nằm *bên trong* thẻ dùng `--tc-surface-muted`. Bóng đổ gồm hai lớp (bóng tiếp xúc + bóng môi trường): `--tc-shadow-card` cho thẻ tĩnh, `--tc-shadow-hover` khi thẻ có đích điều hướng được rê chuột, `--tc-shadow-overlay` cho menu/modal, `--tc-shadow-primary` chỉ cho nút chính.
 
 ### 2.2. Chữ, khoảng cách và hình ảnh
 
@@ -424,13 +455,13 @@ Không tự gửi thông báo, giao bài hoặc ghi điểm danh khi người d�
 
 | Thành phần | Hình thức | Hành vi bắt buộc |
 |---|---|---|
-| `Button` | Cao tối thiểu 44px; bo 12px; cỡ lớn 48px | Primary tím/chữ trắng; secondary nền tím nhạt; ghost nền trong; danger đỏ. Có trạng thái đang xử lý và disabled. |
+| `Button` | Cao tối thiểu 44px; bo 12px; cỡ lớn 48px | Primary tím/chữ trắng, bóng `--tc-shadow-primary`; secondary (`.button-ghost`) nền trắng, viền `--tc-primary-border`, hover nền tím nhạt; danger đỏ. Nhấn dịch xuống 1px. Có trạng thái đang xử lý và disabled. |
 | `IconButton` | Vùng nhấn tối thiểu 44 × 44px | Tên truy cập rõ ràng; tooltip bổ sung khi phù hợp; tooltip không thay nhãn. |
 | `Card` | Nền trắng, bo 20px, viền nhẹ, bóng nhỏ | Header icon + tiêu đề + hành động; phần thân canh trái. Thẻ tĩnh không có hiệu ứng như nút. |
 | `StatCard` | Icon pastel + nhãn + số + chú thích | Hỗ trợ skeleton, trạng thái chưa có dữ liệu và liên kết tới danh sách đã lọc. |
 | `Badge` | Dạng pill, chữ 12–14px, padding 4px 12px | Luôn có chữ; ý nghĩa không phụ thuộc riêng vào màu. |
 | `Avatar` | Hình tròn, viền nhẹ tùy ngữ cảnh | Có fallback chữ cái; không lặp nội dung đọc nếu tên đã nằm cạnh ảnh. |
-| `Input`, `Select`, `DateField` | Cao tối thiểu 44px, chữ 16px, bo 12px | Nhãn nằm phía trên; mô tả và lỗi nằm dưới; trường bắt buộc có dấu hiệu bằng chữ hoặc ký hiệu được giải thích. |
+| `Input`, `Select`, `DateField` | Cao tối thiểu 44px, chữ 16px/500, bo 12px | Nhãn nằm phía trên; mô tả và lỗi nằm dưới; trường bắt buộc có dấu hiệu bằng chữ hoặc ký hiệu được giải thích. Focus: viền tím 2px + quầng `--tc-ring`; lỗi dùng cùng hình thức với màu đỏ. Select dùng mũi tên SVG chung thay mũi tên trình duyệt. |
 | `Textarea` | Tối thiểu 120px, cho tăng chiều cao | Giữ nội dung khi lưu/gửi lỗi; hiển thị giới hạn nếu nghiệp vụ có giới hạn. |
 | `SearchFilterBar` | Tìm kiếm + bộ lọc + số kết quả | Điện thoại có nút mở bộ lọc; có “Xóa bộ lọc”; giữ tiêu chí khi quay lại từ chi tiết. |
 | `Tabs` | Nhãn rõ, active tím và gạch/chỉ dấu | Có trạng thái chọn, hỗ trợ bàn phím; không tràn mất tab trên điện thoại. |
@@ -630,3 +661,28 @@ TC-018 dùng thẻ điểm danh hai cột desktop/một cột mobile, trạng th
 Enum backend thực tế được giữ nguyên: file dùng `UPLOADING/READY/FAILED`, kho dùng `CONNECTED`; nhãn/tông màu tương ứng nằm ở `src/constants/status.ts`. [TC-015/016](../doc/verification/2026-11-02-submissions.md) có nháp/gửi/duyệt, lịch sử và vòng mới; [TC-017](../doc/verification/2026-11-02-schedule.md) có lịch tuần, sinh/đổi/hủy, xem trước và xác nhận trùng giờ, lịch gia đình. Các màn hình dùng CSS Modules và thành phần chung. Thanh mobile gia đình nay có bốn mục Trang chủ/Bài của con/Lịch học/Tài khoản khi có bé. Google thật chưa cấu hình; Điểm danh và lịch sử gia đình đã có theo TC-018; học bù tạm hoãn. Nhận xét và hành trình TC-019 đã triển khai; Drive và học phí chưa triển khai.
 
 TC-019 hiển thị các thẻ nhận xét theo dòng thời gian, badge “Chỉ cô xem”/“Chia sẻ với gia đình”, ngữ cảnh lớp/buổi và tệp theo note. Có editor/modal/lịch sử, ghi nhận dạng sản phẩm dùng thẻ riêng, bộ lọc loại/phân trang, giữ bản nhập khi lỗi và đưa lỗi chung vào vùng nhìn. Mobile 375/320px; xem trước ảnh thật không tràn form. [Hướng dẫn](../doc/12-nhan-xet-va-tien-bo.md), [bằng chứng](../doc/verification/2026-11-02-student-notes.md).
+
+### 12.4. Nâng cấp giao diện ngày 05/11/2026
+
+Rà soát toàn bộ màn hình và nâng cấp ở tầng dùng chung, để mọi trang hưởng cùng lúc mà không đổi bố cục nghiệp vụ hay nội dung:
+
+- **Nền và chiều sâu:** canvas `#f5f4fa` thay `#fcfcfe` (gần như trắng, làm thẻ trắng không tách khỏi nền); viền thẻ đậm nhẹ `#e9e6f2`; bóng đổ hai lớp. Thêm token `--tc-primary-active`, `--tc-primary-soft-hover`, `--tc-primary-border`, `--tc-danger-hover`, `--tc-surface-hover`, `--tc-border-strong`, `--tc-control-hover`, `--tc-ring`, `--tc-radius-xl`, `--tc-shadow-xs`, `--tc-shadow-primary`, `--tc-backdrop`, `--tc-sidebar-hover`, `--tc-sidebar-muted`.
+- **Điều khiển:** hover cho ô nhập/tìm kiếm, focus viền 2px + quầng, mũi tên select thống nhất, nút chọn tệp (`::file-selector-button`) theo phong cách nút phụ, checkbox dùng màu tím. Nút phụ chuyển sang viền tím nhạt; nút có phản hồi khi nhấn.
+- **Khung:** sidebar gọn hơn (mục 44px, khoảng cách 2px, nhãn nhóm 11px mờ 68%) để toàn bộ menu giáo viên nằm trong màn hình 1000px; mục đang chọn có vạch trắng ở mép ngoài thay vì viền trong. Topbar dính và mờ nền từ 768px; điện thoại vẫn cuộn theo để không chiếm chỗ khi có bộ chọn bé. Thanh dưới gia đình có chỉ dấu dạng viên quanh icon.
+- **Nội dung đọc:** `.prose`, dòng thời gian, mô tả phụ trong bảng và chữ đậm trong ô bảng chuyển từ tím sang màu chữ/chữ phụ — tím dành cho liên kết, điều hướng và điểm nhấn. Eyebrow luôn in hoa, giãn chữ 0.08em, kể cả khi là tên lớp động.
+- **Thành phần:** badge có viền mảnh cùng tông; modal/drawer/menu có chuyển động vào 220ms (tắt khi giảm chuyển động); bảng có hover hàng, số dạng tabular; thanh phân trang trong thẻ có nền phụ; dòng thời gian có đường nối; notice dùng viền 22–35% thay viền đặc. Thêm icon `filter` cho nút Bộ lọc trên điện thoại.
+- **Trang cụ thể:** lời chào trang tổng quan giáo viên/gia đình dùng `PageHeader hero` (thẻ sáng với mảng pastel); trang đăng nhập có nền nhiều sắc pastel, minh họa voi đặt trên “sân khấu” trắng để không chìm vào nền, nhãn tính năng dạng chip, nút Google có viền rõ. Thẻ lớp thay vòng tròn viền đậm bằng mảng trắng mờ.
+- **Dọn chồng lệnh:** `features.css` bỏ các khai báo bị `base.css` ghi đè (pill, mint/peach/sand, th/td, content-badge, hover thẻ) và chuẩn hóa bán kính lẻ (10/13/15/17px) về thang 8/12/16/20/24px.
+- **Lỗi bố cục sửa kèm:** thanh dưới gia đình cao 73px (72px + viền 1px) trong khi vùng đệm chỉ chừa 72px — viền chuyển thành bóng inset và chừa thêm 8px; thanh lọc trong thẻ danh sách học sinh thừa 24px khoảng trắng phía trên bảng; minh họa sidebar giáo viên ẩn dưới chiều cao 1100px để Cài đặt và tài khoản luôn trong màn hình; vị trí dính của form phản hồi sản phẩm tính theo chiều cao topbar.
+
+Ràng buộc giữ nguyên: sidebar 264px, vùng nhấn ≥ 44px, không cuộn ngang ở 320px, tương phản chữ phụ trên canvas mới 4.9:1.
+
+### 12.5. Review giao diện ngày 17/11/2026
+
+- Tổng quan bé ưu tiên nội dung trong màn hình đầu: hai lối vào **Bài của con/Góc chơi của bé**, các mục khác trong **Xem thêm hoạt động** dùng `details/summary` và bàn phím. Cập nhật thông tin nằm cùng thông tin hồ sơ.
+- Mobile thu gọn bộ lọc tra cứu điểm danh nhưng luôn hiện khoảng ngày đang áp dụng; áp dụng bộ lọc trả focus về nút mở. Desktop vẫn hiện toàn bộ trường.
+- Memory dùng bốn cột trên điện thoại; tám thẻ vừa trong viewport kiểm tra 320/390 × 844, vùng chạm tối thiểu 56px. Lịch sử trò chơi dùng danh sách, luôn thấy tên, thời gian và sao ở 320px.
+- Menu có trạng thái đang chọn ở cả trang điểm danh buổi/kết quả trò chơi. Chuyển pathname đưa focus về nội dung và cuộn đầu sau khi màn hình lazy sẵn sàng; thay query/hash giữ vị trí đang làm việc. Modal và chế độ học tiếp tục quản lý focus riêng.
+- Back/Forward đồng bộ ô tìm kiếm lớp/học sinh với URL. Kho học liệu và bộ chọn tệp chỉ báo rỗng sau khi tải thành công. Các trường soạn trò chơi có tên khớp DTO để lỗi máy chủ liên kết và focus đúng ô.
+
+Bằng chứng và giới hạn: [báo cáo review UI](../doc/verification/2026-11-17-ui-review.md).

@@ -108,6 +108,19 @@ class AttendanceTests {
         }
     }
 
+    JsonNode listed(JsonNode sessions,String s){for(var r:sessions)if(r.path("id").stringValue().equals(s))return r;throw new AssertionError("Missing session in list");}
+    @Test void weekAndDashboardCardsCountOnlyMarkedRowsStillInTheRoster()throws Exception{
+        try(var t=login(TEACHER)){
+            String s=session(classroom,-120,600);var card=listed(t.get("/sessions"+dates()).data(),s);
+            assertThat(card.path("rosterCreatedAt").isNull()).isTrue();assertThat(card.path("attendanceTotal").intValue()).isZero();assertThat(card.path("attendanceMarked").intValue()).isZero();
+            roster(t,s);mark(t,s,child,"PRESENT");card=listed(t.get("/sessions"+dates()).data(),s);
+            assertThat(card.path("rosterCreatedAt").isNull()).isFalse();assertThat(card.path("attendanceTotal").intValue()).isEqualTo(2);assertThat(card.path("attendanceMarked").intValue()).isEqualTo(1);
+            var removed=t.post("/sessions/"+s+"/attendance-roster/members",Map.of("sessionVersion",workspace(t,s).path("session").path("version").longValue(),"studentId",child,"action","REMOVE","reason","Bé chuyển buổi"));assertThat(removed.status()).as("remove: %s",removed.body()).isEqualTo(200);
+            card=listed(t.get("/sessions"+dates()).data(),s);assertThat(card.path("attendanceTotal").intValue()).isEqualTo(1);assertThat(card.path("attendanceMarked").intValue()).isZero();
+            card=listed(t.get("/dashboard").data().path("todaySessions"),s);assertThat(card.path("rosterCreatedAt").isNull()).isFalse();assertThat(card.path("attendanceTotal").intValue()).isEqualTo(1);assertThat(card.path("attendanceMarked").intValue()).isZero();
+        }
+    }
+
     @Test void rolesCsrfForeignRowsPaginationAndEmptyCompletionAreValidated()throws Exception{
         try(var t=login(TEACHER);var p=login(PARENT);var anonymous=browser()){
             String s=session(classroom,-7200,-3600);var w=roster(t,s);String path="/sessions/"+s+"/attendance";

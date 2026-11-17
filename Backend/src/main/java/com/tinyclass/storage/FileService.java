@@ -32,14 +32,14 @@ public class FileService {
     private final StorageConnectionRepository connections;
     private final UserAccountRepository users;
     private final AuditEventRepository audit;
-    private final StorageAdapter local;
+    private final StorageAdapter storage;
     private final TransactionTemplate tx;
     private final long quota;
     private final Tika tika=new Tika();
     public FileService(StoredFileRepository files, StorageConnectionRepository connections, UserAccountRepository users,
-            AuditEventRepository audit, LocalStorageAdapter local, PlatformTransactionManager transactions,
+            AuditEventRepository audit, DatabaseStorageAdapter storage, PlatformTransactionManager transactions,
             @Value("${tinyclass.storage.quota-bytes}") long quota) {
-        this.files=files; this.connections=connections; this.users=users; this.audit=audit; this.local=local;
+        this.files=files; this.connections=connections; this.users=users; this.audit=audit; this.storage=storage;
         this.tx=new TransactionTemplate(transactions); this.quota=quota;
         if(quota<=0) throw new IllegalStateException("Storage quota must be positive");
     }
@@ -51,16 +51,22 @@ public class FileService {
         users.lockById(actor).orElseThrow(FileService::missing);
         return connections.findByTeacherIdAndProvider(actor,"LOCAL").orElseGet(()->connections.saveAndFlush(new StorageConnection(actor)));
     }
-    public PageResponse<FileView> list(UUID actor,String q,String purpose,int page,int size) {
+    public PageResponse<FileView> list(UUID actor,String q,String purpose,String mediaType,String status,int page,int size) {
         if(page<0||size<1||size>100) throw problem(HttpStatus.BAD_REQUEST,"INVALID_PAGINATION","Phân trang chưa hợp lệ.");
         if(q!=null&&q.length()>150) throw problem(HttpStatus.BAD_REQUEST,"INVALID_SEARCH","Từ khóa tối đa 150 ký tự.");
         if(purpose!=null&&!Set.of("LESSON_ASSET","PROFILE_ASSET","NOTE_ASSET","REVIEW_ASSET").contains(purpose))
             throw problem(HttpStatus.BAD_REQUEST,"INVALID_PURPOSE","Mục đích tệp chưa hợp lệ.");
+        if(mediaType!=null&&!Set.of("image","audio").contains(mediaType))
+            throw problem(HttpStatus.BAD_REQUEST,"INVALID_MEDIA_TYPE","Chọn ảnh hoặc âm thanh.");
+        if(status!=null&&!Set.of("UPLOADING","READY","FAILED").contains(status))
+            throw problem(HttpStatus.BAD_REQUEST,"INVALID_STATUS","Trạng thái tệp chưa hợp lệ.");
         Specification<StoredFile> filter=(root,query,cb)->{
             var where=cb.and(cb.equal(root.get("uploadedBy"),actor),cb.notEqual(root.get("status"),"DELETED"));
             if(q!=null&&!q.isBlank()) where=cb.and(where,cb.like(cb.lower(root.get("originalName")),"%"+q.strip().toLowerCase(Locale.ROOT)
                     .replace("\\","\\\\").replace("%","\\%").replace("_","\\_")+"%",'\\'));
             if(purpose!=null) where=cb.and(where,cb.equal(root.get("purpose"),purpose));
+            if(mediaType!=null) where=cb.and(where,cb.like(root.get("mimeType"),mediaType+"/%"));
+            if(status!=null) where=cb.and(where,cb.equal(root.get("status"),status));
             return where;
         };
         return PageResponse.from(files.findAll(filter,PageRequest.of(page,size,Sort.by(Sort.Order.desc("createdAt"),Sort.Order.desc("id")))).map(this::view));
@@ -110,16 +116,17 @@ public class FileService {
             return files.saveAndFlush(reservedFile);
         });
         try(var input=part.getInputStream()) {
-            var written=local.write(reserved.getStorageKey(),input,kind.limit());
-            if(written.size()!=part.getSize()) throw new IOException("Upload size changed");
+            // Bytes and READY commit together, so a failed upload leaves no partial content behind.
             return tx.execute(status->{
                 var saved=files.lockOwned(reserved.getId(),actor).orElseThrow(FileService::missing);
+                StorageAdapter.Written written;
+                try { written=storage.write(saved,input,kind.limit()); } catch(IOException failure) { throw new UncheckedIOException(failure); }
+                if(written.size()!=part.getSize()) throw new IllegalStateException("Upload size changed");
                 saved.ready(written); files.flush();
                 audit.save(new AuditEvent(actor,"FILE_UPLOADED","FILE",saved.getId(),Map.of("purpose",purpose,"sizeBytes",written.size()),null,trace));
                 return view(saved);
             });
         } catch(Exception failure) {
-            try { local.delete(reserved.getStorageKey()); } catch(IOException ignored) { /* Keep metadata for a later cleanup. */ }
             tx.executeWithoutResult(status->files.findById(reserved.getId()).ifPresent(StoredFile::failed));
             if(failure instanceof ApiException api) throw api;
             throw unavailable();
@@ -136,13 +143,13 @@ public class FileService {
             return view(file);
         });
     }
-    public record Content(Resource resource,String mime,String name,long size) {}
+    public record Content(Resource resource,String mime,String name,long size,String checksum) {}
     public Content content(UUID actor,UUID id) { return content(owned(actor,id)); }
     public Content content(StoredFile file) {
         if(!"READY".equals(file.getStatus())) throw missing();
         var connection=connections.findById(file.getStorageConnectionId()).orElseThrow(FileService::missing);
         if(!"CONNECTED".equals(connection.getStatus())||!"LOCAL".equals(connection.getProvider())) throw unavailable();
-        try { return new Content(local.read(file.getStorageKey(),file.getSizeBytes()),file.getMimeType(),file.getOriginalName(),file.getSizeBytes()); }
+        try { return new Content(storage.read(file),file.getMimeType(),file.getOriginalName(),file.getSizeBytes(),file.getChecksum()); }
         catch(IOException failure) { throw unavailable(); }
     }
     public StoredFile owned(UUID actor,UUID id) { return files.findByIdAndUploadedBy(id,actor).filter(f->!"DELETED".equals(f.getStatus())).orElseThrow(FileService::missing); }

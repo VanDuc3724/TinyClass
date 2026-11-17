@@ -208,12 +208,12 @@
   .notice {
     color: var(--tc-success);
     background: var(--tc-success-soft);
-    border: 1px solid var(--tc-success);
+    border: 1px solid color-mix(in srgb, var(--tc-success) 28%, transparent);
   }
   .information {
     color: var(--tc-info);
     background: var(--tc-info-soft);
-    border: 1px solid var(--tc-info);
+    border: 1px solid color-mix(in srgb, var(--tc-info) 28%, transparent);
   }
   .editorFields {
     display: grid;

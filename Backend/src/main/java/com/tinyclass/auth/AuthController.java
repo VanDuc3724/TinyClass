@@ -79,6 +79,8 @@ public class AuthController {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         new CompositeLogoutHandler(new SecurityContextLogoutHandler(), new CookieClearingLogoutHandler("JSESSIONID"))
                 .logout(request, response, authentication);
+        // Files are browser-cacheable (revalidated on every open); drop those copies on a shared device at sign-out.
+        response.setHeader("Clear-Site-Data", "\"cache\"");
         return ApiResponse.of(true);
     }
 

@@ -20,7 +20,11 @@ import static com.tinyclass.common.persistence.DomainStore.*;
 public class ScheduleService {
     public static final ZoneId ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
     private static final String RULE = "select r.id,r.class_id,r.weekday,to_char(r.start_time,'HH24:MI') as start_time,to_char(r.end_time,'HH24:MI') as end_time,r.timezone,r.effective_from,r.effective_to,r.location,r.is_active,r.version from class_schedule_rules r ";
-    private static final String SESSION = "select s.id,s.class_id,c.name as class_name,c.status as class_status,s.schedule_rule_id,s.occurrence_week,s.starts_at,s.ends_at,s.title,s.location,s.lesson_plan,s.status,s.is_manual_override,s.roster_created_at,s.cancellation_reason,s.cancelled_at,s.version from class_sessions s join classes c on c.id=s.class_id ";
+    private static final String SESSION_COLUMNS = "select s.id,s.class_id,c.name as class_name,c.status as class_status,s.schedule_rule_id,s.occurrence_week,s.starts_at,s.ends_at,s.title,s.location,s.lesson_plan,s.status,s.is_manual_override,s.roster_created_at,s.cancellation_reason,s.cancelled_at,s.version";
+    private static final String SESSION = SESSION_COLUMNS+" from class_sessions s join classes c on c.id=s.class_id ";
+    /** Week cards open attendance directly, so each one carries how much of its roster is marked. */
+    public static final String ROSTER_PROGRESS = "(select count(*) from attendance_records a where a.session_id=s.id and a.is_active) as attendance_total,(select count(*) from attendance_records a where a.session_id=s.id and a.is_active and a.status<>'UNMARKED') as attendance_marked";
+    private static final String WEEK = SESSION_COLUMNS+","+ROSTER_PROGRESS+" from class_sessions s join classes c on c.id=s.class_id ";
     private static final String FAMILY = "select s.id,s.class_id,c.name as class_name,s.starts_at,s.ends_at,s.title,s.location,s.status,s.cancellation_reason from class_sessions s join classes c on c.id=s.class_id join students st on st.id=? and st.teacher_id=c.teacher_id ";
     private static final String FAMILY_RIGHTS = " and st.status='ACTIVE' and exists(select 1 from class_enrollments e where e.class_id=c.id and e.student_id=st.id and s.ends_at>e.joined_at and ((e.status='ACTIVE' and c.status='ACTIVE') or (e.status='COMPLETED' and c.status='COMPLETED' and s.starts_at<=e.ended_at)))";
     private final DomainStore db;
@@ -185,7 +189,7 @@ public class ScheduleService {
         if(clean(status)!=null) {where+=" and s.status=?";args.add(status);}
         long total=db.count("select count(*) from class_sessions s join classes c on c.id=s.class_id "+where,args.toArray());
         args.add(size);args.add((long)page*size);
-        return db.page(db.rows(SESSION+where+" order by s.starts_at,s.id limit ? offset ?",args.toArray()),total,page,size);
+        return db.page(db.rows(WEEK+where+" order by s.starts_at,s.id limit ? offset ?",args.toArray()),total,page,size);
     }
 
     public PageResponse<Map<String,Object>> familyList(UUID parent, UUID child, LocalDate from, LocalDate to, UUID classId, int page, int size) {

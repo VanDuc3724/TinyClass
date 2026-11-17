@@ -209,7 +209,7 @@
   .reviewForm {
     padding: 24px;
     position: sticky;
-    top: 24px;
+    top: calc(var(--tc-topbar-height) + 16px);
   }
   .reviewForm h2 {
     margin-bottom: 16px;

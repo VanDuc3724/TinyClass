@@ -64,7 +64,7 @@ class StudentNoteTests {
     @Test void sharedAttachmentsRequireTheCurrentExactChildNoteAndSupportRange()throws Exception {
         try(var t=login(TEACHER);var p=login(PARENT)) {
             String file=upload(t,"NOTE_ASSET");var note=create(t,"Con cầm bút tiến bộ.","SHARED",List.of(file));String url=family(note)+"/files/"+file;
-            var ranged=p.binaryGet(url+"/content",Map.of("Range","bytes=0-7"));assertThat(ranged.statusCode()).isEqualTo(206);assertThat(ranged.body()).hasSize(8);assertThat(ranged.headers().firstValue("cache-control").orElse("")).contains("no-store");
+            var ranged=p.binaryGet(url+"/content",Map.of("Range","bytes=0-7"));assertThat(ranged.statusCode()).isEqualTo(206);assertThat(ranged.body()).hasSize(8);assertThat(ranged.headers().firstValue("cache-control").orElse("")).isEqualTo("private, no-cache");assertThat(ranged.headers().firstValue("etag")).isPresent();
             var download=p.binaryGet(url+"/download",Map.of());assertThat(download.statusCode()).isEqualTo(200);assertThat(download.headers().firstValue("content-disposition").orElse("")).contains("attachment");
             assertThat(p.binaryGet("/files/"+file+"/content",Map.of()).statusCode()).isEqualTo(403);
             assertThat(p.binaryGet("/family/children/"+second+"/notes/"+id(note)+"/files/"+file+"/content",Map.of()).statusCode()).isEqualTo(404);
@@ -85,11 +85,13 @@ class StudentNoteTests {
     @Test void archiveRestoreAndRemovingAttachmentsImmediatelyRecheckFamilyAccess()throws Exception {
         try(var t=login(TEACHER);var p=login(PARENT)) {
             String file=upload(t,"NOTE_ASSET");var note=create(t,"Shared archived observation","SHARED",List.of(file));String url=family(note)+"/files/"+file+"/content";
+            // A browser revalidating its cached copy must hit the same checks: no 304 once access is gone.
+            var cached=Map.of("If-None-Match",p.binaryGet(url,Map.of()).headers().firstValue("etag").orElseThrow());assertThat(p.binaryGet(url,cached).statusCode()).isEqualTo(304);
             var archived=t.post(path(note)+"/archive",Map.of("version",0,"reason","Cô cần kiểm tra lại."));assertThat(archived.status()).isEqualTo(200);
-            assertThat(p.get(family(note)).status()).isEqualTo(404);assertThat(p.binaryGet(url,Map.of()).statusCode()).isEqualTo(404);assertThat(t.patch(path(note),edit(archived.data(),"Cannot edit archived","SHARED")).status()).isEqualTo(409);
+            assertThat(p.get(family(note)).status()).isEqualTo(404);assertThat(p.binaryGet(url,Map.of()).statusCode()).isEqualTo(404);assertThat(p.binaryGet(url,cached).statusCode()).isEqualTo(404);assertThat(t.patch(path(note),edit(archived.data(),"Cannot edit archived","SHARED")).status()).isEqualTo(409);
             assertThat(t.get("/students/"+child+"/notes").data().size()).isZero();assertThat(t.get("/students/"+child+"/notes?archived=true").data().size()).isEqualTo(1);
             var restored=t.post(path(note)+"/restore",Map.of("version",1,"reason","Cô đã kiểm tra xong."));assertThat(restored.status()).isEqualTo(200);assertThat(p.binaryGet(url,Map.of()).statusCode()).isEqualTo(200);
-            var input=edit(restored.data(),"Shared without attachment","SHARED");input.put("fileIds",List.of());var changed=t.patch(path(note),input);assertThat(changed.status()).isEqualTo(200);assertThat(p.binaryGet(url,Map.of()).statusCode()).isEqualTo(404);
+            var input=edit(restored.data(),"Shared without attachment","SHARED");input.put("fileIds",List.of());var changed=t.patch(path(note),input);assertThat(changed.status()).isEqualTo(200);assertThat(p.binaryGet(url,Map.of()).statusCode()).isEqualTo(404);assertThat(p.binaryGet(url,cached).statusCode()).isEqualTo(404);
             var other=t.post("/students/"+second+"/notes",input("Do not reuse removed private file","SHARED",List.of(file)));assertThat(other.status()).isEqualTo(409);
             assertThat(t.get(path(note)+"/history").data().size()).isEqualTo(4);
         }

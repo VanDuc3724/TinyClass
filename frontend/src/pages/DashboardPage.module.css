@@ -6,9 +6,14 @@
   }
   .statLink {
     grid-column: 1 / -1;
+    align-self: end;
     color: var(--tc-primary);
     font-size: 14px;
     font-weight: 700;
+  }
+  .statLink:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
   .summaryPanel {
     margin-bottom: 24px;
@@ -130,12 +135,21 @@
   .statCard {
     display: grid;
     grid-template-columns: 1fr auto;
+    align-content: start;
     gap: 12px;
     padding: 24px;
     border: 1px solid var(--tc-border);
     border-radius: 20px;
     background: var(--tc-surface);
     box-shadow: var(--tc-shadow-card);
+    transition:
+      border-color var(--tc-motion-normal) var(--tc-ease),
+      box-shadow var(--tc-motion-normal) var(--tc-ease);
+  }
+  /* The card only reacts when its link is the target, so static cards stay still. */
+  .statCard:has(.statLink:hover) {
+    border-color: var(--tc-primary-border);
+    box-shadow: var(--tc-shadow-hover);
   }
   .statIcon {
     grid-column: 2;
@@ -156,6 +170,7 @@
     font-size: 36px;
     font-weight: 800;
     line-height: 1.2;
+    letter-spacing: -0.02em;
     font-variant-numeric: tabular-nums;
   }
   .statCard > p {
@@ -215,6 +230,17 @@
   .activity:hover h3 {
     color: var(--tc-primary);
   }
+  .activity > svg,
+  .classRow > svg {
+    transition:
+      transform var(--tc-motion-fast) var(--tc-ease),
+      color var(--tc-motion-fast) var(--tc-ease);
+  }
+  .activity:hover > svg,
+  .classRow:hover > svg {
+    color: var(--tc-primary);
+    transform: translateX(3px);
+  }
   .activity > div {
     min-width: 0;
     flex: 1;
@@ -253,10 +279,18 @@
     margin: 0 16px 8px;
     padding: 12px 8px;
     min-height: 72px;
-    border-radius: 12px;
+    border-radius: 14px;
+    transition: background-color var(--tc-motion-fast) var(--tc-ease);
   }
   .quickAction:hover {
     background: var(--tc-surface-muted);
+  }
+  .quickAction:hover strong {
+    color: var(--tc-primary);
+  }
+  .quickAction:hover > svg {
+    color: var(--tc-primary);
+    transform: translateX(3px);
   }
   .quickAction > div {
     flex: 1;
@@ -273,6 +307,9 @@
   .quickAction > svg {
     width: 16px;
     color: var(--tc-text-muted);
+    transition:
+      transform var(--tc-motion-fast) var(--tc-ease),
+      color var(--tc-motion-fast) var(--tc-ease);
   }
   .actionIcon {
     display: grid;
@@ -288,10 +325,15 @@
     gap: 12px;
     margin: 16px 24px 8px;
     padding: 16px;
-    background: var(--tc-primary-soft);
+    background: linear-gradient(
+      120deg,
+      var(--tc-primary-soft),
+      var(--tc-accent-soft)
+    );
     color: var(--tc-primary);
-    border-radius: 12px;
-    font-size: 12px;
+    border-radius: 14px;
+    font-size: 13px;
+    font-weight: 600;
   }
   .classList {
     padding: 0 24px 8px;

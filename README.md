@@ -30,6 +30,16 @@ TC-025 đã hoàn thiện **Tổng quan**: lọc lớp, học phí còn phải t
 
 Cấu hình Google thật tạm hoãn theo yêu cầu; các luồng trên dùng email/mật khẩu, không cần Google. Mã Google của TC-009 có kiểm thử riêng. Drive tiếp tục theo [backlog](doc/plan/02-backlog.md).
 
+TC-029 bổ sung **Kho trò chơi / Góc chơi của bé** với Chọn hình đúng, Ghép cặp và Lật thẻ ghi nhớ. Cô soạn/chơi thử/giao cho lớp hoặc từng bé; gia đình chơi tiếp, xem sao/bộ sưu tập và lịch sử. Mỗi lần giao giữ bản nội dung riêng, quyền được kiểm tra cả khi rời lớp/thu hồi. Xem [hướng dẫn góc chơi](doc/18-goc-choi.md) và [spec](doc/spec/07-games.md).
+
+Nghiệm thu TC-029 ngày 08–09/11/2026: **214 kiểm thử backend, 47 E2E, build/lint đạt**. Có ba trò chơi và sáu lần giao demo để review tại **http://127.0.0.1:5175**. Xem [báo cáo](doc/verification/2026-11-08-games.md).
+
+Tối ưu ngày 17/11/2026: bộ chọn ảnh/âm thanh phân trang và lọc tại server, tìm kiếm chờ ngừng gõ; thống kê tiến độ gộp truy vấn theo trang; màn hình lỗi giữ điều hướng và có nút tải lại. Xem [phạm vi và kết quả kiểm tra](doc/verification/2026-11-17-optimization.md).
+
+Review giao diện cùng ngày cải thiện tổng quan bé, bộ lọc điểm danh và trò chơi trên mobile; sửa Back/Forward tìm kiếm, menu trang con, focus và phân biệt lỗi tải với kho rỗng. Xem [báo cáo review UI](doc/verification/2026-11-17-ui-review.md).
+
+Tối ưu ngày 17/11/2026: bộ chọn ảnh/âm thanh phân trang và lọc tại server, tìm kiếm chờ ngừng gõ; thống kê tiến độ gộp truy vấn theo trang; màn hình lỗi giữ điều hướng và có nút tải lại. Xem [phạm vi và kết quả kiểm tra](doc/verification/2026-11-17-optimization.md).
+
 ## Yêu cầu phát triển
 
 - Java 21 và Node phù hợp phiên bản Vite trong lockfile.
@@ -113,7 +123,7 @@ cd Backend
 
 `verify` kiểm tra cả profile local và test. Database test riêng `tinyclass_test` ở cổng 55433 dùng tmpfs; dữ liệu test không nằm trong database phát triển. Test HTTP chạy ở port ngẫu nhiên, audit round-trip được rollback.
 
-Bộ kiểm tra reset dữ liệu trong `tinyclass_test` trước từng tình huống; database này dành riêng cho dữ liệu giả có thể tạo lại. Mailpit test riêng tại http://localhost:18026/SMTP 11026; không ảnh hưởng hộp thư local. Hiện verify đạt 196 test, E2E đạt 44 luồng; có migration qua V17, upload/Range/quota, học liệu/giao bài/quyền theo bé, sản phẩm/phản hồi/vòng học mới, lịch tuần/đổi/hủy/quyền gia đình, điểm danh/snapshot/hoàn thành/lịch sử công khai, nhận xét/tệp riêng và hành trình bé, dashboard theo lớp/ngày Việt Nam, ghi thu/void/chống lặp và thu vượt/quyền lịch sử, bảng tin/revision đọc/cập nhật nguyên tử và lọc quyền nguồn, tổng quan từng bé/lớp/tổng tiền nguyên chính xác, giao diện/bàn phím, token/SMTP và OIDC có chữ ký thử nghiệm. Kết quả này không thay kiểm tra Google/SMTP thật.
+Bộ kiểm tra reset dữ liệu trong `tinyclass_test` trước từng tình huống; database này dành riêng cho dữ liệu giả có thể tạo lại. Mailpit test riêng tại http://localhost:18026/SMTP 11026; không ảnh hưởng hộp thư local. Hiện verify gồm 200 test (LocalProfileStartupTests cần database phát triển đang chạy), E2E đạt 44 luồng; có migration qua V19, upload/Range/quota và tệp lưu trong PostgreSQL, học liệu/giao bài/quyền theo bé, sản phẩm/phản hồi/vòng học mới, lịch tuần/đổi/hủy/quyền gia đình, điểm danh/snapshot/hoàn thành/lịch sử công khai, nhận xét/tệp riêng và hành trình bé, dashboard theo lớp/ngày Việt Nam, ghi thu/void/chống lặp và thu vượt/quyền lịch sử, bảng tin/revision đọc/cập nhật nguyên tử và lọc quyền nguồn, tổng quan từng bé/lớp/tổng tiền nguyên chính xác, giao diện/bàn phím, token/SMTP và OIDC có chữ ký thử nghiệm. Kết quả này không thay kiểm tra Google/SMTP thật.
 
 Kiểm tra frontend từ thư mục `frontend/`:
 
@@ -155,6 +165,7 @@ Dừng các dịch vụ local của project bằng `docker compose --profile tes
 - [Nghiệm thu TC-015/016 và ảnh minh chứng](doc/verification/2026-11-02-submissions.md)
 - [Hướng dẫn tổng quan và trải nghiệm](doc/17-tong-quan-va-trai-nghiem.md)
 - [Nghiệm thu TC-025 và ảnh minh chứng](doc/verification/2026-11-03-dashboard.md)
+- [Kết quả tối ưu hiệu năng và giao diện](doc/verification/2026-11-04-performance.md)
 - [Hướng dẫn bảng tin và cập nhật](doc/16-thong-bao-va-cap-nhat.md)
 - [Nghiệm thu TC-024 và ảnh minh chứng](doc/verification/2026-11-03-notifications.md)
 - [Hướng dẫn ghi nhận thanh toán](doc/15-thanh-toan.md)
@@ -162,6 +173,6 @@ Dừng các dịch vụ local của project bằng `docker compose --profile tes
 - [Hướng dẫn lịch dạy](doc/10-lich-day.md)
 - [Nghiệm thu TC-017 và ảnh minh chứng](doc/verification/2026-11-02-schedule.md)
 
-Profile production yêu cầu các biến `TINYCLASS_DATABASE_URL`, `TINYCLASS_DATABASE_USERNAME`, `TINYCLASS_DATABASE_PASSWORD`, `TINYCLASS_UPLOAD_ROOT`, bật secure cookie và không nhập `.env` local. Upload root phải là ổ bền vững riêng tư, sao lưu cùng database.
+Profile production yêu cầu các biến `TINYCLASS_DATABASE_URL`, `TINYCLASS_DATABASE_USERNAME`, `TINYCLASS_DATABASE_PASSWORD`, bật secure cookie và không nhập `.env` local. Tệp upload nằm trong database nên sao lưu database là đủ; dung lượng database tăng theo quota tệp.
 
 Email production mặc định chưa bật. Khi dùng dịch vụ SMTP thật, cấu hình `TINYCLASS_MAIL_ENABLED=true`, `TINYCLASS_PUBLIC_URL` là URL HTTPS của ứng dụng, `TINYCLASS_MAIL_HOST`, `TINYCLASS_MAIL_PORT`, `TINYCLASS_MAIL_USERNAME`, `TINYCLASS_MAIL_PASSWORD` và `TINYCLASS_MAIL_FROM`. Production yêu cầu STARTTLS; kết quả Mailpit không thay cho kiểm tra nhà cung cấp thật.

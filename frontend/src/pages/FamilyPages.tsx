@@ -18,6 +18,7 @@ import { useResource } from "../lib/hooks";
 import FamilyOverviewPanel from "./FamilyOverviewPanel";
 import { UpdatesOverviewPanel } from "./DashboardParts";
 import type { FamilyDashboard, FamilyHomeOverview } from "../lib/dashboard";
+import styles from "./FamilyPages.module.css";
 
 interface Child {
   id: string;
@@ -58,6 +59,7 @@ export function FamilyHomePage() {
   return (
     <>
       <PageHeader
+        hero
         eyebrow="CÙNG CON LỚN KHÔN"
         title={`Xin chào, ${account!.displayName}!`}
         description="Chọn hồ sơ của bé để theo dõi lớp học và cùng giáo viên đồng hành."
@@ -199,25 +201,22 @@ export function FamilyChildPage() {
               : ""}
             Giáo viên: {child.teacherName}
           </p>
+          <button
+            className={`text-button ${styles.refresh}`}
+            onClick={resource.reload}
+            disabled={resource.loading}
+          >
+            Cập nhật thông tin
+          </button>
         </div>
-        <button className="button button-ghost" onClick={resource.reload}>
-          Cập nhật thông tin
-        </button>
         <nav
-          className="family-profile-actions"
+          className={`family-profile-actions ${styles.actions}`}
           aria-label="Theo dõi hoạt động của bé"
         >
-          {/* Same names, icons and order as the family menu. */}
           {(
             [
               ["learning", "book", "Bài của con"],
-              ["submissions", "message", "Sản phẩm & phản hồi"],
-              ["progress", "leaf", "Nhận xét & tiến bộ"],
-              ["schedule", "calendar", "Lịch học"],
-              ["attendance", "check", "Điểm danh của bé"],
-              ["invoices", "receipt", "Phiếu học phí"],
-              ["tuition", "wallet", "Điều kiện học phí"],
-              ["announcements", "megaphone", "Thông báo lớp"],
+              ["games", "game", "Góc chơi của bé"],
             ] as const
           ).map(([path, icon, label]) => (
             <Link
@@ -229,6 +228,33 @@ export function FamilyChildPage() {
               {label}
             </Link>
           ))}
+          <details className={styles.more}>
+            <summary>
+              Xem thêm hoạt động
+              <Icon name="chevron" />
+            </summary>
+            <div className={styles.moreLinks}>
+              {(
+                [
+                  ["submissions", "message", "Sản phẩm & phản hồi"],
+                  ["progress", "leaf", "Nhận xét & tiến bộ"],
+                  ["schedule", "calendar", "Lịch học"],
+                  ["invoices", "receipt", "Phiếu học phí"],
+                  ["tuition", "wallet", "Điều kiện học phí"],
+                  ["announcements", "megaphone", "Thông báo lớp"],
+                ] as const
+              ).map(([path, icon, label]) => (
+                <Link
+                  key={path}
+                  className="button button-ghost"
+                  to={`/family/children/${id}/${path}`}
+                >
+                  <Icon name={icon} />
+                  {label}
+                </Link>
+              ))}
+            </div>
+          </details>
         </nav>
       </div>
       <FamilyOverviewPanel

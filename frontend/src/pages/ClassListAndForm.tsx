@@ -27,6 +27,11 @@ export function ClassListPage() {
     status = params.get("status") || "",
     page = Math.max(0, Number(params.get("page")) || 0);
   const [search, setSearch] = useState(q);
+  const [lastQuery, setLastQuery] = useState(q);
+  if (q !== lastQuery) {
+    setLastQuery(q);
+    setSearch(q);
+  }
   const resource = useResource(
     useCallback(
       (signal) =>

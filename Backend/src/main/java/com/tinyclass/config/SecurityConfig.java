@@ -38,6 +38,8 @@ public class SecurityConfig {
                                 "/api/v1/auth/password-reset-requests", "/api/v1/auth/password-resets", "/api/v1/auth/google/start").permitAll()
                         .requestMatchers("/api/v1/auth/me", "/api/v1/auth/logout").authenticated()
                         .requestMatchers("/api/v1/notifications", "/api/v1/notifications/**").hasAnyRole("TEACHER","PARENT")
+                        .requestMatchers("/api/v1/game-attempts/**").hasAnyRole("TEACHER","PARENT")
+                        .requestMatchers("/api/v1/games", "/api/v1/games/**", "/api/v1/game-assignments", "/api/v1/game-assignments/**").hasRole("TEACHER")
                         .requestMatchers("/api/v1/announcements", "/api/v1/announcements/**").hasRole("TEACHER")
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/email-verifications").authenticated()
                         .requestMatchers("/api/v1/auth/methods", "/api/v1/auth/reauthenticate",

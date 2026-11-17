@@ -1,13 +1,15 @@
 # TinyClass — Đặc tả hệ thống quản lý dạy học tại nhà
 
 Tên chính thức: **TinyClass**  
-Phiên bản tài liệu: **0.19 — Tổng quan giáo viên và gia đình**<br>
-Ngày cập nhật: **03/11/2026**, múi giờ nghiệp vụ **Asia/Ho_Chi_Minh**<br>
+Phiên bản tài liệu: **0.20 — Góc chơi của bé**<br>
+Ngày cập nhật: **09/11/2026**, múi giờ nghiệp vụ **Asia/Ho_Chi_Minh**<br>
 Đối tượng sử dụng: **một giáo viên cá nhân dạy trẻ mầm non tại nhà**.
 
 Tài liệu mô tả sản phẩm mục tiêu. Các module đã có gồm tài khoản/lớp/gia đình/email, LOCAL, thư viện/giao bài, sản phẩm/phản hồi, lịch dạy/điểm danh, nhận xét/hành trình V11, điều kiện học phí V12, preview/phiếu/giữ buổi V13–V15 sổ ghi thu V16, bảng tin/cập nhật V17 và tổng quan cô/gia đình TC-025 (không migration mới). Xem [cấu hình](13-cau-hinh-hoc-phi.md), [phiếu](14-phieu-hoc-phi.md), [thanh toán](15-thanh-toan.md), [thông báo](16-thong-bao-va-cap-nhat.md), [tổng quan](17-tong-quan-va-trai-nghiem.md), [spec](spec/README.md) và [backlog](plan/02-backlog.md). Google thật tiếp tục tạm hoãn. **Người dùng xác nhận tạm thời chưa cần học bù ngày 02/11/2026**; mô hình bù từng bé trong các đề xuất cũ chưa chốt. Drive chưa triển khai; thông báo trong ứng dụng đã có, gửi nghiệp vụ qua email/SMS chưa bật.
 
 Điểm vào tài liệu: [README](README.md). Đặc tả theo module nằm trong [spec/](spec/README.md); lộ trình, công việc và kế hoạch nghiệm thu nằm trong [plan/](plan/README.md). Tài liệu hiện tại giữ schema/API/AC tổng quan để các phần cùng đối chiếu.
+
+Bổ sung TC-029 được người dùng duyệt ngày 08/11/2026: ba trò **Chọn hình đúng, Ghép cặp, Lật thẻ ghi nhớ**, kho soạn/chơi thử, giao snapshot theo lớp/bé, kết quả/bộ sưu tập và quyền theo nguồn. V20 thêm sáu bảng riêng, dùng kho tệp V19 hiện có. Chi tiết tại [spec trò chơi](spec/07-games.md), [hướng dẫn](18-goc-choi.md) và tag Games trong [OpenAPI](spec/openapi.yaml). Tiến độ trò chơi độc lập với xác nhận/duyệt sản phẩm của bài học.
 
 ## Mục lục
 
@@ -552,7 +554,7 @@ Thanh điều hướng chính đề xuất: **Tổng quan · Lớp học · Họ
 | API/xác thực | Spring Web, Spring Security, OAuth2 Client/OIDC cho Google, Bean Validation | Google đã xác nhận; cấu hình thư viện là đề xuất |
 | Truy cập dữ liệu | Spring Data JPA/JdbcTemplate; PostgreSQL 17.11 local/test | V1–V11, audit JSONB, schema rỗng, nâng V1, V7, V8, V9 và V10 có dữ liệu đã kiểm tra |
 | Quản lý schema | Flyway; Hibernate kiểm tra schema; theo [hướng dẫn khởi tạo dữ liệu Spring Boot](https://docs.spring.io/spring-boot/how-to/data-initialization.html) | Đề xuất |
-| Lưu tệp | Hai lựa chọn `LOCAL` (máy chủ/ổ bền vững) và `GOOGLE_DRIVE` (Drive cá nhân qua API); adapter tách khỏi nghiệp vụ | Hai lựa chọn đã xác nhận; chi tiết tích hợp là đề xuất |
+| Lưu tệp | Hai lựa chọn `LOCAL` (máy chủ, byte trong PostgreSQL) và `GOOGLE_DRIVE` (Drive cá nhân qua API); adapter tách khỏi nghiệp vụ | Hai lựa chọn đã xác nhận; chi tiết tích hợp là đề xuất |
 | Tài khoản/email | Email/mật khẩu + Google; Spring Security và adapter gửi thư xác minh/khôi phục | Hai cách đăng nhập đã xác nhận; dịch vụ email chưa chốt |
 
 Phiên bản thư viện theo manifest/lockfile và POM hiện có, được ghi tại [spec kỹ thuật](spec/05-data-api-and-quality.md). Dùng bộ khung đang có và kiểm tra tương thích khi thay đổi phụ thuộc. [Tài liệu React có hướng dẫn Vite/TypeScript](https://react.dev/learn/build-a-react-app-from-scratch); yêu cầu Java/build tool cần đối chiếu [tài liệu Spring Boot](https://docs.spring.io/spring-boot/system-requirements.html) khi thay phiên bản.
@@ -625,9 +627,9 @@ Backend chia theo nghiệp vụ; mỗi module có controller/DTO, service, repos
 
 ### 8.5. Kho lưu có thể lựa chọn
 
-Ứng dụng quản lý metadata và quyền trong database; byte của video/tài liệu nằm trong một kho lưu. Một interface lưu tệp phía backend có hai adapter ở phạm vi yêu cầu hiện tại. Giáo viên chọn mặc định trong cài đặt và có thể chọn lại trên màn hình upload; phụ huynh dùng cùng một luồng xem bài ở cả hai trường hợp.
+Ứng dụng quản lý metadata và quyền trong database; byte của video/tài liệu nằm trong kho đã chọn (LOCAL giữ byte ngay trong database, Drive giữ trong Drive của giáo viên). Một interface lưu tệp phía backend có hai adapter ở phạm vi yêu cầu hiện tại. Giáo viên chọn mặc định trong cài đặt và có thể chọn lại trên màn hình upload; phụ huynh dùng cùng một luồng xem bài ở cả hai trường hợp.
 
-**Máy chủ hệ thống (`LOCAL`):** backend ghi tệp vào thư mục riêng được cấu hình bằng `UPLOAD_STORAGE_ROOT`, ngoài thư mục static/public và ngoài gói build. Khi triển khai container hoặc nền tảng có filesystem tạm, thư mục này phải gắn ổ/volume bền vững. Backend sinh đường dẫn tương đối, kiểm tra nó luôn nằm trong root cho phép và stream sau khi kiểm tra quyền. Dữ liệu video không đưa vào cột BLOB của database và không đưa vào Git. Đây là đề xuất cho kho mặc định ban đầu khi hạ tầng có ổ bền vững.
+**Máy chủ hệ thống (`LOCAL`):** từ V19 backend lưu byte trong bảng `file_chunks` của PostgreSQL, chia khối 1 MiB cạnh metadata; không có thư mục upload hay đường dẫn công khai. Byte và trạng thái sẵn sàng commit cùng giao dịch; đọc và Range stream từng khối sau khi kiểm tra quyền. Một bản sao lưu database chứa đủ học liệu và sản phẩm, đổi lại database lớn theo dung lượng tệp. Tệp không đưa vào Git. Ngày 04/11/2026 người dùng chọn phương án này thay cho thư mục riêng trên ổ đĩa.
 
 **Google Drive cá nhân (`GOOGLE_DRIVE`):** giáo viên kết nối bằng [OAuth dành cho ứng dụng server](https://developers.google.com/identity/protocols/oauth2/web-server); backend dùng quyền đã cấp để upload/đọc trong folder do ứng dụng quản lý. Ưu tiên scope [`drive.file`](https://developers.google.com/workspace/drive/api/guides/api-specific-auth) cho tệp tạo qua ứng dụng; việc nhập tệp cũ từ Drive là tính năng bổ sung cần người dùng chọn/cấp quyền cho từng tệp. [Service account không có dung lượng sở hữu tệp riêng](https://developers.google.com/workspace/drive/api/guides/about-shareddrives), nên phương án Drive cá nhân dùng ủy quyền tài khoản giáo viên thay vì mặc định service account.
 
@@ -1048,9 +1050,9 @@ Các giá trị dưới đây đã áp dụng cho LOCAL; cần đối chiếu h�
 - Giáo viên chọn nơi lưu khi upload; phụ huynh không điều khiển kết nối Drive hoặc cờ tải học liệu. Tệp sản phẩm của gia đình được server lưu theo nơi mặc định giáo viên đã cấu hình.
 - Kiểm tra quyền khi tải/phát; tệp giáo viên dùng trong bài không tự trở thành công khai, tệp sản phẩm không tự được dùng như học liệu chia sẻ cả lớp.
 - Phục vụ video theo stream/Range, tránh nạp toàn bộ vào RAM. Bản đầu proxy qua backend ở cả LOCAL và Drive; kiểm tra quyền ở từng yêu cầu mới, không phát URL tải dài hạn cho gia đình. Dữ liệu đã truyền/buffer trước thu hồi không thể thu lại.
-- Preview inline và download attachment là hai hành động của ứng dụng; cờ chỉ xem chặn chức năng tải do hệ thống cung cấp, không bảo đảm ngăn lưu byte đã nhận. Cache của response riêng tư phải cấu hình phù hợp, đề xuất `private, no-store`.
+- Preview inline và download attachment là hai hành động của ứng dụng; cờ chỉ xem chặn chức năng tải do hệ thống cung cấp, không bảo đảm ngăn lưu byte đã nhận. Response tệp dùng `private, no-cache` kèm ETag để trình duyệt kiểm tra lại quyền ở mỗi lần mở; đăng xuất yêu cầu xóa cache (quyết định 04/11/2026).
 - Nếu sau này thêm nhúng liên kết ngoài hoặc URL ký object storage, phải review lại khả năng thu hồi/quyền tải; chúng không thuộc đường phục vụ mặc định của bản đầu.
-- LOCAL cần ổ bền vững, đủ dung lượng và bản sao lưu tách khỏi gói deploy. Drive cần theo dõi kết nối, dung lượng và lỗi API; mất quyền đọc báo “Tài liệu tạm thời không khả dụng”, giữ lịch sử và phần nháp thay vì xóa hồ sơ bài.
+- LOCAL cần database đủ dung lượng cho tệp và bản sao lưu tách khỏi gói deploy. Drive cần theo dõi kết nối, dung lượng và lỗi API; mất quyền đọc báo “Tài liệu tạm thời không khả dụng”, giữ lịch sử và phần nháp thay vì xóa hồ sơ bài.
 - Dọn tệp rời chưa gắn tài nguyên sau khoảng thời gian đề xuất 24 giờ, có kiểm tra tham chiếu lại trước xóa. Tệp đã gắn lịch sử không bị dọn như tệp rời.
 - Giới hạn upload ở reverse proxy, backend và kho tệp phải nhất quán; thông báo lỗi cần hiển thị cho người dùng mà không mất bản nháp.
 
@@ -1104,7 +1106,7 @@ Các môi trường dự kiến: `local`, `test`, `production`. Dữ liệu demo
 ### 11.6. Sao lưu và giám sát
 
 - Mục tiêu đề xuất ban đầu: sao lưu database mỗi ngày và bảo vệ kho tệp tương ứng; thời gian mất dữ liệu tối đa mục tiêu 24 giờ. Thời gian khôi phục mục tiêu một ngày làm việc, cần xác nhận theo nhu cầu thực tế.
-- Sao lưu phải có cả dữ liệu và tệp tham chiếu hoặc cách phục hồi tệp; kiểm tra khôi phục thử trước khi đưa dữ liệu thật vào sử dụng. Với LOCAL, backup database không thay backup folder media; với Drive, folder đang hoạt động cũng không tự được xem là bản sao lưu độc lập. Cần lưu phương án phục hồi tệp bị xóa và token/khóa mã hóa theo đúng nơi lưu đã chọn.
+- Sao lưu phải có cả dữ liệu và tệp tham chiếu hoặc cách phục hồi tệp; kiểm tra khôi phục thử trước khi đưa dữ liệu thật vào sử dụng. Với LOCAL, backup database đã gồm byte tệp nên cần đủ chỗ và thời gian cho bản sao lớn; với Drive, folder đang hoạt động cũng không tự được xem là bản sao lưu độc lập. Cần lưu phương án phục hồi tệp bị xóa và token/khóa mã hóa theo đúng nơi lưu đã chọn.
 - Có kiểm tra tình trạng backend/database, log lỗi có request ID, cảnh báo khi kho tệp gần đầy hoặc upload lỗi nhiều.
 - Chỉ công bố endpoint sức khỏe tối thiểu cho bên ngoài; thông tin chẩn đoán và cấu hình thuộc quyền vận hành.
 - Chốt thời hạn lưu bản sao lưu, hồ sơ đã nghỉ học, sản phẩm và nhật ký cùng chủ hệ thống. Các mốc lưu trữ chưa được xem là đã xác nhận ở phiên bản 0.8.
@@ -1239,7 +1241,7 @@ Các mục này giữ bản thiết kế trung thực với thông tin hiện c�
 | Q-01 | Database và cách quản lý schema | PostgreSQL/Flyway/JPA local/test, V1–V17 schema rỗng và nâng V1/V7/V8/V9/V10/V11/V12/V15/V16 có dữ liệu đạt. V17 giữ khoản thu/version/note, không gửi bù cập nhật cũ | Trước migration nghiệp vụ mới |
 | Q-02 | Cơ chế phiên và liên kết tài khoản | Setup/session/CSRF/PBKDF2, gia đình/email, OIDC issuer-subject, link/unlink, reauth 5 phút/một lần và credential version đã áp dụng; chưa nghiệm thu Google thật | Review cấu hình Google thật; OAuth login riêng Drive |
 | Q-03 | Công cụ frontend và phiên bản runtime | Đã chuẩn hóa TinyClass, wrapper verify và frontend build/lint đạt; giữ manifest/lockfile hiện có | Kiểm tra lại khi đổi runtime/phụ thuộc |
-| Q-04 | Cấu hình hai kho lưu và quyền tải | LOCAL đã có root riêng, quota kỹ thuật 5 GiB tính cả sản phẩm gia đình/giới hạn theo loại, cờ tải học liệu theo quyền hiện tại. Drive theo TC-011; ổ bền vững và sao lưu cần kiểm tra production | Chốt dung lượng/hạ tầng và tích hợp Drive |
+| Q-04 | Cấu hình hai kho lưu và quyền tải | LOCAL đã có, byte trong PostgreSQL (V19), quota kỹ thuật 5 GiB tính cả sản phẩm gia đình/giới hạn theo loại, cờ tải học liệu theo quyền hiện tại. Drive theo TC-011; dung lượng database và sao lưu cần kiểm tra production | Chốt dung lượng/hạ tầng và tích hợp Drive |
 | Q-05 | Quy mô và ngân sách | Dùng mốc tham chiếu mục 11 để thiết kế; cần số lớp/bé, video/tháng và ngân sách thực tế | Trước cấu hình tải và chọn nơi triển khai |
 | Q-06 | Chính sách học phí/nghỉ | TC-020–023 có ba cách tính/nghỉ chọn rõ, snapshot/ngày/phiếu; thu từng phần/đủ, idempotency/khóa chống thu vượt, void có audit và chặn hủy phiếu còn khoản thu. Phiếu 0 NO_PAYMENT_DUE, nháp/hủy không có số còn phải thu. Học bù tạm hoãn | Cô đối chiếu khoản thực nhận/quyết toán; hoàn tiền, ví/số buổi trả trước và cổng ngân hàng ngoài phạm vi hiện tại |
 | Q-07 | Kênh lời mời/xác minh/khôi phục và thông báo | SMTP/Mailpit local/test; xác minh 24 giờ, reset/SET_PASSWORD 30 phút, lời mời 48 giờ. Google-only thêm mật khẩu qua email; Google bật cần Web OAuth client. TC-024 có thông báo trong ứng dụng; chưa gửi email/SMS nghiệp vụ | Trước nghiệm thu SMTP/Google thật và phát hành |
