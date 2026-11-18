@@ -8,18 +8,18 @@
   .stat {
     border: 1px solid var(--tc-border);
     background: var(--tc-surface);
-    border-radius: 20px;
+    border-radius: var(--tc-radius-lg);
     padding: 20px;
     box-shadow: var(--tc-shadow-card);
   }
   .stat p {
-    font-size: 14px;
+    font-size: var(--tc-font-size-sm);
     color: var(--tc-text-muted);
     margin: 0 0 8px;
   }
   .stat strong {
     display: block;
-    font-size: 32px;
+    font-size: var(--tc-font-size-4xl);
     color: var(--tc-primary);
     line-height: 1.2;
     margin-bottom: 8px;
@@ -55,7 +55,7 @@
     padding: 24px;
     background: var(--tc-surface);
     border: 1px solid var(--tc-border);
-    border-radius: 20px;
+    border-radius: var(--tc-radius-lg);
     box-shadow: var(--tc-shadow-card);
     min-width: 0;
   }
@@ -70,12 +70,12 @@
     flex: 1;
   }
   .rowHeader h2 {
-    font-size: 18px;
+    font-size: var(--tc-font-size-lg);
     margin: 0 0 6px;
     overflow-wrap: anywhere;
   }
   .rowHeader p {
-    font-size: 14px;
+    font-size: var(--tc-font-size-sm);
     margin: 4px 0;
   }
   .rowMeta {
@@ -87,7 +87,7 @@
   }
   .draft {
     color: var(--tc-warning);
-    font-size: 12px;
+    font-size: var(--tc-font-size-xs);
     font-weight: 700;
   }
   .row :global(.field) {
@@ -119,12 +119,12 @@
   .save {
     background: var(--tc-surface);
     border: 1px solid var(--tc-border);
-    border-radius: 20px;
+    border-radius: var(--tc-radius-lg);
     padding: 24px;
     margin: 24px 0;
   }
   .save h2 {
-    font-size: 20px;
+    font-size: var(--tc-font-size-xl);
     margin: 0 0 8px;
   }
   .save p {
@@ -140,7 +140,7 @@
   }
   .notice {
     padding: 16px 20px;
-    border-radius: 12px;
+    border-radius: var(--tc-radius-md);
     margin: 16px 0;
     background: var(--tc-success-soft);
     color: var(--tc-success);
@@ -148,7 +148,7 @@
   }
   .information {
     padding: 16px 20px;
-    border-radius: 12px;
+    border-radius: var(--tc-radius-md);
     margin: 16px 0;
     background: var(--tc-info-soft);
     color: var(--tc-info);
@@ -156,7 +156,7 @@
   }
   .warning {
     padding: 16px 20px;
-    border-radius: 12px;
+    border-radius: var(--tc-radius-md);
     margin: 16px 0;
     background: var(--tc-warning-soft);
     color: var(--tc-warning);
@@ -182,7 +182,7 @@
     display: none;
   }
   .filterContent > p {
-    font-size: 14px;
+    font-size: var(--tc-font-size-sm);
     margin: 16px 0 0;
   }
   .filters {
@@ -226,12 +226,12 @@
     padding: 24px;
     background: var(--tc-surface);
     border: 1px solid var(--tc-border);
-    border-radius: 20px;
+    border-radius: var(--tc-radius-lg);
     box-shadow: var(--tc-shadow-card);
     min-width: 0;
   }
   .familyRow h2 {
-    font-size: 18px;
+    font-size: var(--tc-font-size-lg);
     margin: 12px 0 8px;
     overflow-wrap: anywhere;
   }
@@ -259,7 +259,7 @@
     }
     .filterHeading p {
       margin: 0;
-      font-size: 14px;
+      font-size: var(--tc-font-size-sm);
     }
     .filterContent {
       display: none;
@@ -275,10 +275,10 @@
       padding: 12px;
     }
     .stat strong {
-      font-size: 26px;
+      font-size: var(--tc-font-size-2xl);
     }
     .stat small {
-      font-size: 12px;
+      font-size: var(--tc-font-size-xs);
     }
     .row,
     .save,

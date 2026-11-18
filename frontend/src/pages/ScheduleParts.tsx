@@ -5,7 +5,7 @@ import { Badge, ErrorNotice, Field, Icon } from "../components/ui";
 import { api, ApiError } from "../lib/api";
 import type { AttendanceRow } from "../lib/attendance";
 import { businessToday, dateLabel, dateTimeLabel } from "../lib/format";
-import { useUnsavedChanges } from "../lib/hooks";
+import { useBeforeUnload } from "../lib/hooks";
 import {
   addDays,
   businessLocal,
@@ -223,7 +223,7 @@ export function SessionForm({
     [busy, setBusy] = useState(false),
     [error, setError] = useState<unknown>(null),
     [dirty, setDirty] = useState(false);
-  const canLeave = useUnsavedChanges(dirty);
+  useBeforeUnload(dirty);
   const tomorrow = addDays(businessToday(), 1),
     day = initialDate && initialDate > businessToday() ? initialDate : tomorrow;
   const selected =
@@ -382,9 +382,7 @@ export function SessionForm({
           type="button"
           className="button button-ghost"
           disabled={busy}
-          onClick={() => {
-            if (canLeave()) onClose();
-          }}
+          onClick={onClose}
         >
           Quay lại
         </button>

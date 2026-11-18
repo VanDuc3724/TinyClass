@@ -6,6 +6,8 @@ import {
   useParams,
   useSearchParams,
 } from "react-router-dom";
+import { ActionModal } from "../components/ActionModal";
+import type { ActionRequest } from "../components/ActionModal";
 import {
   Badge,
   EmptyState,
@@ -16,7 +18,7 @@ import {
 } from "../components/ui";
 import { api } from "../lib/api";
 import { businessToday, dateTimeLabel } from "../lib/format";
-import { useResource, useUnsavedChanges } from "../lib/hooks";
+import { useBeforeUnload, useResource } from "../lib/hooks";
 import type {
   BillingPreview,
   InvoiceLine,
@@ -186,7 +188,9 @@ function InvoiceForm({
     [error, setError] = useState<unknown>(null),
     [busy, setBusy] = useState(false);
   const [linesTouched, setLinesTouched] = useState(false);
+  const [action, setAction] = useState<ActionRequest | null>(null);
   const anchor = useRef<HTMLDivElement>(null);
+  const confirmedLink = useRef<HTMLAnchorElement | null>(null);
   const dirty =
     linesTouched ||
     from !== initialFrom ||
@@ -196,22 +200,46 @@ function InvoiceForm({
     internalNote !== (invoice?.internalNote || "") ||
     adjustment !== (invoice?.adjustmentReason || "") ||
     !!reason;
-  const discard = useUnsavedChanges(dirty);
+  useBeforeUnload(dirty);
   useEffect(() => {
+    if (!dirty) return;
     const guard = (event: MouseEvent) => {
+      if (
+        event.button !== 0 ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey
+      )
+        return;
       const link =
         event.target instanceof Element
           ? (event.target.closest("a[href]") as HTMLAnchorElement | null)
           : null;
       if (
         link &&
-        dirty &&
+        link !== confirmedLink.current &&
         link.origin === location.origin &&
         link.pathname !== location.pathname &&
-        !window.confirm("Bạn có thay đổi chưa lưu. Rời biểu mẫu này?")
+        (!link.target || link.target === "_self") &&
+        !link.hasAttribute("download")
       ) {
         event.preventDefault();
         event.stopPropagation();
+        setAction({
+          title: "Rời biểu mẫu?",
+          description: "Các thay đổi chưa lưu trên phiếu sẽ bị mất.",
+          label: "Rời biểu mẫu",
+          showReason: false,
+          run: async () => {
+            confirmedLink.current = link;
+            try {
+              link.click();
+            } finally {
+              confirmedLink.current = null;
+            }
+          },
+        });
       }
     };
     document.addEventListener("click", guard, true);
@@ -249,15 +277,35 @@ function InvoiceForm({
   }
   function useSuggestions() {
     if (!preview || busy) return;
-    if (
-      linesTouched &&
-      !window.confirm(
-        "Thay các dòng đang nhập bằng gợi ý mới? Ghi chú của cô được giữ lại.",
-      )
-    )
+    const replaceLines = () => {
+      setLines(preview.suggestedLines.map(draftLine));
+      setLinesTouched(true);
+    };
+    if (!linesTouched) {
+      replaceLines();
       return;
-    setLines(preview.suggestedLines.map(draftLine));
-    setLinesTouched(true);
+    }
+    setAction({
+      title: "Thay các khoản đang nhập?",
+      description:
+        "Các dòng gợi ý mới sẽ thay thế những dòng hiện tại. Ghi chú của cô được giữ lại.",
+      label: "Dùng các dòng gợi ý",
+      showReason: false,
+      run: async () => replaceLines(),
+    });
+  }
+  function reloadSaved() {
+    if (!dirty) {
+      onReload();
+      return;
+    }
+    setAction({
+      title: "Tải lại dữ liệu đã lưu?",
+      description: "Các thay đổi chưa lưu trên phiếu sẽ bị mất.",
+      label: "Tải lại dữ liệu đã lưu",
+      showReason: false,
+      run: async () => onReload(),
+    });
   }
   function updateLine(index: number, key: keyof DraftLine, value: string) {
     setLinesTouched(true);
@@ -335,9 +383,7 @@ function InvoiceForm({
           <button
             className="button button-ghost"
             disabled={busy}
-            onClick={() => {
-              if (discard()) onReload();
-            }}
+            onClick={reloadSaved}
           >
             Tải lại dữ liệu đã lưu
           </button>
@@ -625,6 +671,13 @@ function InvoiceForm({
           </div>
         </fieldset>
       </form>
+      {action && (
+        <ActionModal
+          action={action}
+          onClose={() => setAction(null)}
+          onSuccess={() => setAction(null)}
+        />
+      )}
     </>
   );
 }

@@ -38,6 +38,41 @@ export function registerUiStateFlows(email: string, password: string) {
     }
   });
 
+  test("xác nhận bỏ bản nháp giữ focus trên trang và trong hộp thoại", async ({ page }) => {
+    await login(page);
+    await page.goto("/teacher/classes/new");
+    const name = page.getByLabel("Tên lớp", { exact: true });
+    const back = page.getByRole("link", { name: /Trở về lớp học/ });
+    const confirm = page.getByRole("dialog", { name: "Bỏ thay đổi chưa lưu?" });
+    await name.fill("Bản nháp chưa lưu");
+    await back.press("Enter");
+    await expect(confirm.getByRole("button", { name: "Tiếp tục chỉnh sửa" })).toBeFocused();
+    await page.keyboard.press("Escape");
+    await expect(confirm).toHaveCount(0);
+    await expect(back).toBeFocused();
+    await expect(name).toHaveValue("Bản nháp chưa lưu");
+    await back.click();
+    await confirm.getByRole("button", { name: "Bỏ thay đổi", exact: true }).click();
+    await expect(page).toHaveURL(/\/teacher\/classes$/);
+    await expect(page.getByRole("heading", { name: "Lớp học", exact: true })).toBeVisible();
+    await expect(confirm).toHaveCount(0);
+
+    await page.goto("/teacher/announcements");
+    await page.getByRole("button", { name: "Soạn thông báo", exact: true }).click();
+    const editor = page.getByRole("dialog", { name: "Soạn thông báo" });
+    const title = editor.getByRole("textbox", { name: "Tiêu đề" });
+    await title.fill("Thông báo chưa lưu");
+    await page.keyboard.press("Escape");
+    await expect(confirm).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(title).toHaveValue("Thông báo chưa lưu");
+    await expect(title).toBeFocused();
+    await page.keyboard.press("Escape");
+    await confirm.getByRole("button", { name: "Bỏ thay đổi", exact: true }).click();
+    await expect(editor).toHaveCount(0);
+    await expect(confirm).toHaveCount(0);
+  });
+
   test("lỗi tải thư viện và bộ chọn tệp không bị hiển thị như kho rỗng", async ({ page }) => {
     await login(page);
     const fail = (route: Route) => route.fulfill({

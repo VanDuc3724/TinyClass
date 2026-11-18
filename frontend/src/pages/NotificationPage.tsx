@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/useAuth";
 import VerificationPrompt from "../auth/VerificationPrompt";
+import { RefreshButton } from "../components/RefreshButton";
 import {
   EmptyState,
   ErrorNotice,
@@ -11,7 +12,7 @@ import {
   Pagination,
 } from "../components/ui";
 import { api } from "../lib/api";
-import { useResource } from "../lib/hooks";
+import { useRefreshOnVisible, useResource } from "../lib/hooks";
 import { dateTimeLabel } from "../lib/format";
 import { refreshNotificationBadge } from "../lib/communications";
 import type { PersonalNotification } from "../lib/communications";
@@ -37,6 +38,11 @@ export default function NotificationPage() {
       [enabled, page, status],
     ),
   );
+  function refresh() {
+    resource.reload();
+    refreshNotificationBadge();
+  }
+  useRefreshOnVisible(refresh, enabled && !resource.loading && !busy);
   async function read(row: PersonalNotification, open: boolean) {
     if (busy) return;
     setBusy(true);
@@ -64,16 +70,14 @@ export default function NotificationPage() {
         title="Cập nhật của bạn"
         description="Bài học, phản hồi, lịch học và học phí trong phạm vi bạn được xem."
         action={
-          <button
-            className="button button-ghost"
-            disabled={resource.loading || busy}
-            onClick={() => {
-              resource.reload();
-              refreshNotificationBadge();
-            }}
-          >
-            Cập nhật danh sách
-          </button>
+          enabled && (
+            <RefreshButton
+              label="Cập nhật danh sách"
+              loading={resource.loading || busy}
+              onClick={refresh}
+              updatedAt={resource.updatedAt}
+            />
+          )
         }
       />
       {!enabled ? (

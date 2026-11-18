@@ -1,0 +1,49 @@
+@layer components {
+  .welcome {
+    display: grid;
+    justify-items: center;
+    gap: 12px;
+    margin: 8px auto 24px;
+    text-align: center;
+  }
+  .welcome h1 {
+    font-size: clamp(var(--tc-font-size-2xl), 5vw, var(--tc-font-size-5xl));
+    line-height: 1.25;
+  }
+  .choices {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(12px, 3vw, 24px);
+    max-width: 600px;
+    margin-inline: auto;
+  }
+  .choices a {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    min-height: clamp(128px, 25vw, 172px);
+    padding: 16px 8px;
+    border: 1px solid currentColor;
+    border-radius: var(--tc-radius-xl);
+    box-shadow: var(--tc-shadow-card);
+    font-size: clamp(var(--tc-font-size-xl), 4vw, var(--tc-font-size-2xl));
+    font-weight: 800;
+    text-align: center;
+  }
+  .learn {
+    color: var(--tc-on-primary);
+    background: var(--tc-primary);
+  }
+  .learn:hover {
+    background: var(--tc-primary-hover);
+  }
+  .play {
+    color: var(--tc-success);
+    background: var(--tc-success-soft);
+  }
+  .play:hover {
+    background: var(--tc-surface);
+  }
+}

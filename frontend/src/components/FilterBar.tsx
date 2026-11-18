@@ -17,22 +17,27 @@ export default function FilterBar({
   const [open, setOpen] = useState(false),
     id = useId();
   const elements = Children.toArray(children);
+  const hasOptions = elements.length > 1;
   return (
     <div className={`${styles.bar} ${className}`}>
       <div className={styles.search}>{elements[0]}</div>
-      <button
-        type="button"
-        className={`button button-ghost ${styles.toggle}`}
-        aria-expanded={open}
-        aria-controls={id}
-        onClick={() => setOpen(!open)}
-      >
-        <Icon name="filter" />
-        Bộ lọc{active ? " · Đang lọc" : ""}
-      </button>
-      <div id={id} className={`${styles.options} ${open ? styles.open : ""}`}>
-        {elements.slice(1)}
-      </div>
+      {hasOptions && (
+        <>
+          <button
+            type="button"
+            className={`button button-ghost ${styles.toggle}`}
+            aria-expanded={open}
+            aria-controls={id}
+            onClick={() => setOpen(!open)}
+          >
+            <Icon name="filter" />
+            Bộ lọc{active ? " · Đang lọc" : ""}
+          </button>
+          <div id={id} className={`${styles.options} ${open ? styles.open : ""}`}>
+            {elements.slice(1)}
+          </div>
+        </>
+      )}
       {active && (
         <button type="button" className="text-button" onClick={onReset}>
           Xóa bộ lọc

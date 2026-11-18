@@ -322,7 +322,7 @@ export function ClassDetailPage() {
                             </td>
                             <td>{instantDateLabel(member.joinedAt)}</td>
                             <td>
-                              <div className="row-actions">
+                              <div className="row-actions class-member-actions">
                                 <Link
                                   className="text-button"
                                   to={`/teacher/enrollments/${member.id}/tuition`}
@@ -332,16 +332,16 @@ export function ClassDetailPage() {
                                 </Link>
                                 <button
                                   type="button"
-                                  className="icon-button"
+                                  className="text-button"
                                   aria-label={`Lịch sử của ${member.studentName}`}
                                   onClick={() => setHistory(member)}
                                 >
-                                  <Icon name="clock" />
+                                  Lịch sử
                                 </button>
                                 {editable && (
                                   <button
                                     type="button"
-                                    className="text-button"
+                                    className={`text-button ${member.status === "ACTIVE" ? "text-button-danger" : ""}`}
                                     onClick={() =>
                                       changeMember(
                                         member,

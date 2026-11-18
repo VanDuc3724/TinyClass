@@ -1,8 +1,9 @@
 import { useCallback, useRef, useState } from "react";
-import type { FormEvent, MouseEvent } from "react";
+import type { FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ActionModal } from "../components/ActionModal";
 import type { ActionRequest } from "../components/ActionModal";
+import { RefreshButton } from "../components/RefreshButton";
 import {
   Avatar,
   Badge,
@@ -23,7 +24,8 @@ import type {
 } from "../lib/attendance";
 import { dateTimeLabel } from "../lib/format";
 import { businessLocal } from "../lib/schedule";
-import { useResource, useUnsavedChanges } from "../lib/hooks";
+import { useResource } from "../lib/hooks";
+import { useUnsavedChanges, useUnsavedLink } from "../lib/unsavedChanges";
 import { AttendanceHistory } from "./AttendanceParts";
 import styles from "./Attendance.module.css";
 
@@ -73,6 +75,8 @@ export default function AttendanceWorkspacePage() {
           key={`${session}:${data.session.version}:${revision}`}
           data={data}
           notice={notice}
+          loading={resource.loading}
+          updatedAt={resource.updatedAt}
           onSaved={(value, message) => {
             setSaved(value);
             setNotice(message);
@@ -93,11 +97,15 @@ export default function AttendanceWorkspacePage() {
 function AttendanceEditor({
   data,
   notice,
+  loading,
+  updatedAt,
   onSaved,
   onReload,
 }: {
   data: AttendanceWorkspace;
   notice: string;
+  loading: boolean;
+  updatedAt: string | null;
   onSaved: (value: AttendanceWorkspace, message: string) => void;
   onReload: () => void;
 }) {
@@ -118,6 +126,7 @@ function AttendanceEditor({
   const changed = active.filter((row) => differs(drafts[row.id], row)),
     dirty = changed.length > 0;
   const confirmDiscard = useUnsavedChanges(dirty);
+  const followLink = useUnsavedLink(dirty, confirmDiscard);
   const needsReason = changed.some((row) => row.status !== "UNMARKED");
   const visible = active.filter((row) =>
     row.studentName
@@ -162,15 +171,27 @@ function AttendanceEditor({
     actionResult.current = null;
     setAction(request);
   }
-  function leave(event: MouseEvent) {
-    if (!confirmDiscard()) event.preventDefault();
+  const schedulePath = `/teacher/schedule?week=${businessLocal(session.startsAt).slice(0, 10)}`;
+  const sessionPath = `/teacher/schedule/sessions/${session.id}`;
+  function refresh() {
+    if (!dirty) {
+      onReload();
+      return;
+    }
+    openAction({
+      title: "Cập nhật kết quả điểm danh?",
+      description: "Các thay đổi chưa lưu sẽ bị thay bằng kết quả đã lưu.",
+      label: "Cập nhật kết quả",
+      showReason: false,
+      run: async () => onReload(),
+    });
   }
   return (
     <>
       <Link
         className="back-link"
-        to={`/teacher/schedule?week=${businessLocal(session.startsAt).slice(0, 10)}`}
-        onClick={leave}
+        to={schedulePath}
+        onClick={(event) => followLink(event, schedulePath)}
       >
         ← Về lịch dạy
       </Link>
@@ -184,8 +205,8 @@ function AttendanceEditor({
             {/* The week opens this page directly, so changing or cancelling the session goes through here. */}
             <Link
               className="button button-ghost"
-              to={`/teacher/schedule/sessions/${session.id}`}
-              onClick={leave}
+              to={sessionPath}
+              onClick={(event) => followLink(event, sessionPath)}
             >
               Chi tiết buổi học
             </Link>
@@ -261,16 +282,12 @@ function AttendanceEditor({
           />
         )}
         <div>
-          <button
-            type="button"
-            className="button button-ghost"
-            disabled={busy}
-            onClick={() => {
-              if (confirmDiscard()) onReload();
-            }}
-          >
-            Cập nhật kết quả
-          </button>
+          <RefreshButton
+            label="Cập nhật kết quả"
+            loading={busy || loading}
+            onClick={refresh}
+            updatedAt={updatedAt}
+          />
           {data.hasRoster && data.canEdit && (
             <>
               <button
@@ -369,7 +386,7 @@ function AttendanceEditor({
                           <Link
                             className="text-link"
                             to={`/teacher/students/${row.studentId}`}
-                            onClick={leave}
+                            onClick={(event) => followLink(event, `/teacher/students/${row.studentId}`)}
                           >
                             {row.studentName}
                           </Link>
@@ -527,8 +544,8 @@ function AttendanceEditor({
                     type="button"
                     className="button button-ghost"
                     disabled={busy || !dirty}
-                    onClick={() => {
-                      if (confirmDiscard()) {
+                    onClick={() =>
+                      confirmDiscard(() => {
                         setDrafts(
                           Object.fromEntries(
                             rows.map((row) => [row.id, draftOf(row)]),
@@ -536,8 +553,8 @@ function AttendanceEditor({
                         );
                         setReason("");
                         setError(null);
-                      }
-                    }}
+                      })
+                    }
                   >
                     Bỏ thay đổi
                   </button>
@@ -683,9 +700,7 @@ function AddAttendanceMember({
   return (
     <Modal
       title="Bổ sung bé vào buổi học"
-      onClose={() => {
-        if (confirmDiscard()) onClose();
-      }}
+      onClose={() => confirmDiscard(onClose)}
       busy={busy}
     >
       <p className="muted">
@@ -728,9 +743,7 @@ function AddAttendanceMember({
             type="button"
             className="button button-ghost"
             disabled={busy}
-            onClick={() => {
-              if (confirmDiscard()) onClose();
-            }}
+            onClick={() => confirmDiscard(onClose)}
           >
             Hủy
           </button>

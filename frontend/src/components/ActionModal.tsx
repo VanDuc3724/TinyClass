@@ -1,11 +1,17 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { FormEvent } from "react";
-import { ErrorNotice, Field, Modal } from "./ui";
+import { ErrorNotice, Field, Icon, Modal } from "./ui";
+import type { IconName } from "./ui";
 export interface ActionRequest {
   title: string;
   description: string;
   label: string;
   reasonRequired?: boolean;
+  showReason?: boolean;
+  confirmIcon?: IconName;
+  cancelIcon?: IconName;
+  cancelLabel?: string;
+  cancelPrimary?: boolean;
   run: (reason: string) => Promise<unknown>;
 }
 export function ActionModal({
@@ -19,8 +25,11 @@ export function ActionModal({
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>(null);
+  const cancel = useRef<HTMLButtonElement>(null);
+  const showReason = action.showReason !== false || action.reasonRequired;
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (busy) return;
     const reason = String(
       new FormData(event.currentTarget).get("reason") || "",
     ).trim();
@@ -36,30 +45,44 @@ export function ActionModal({
     }
   }
   return (
-    <Modal title={action.title} onClose={onClose} busy={busy}>
+    <Modal
+      title={action.title}
+      onClose={onClose}
+      busy={busy}
+      initialFocus={showReason ? undefined : cancel}
+    >
       <p className="muted">{action.description}</p>
       <form onSubmit={submit}>
         <ErrorNotice error={error} />
-        <Field label="Lý do" optional={!action.reasonRequired}>
-          <textarea
-            name="reason"
-            rows={3}
-            required={action.reasonRequired}
-            maxLength={1000}
-            disabled={busy}
-            placeholder="Ghi lại để dễ đối chiếu về sau…"
-          />
-        </Field>
+        {showReason && (
+          <Field label="Lý do" optional={!action.reasonRequired}>
+            <textarea
+              name="reason"
+              rows={3}
+              required={action.reasonRequired}
+              maxLength={1000}
+              disabled={busy}
+              placeholder="Ghi lại để dễ đối chiếu về sau…"
+            />
+          </Field>
+        )}
         <div className="form-actions">
           <button
+            ref={cancel}
             type="button"
-            className="button button-ghost"
+            className={`button ${action.cancelPrimary ? "button-primary" : "button-ghost"}`}
             disabled={busy}
             onClick={onClose}
           >
-            Hủy
+            {action.cancelIcon && <Icon name={action.cancelIcon} />}
+            {action.cancelLabel || "Hủy"}
           </button>
-          <button className="button button-primary" disabled={busy}>
+          <button
+            type="submit"
+            className={`button ${action.cancelPrimary ? "button-ghost" : "button-primary"}`}
+            disabled={busy}
+          >
+            {action.confirmIcon && <Icon name={action.confirmIcon} />}
             {busy ? "Đang lưu…" : action.label}
           </button>
         </div>

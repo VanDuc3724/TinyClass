@@ -81,7 +81,7 @@ export function registerGoogleFlows(
       fullPage: true,
     });
     await page.setViewportSize({ width: 1440, height: 1000 });
-    await page.getByLabel("Menu tài khoản", { exact: true }).click();
+    await page.getByLabel(/menu tài khoản$/i).click();
     await page.getByRole("button", { name: "Đăng xuất", exact: true }).click();
     await page.getByRole("button", { name: "Tiếp tục với Google" }).click();
     await selectIdentity(page, "teacher");
@@ -217,7 +217,7 @@ export function registerGoogleFlows(
       ).data;
       expect(finalMethods.hasPassword).toBe(true);
       expect(finalMethods.google).toBeNull();
-      await parent.getByLabel("Menu tài khoản", { exact: true }).click();
+      await parent.getByLabel(/menu tài khoản$/i).click();
       await parent
         .getByRole("button", { name: "Đăng xuất", exact: true })
         .click();

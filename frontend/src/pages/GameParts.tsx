@@ -1,44 +1,37 @@
 import { useRef, useState } from "react";
-import { Icon } from "../components/ui";
+import { Badge, Icon } from "../components/ui";
 import type { GameFace, GameType } from "../lib/games";
 import { gameTypeLabels } from "../lib/games";
 import styles from "./Games.module.css";
 
 export function Stars({ value }: { value: number }) {
   return (
-    <span className={styles.stars} aria-label={`${value} sao`}>
+    <span className={styles.stars} role="img" aria-label={`${value} sao`}>
       {[1, 2, 3].map((n) => (
-        <span
+        <Icon
           key={n}
-          aria-hidden="true"
-          className={n > value ? styles.starEmpty : undefined}
-        >
-          ★
-        </span>
+          name="star"
+          className={n > value ? styles.starEmpty : styles.starFilled}
+        />
       ))}
     </span>
   );
 }
 export function GameTypeBadge({ type }: { type: GameType }) {
-  return <span className={styles.tag}>{gameTypeLabels[type]}</span>;
+  return <Badge label={gameTypeLabels[type]} />;
 }
 export function GameStateBadge({ status }: { status: string }) {
-  const labels: Record<string, string> = {
-    DRAFT: "Đang soạn",
-    PUBLISHED: "Đã xuất bản",
-    ARCHIVED: "Đã lưu trữ",
-    ACTIVE: "Đang giao",
-    REVOKED: "Đã thu hồi",
-    IN_PROGRESS: "Đang chơi",
-    COMPLETED: "Đã hoàn thành",
-    ABANDONED: "Đã dừng",
-  };
   return (
-    <span
-      className={`${styles.tag} ${["ARCHIVED", "REVOKED", "ABANDONED"].includes(status) ? styles.mutedTag : ""}`}
-    >
-      {labels[status] || status}
-    </span>
+    <Badge
+      status={status}
+      label={
+        status === "DRAFT"
+          ? "Đang soạn"
+          : status === "ACTIVE"
+            ? "Đang giao"
+            : undefined
+      }
+    />
   );
 }
 export function FaceContent({
@@ -51,10 +44,7 @@ export function FaceContent({
   return (
     <>
       {face.imageFileId && (
-        <img
-          src={media(face.imageFileId)}
-          alt={face.label || "Hình minh họa"}
-        />
+        <img src={media(face.imageFileId)} alt={face.label ? "" : "Hình minh họa"} />
       )}
       <span>{face.label}</span>
     </>
@@ -92,7 +82,7 @@ export function GameAudio({
           }
         }}
       >
-        <Icon name="message" />
+        <Icon name="volume" />
         {label}
       </button>
       {error && <small role="status">Chưa nghe được. Thử lại nhé.</small>}

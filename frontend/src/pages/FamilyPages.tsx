@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useAuth } from "../auth/useAuth";
 import VerificationPrompt from "../auth/VerificationPrompt";
+import { RefreshButton } from "../components/RefreshButton";
 import {
   Avatar,
   Badge,
@@ -55,7 +56,12 @@ export function FamilyHomePage() {
       },
       [page, verified],
     ),
+    { refreshOnVisible: verified },
   );
+  const onlyChild =
+    resource.data?.children.meta.totalElements === 1
+      ? resource.data.children.data[0]
+      : undefined;
   return (
     <>
       <PageHeader
@@ -64,14 +70,14 @@ export function FamilyHomePage() {
         title={`Xin chào, ${account!.displayName}!`}
         description="Chọn hồ sơ của bé để theo dõi lớp học và cùng giáo viên đồng hành."
         action={
-          verified && (
-            <button
-              className="button button-ghost"
-              disabled={resource.loading}
-              onClick={resource.reload}
+          verified && onlyChild && !resource.error && (
+            <Link
+              className="button button-primary"
+              to={`/family/children/${onlyChild.id}/kids`}
             >
-              Cập nhật trang chủ
-            </button>
+              <Icon name="book" />
+              Mở góc của bé
+            </Link>
           )
         }
       />
@@ -167,6 +173,7 @@ export function FamilyChildPage() {
       },
       [id, page, verified],
     ),
+    { refreshOnVisible: verified },
   );
   if (!verified)
     return (
@@ -201,18 +208,24 @@ export function FamilyChildPage() {
               : ""}
             Giáo viên: {child.teacherName}
           </p>
-          <button
-            className={`text-button ${styles.refresh}`}
+          <RefreshButton
+            label="Cập nhật thông tin"
+            loading={resource.loading}
             onClick={resource.reload}
-            disabled={resource.loading}
-          >
-            Cập nhật thông tin
-          </button>
+            updatedAt={resource.updatedAt}
+          />
         </div>
         <nav
           className={`family-profile-actions ${styles.actions}`}
           aria-label="Theo dõi hoạt động của bé"
         >
+          <Link
+            className={`button button-primary ${styles.childEntry}`}
+            to={`/family/children/${id}/kids`}
+          >
+            <Icon name="home" />
+            Mở góc của bé
+          </Link>
           {(
             [
               ["learning", "book", "Bài của con"],
@@ -221,7 +234,7 @@ export function FamilyChildPage() {
           ).map(([path, icon, label]) => (
             <Link
               key={path}
-              className={`button ${path === "learning" ? "button-primary" : "button-ghost"}`}
+              className="button button-ghost"
               to={`/family/children/${id}/${path}`}
             >
               <Icon name={icon} />

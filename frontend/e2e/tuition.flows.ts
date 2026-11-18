@@ -338,9 +338,12 @@ export function registerTuitionFlows(
       "Bản nháp TC020 cần được giữ khi có thay đổi khác.",
     );
     await capture(page, "stale-policy-draft", modal.getByRole("alert"));
-    page.once("dialog", (dialog) => dialog.accept());
     await modal
       .getByRole("button", { name: "Đóng và cập nhật dữ liệu", exact: true })
+      .click();
+    await page
+      .getByRole("dialog", { name: "Bỏ thay đổi chưa lưu?", exact: true })
+      .getByRole("button", { name: "Bỏ thay đổi", exact: true })
       .click();
     await expect(modal).toHaveCount(0);
     expect((await workspace(page)).agreements.meta.totalElements).toBe(1);

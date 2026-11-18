@@ -25,7 +25,7 @@
   }
   .storyContent h1 {
     color: var(--tc-primary);
-    font-size: clamp(32px, 3.2vw, 52px);
+    font-size: clamp(var(--tc-font-size-4xl), 3.2vw, var(--tc-font-size-5xl));
     font-weight: 800;
     line-height: 1.2;
     letter-spacing: -0.03em;
@@ -34,7 +34,7 @@
   .storyContent > p:not(:global(.eyebrow)) {
     color: var(--tc-text-muted);
     max-width: 400px;
-    font-size: 16px;
+    font-size: var(--tc-font-size-md);
   }
   /* The mascot is drawn in pastels, so it sits on a white stage to stay visible on the tinted page. */
   .mascot {
@@ -52,7 +52,7 @@
   .story :global(.story-features) {
     gap: 8px;
     color: var(--tc-primary);
-    font-size: 14px;
+    font-size: var(--tc-font-size-sm);
     font-weight: 700;
   }
   .story :global(.story-features) > span {
@@ -63,7 +63,7 @@
   }
   .story > small {
     color: var(--tc-text-muted);
-    font-size: 13px;
+    font-size: var(--tc-font-size-sm);
     font-weight: 600;
   }
   .main {
@@ -83,21 +83,21 @@
       0 24px 56px -20px rgb(69 29 181 / 26%);
   }
   .main :global(.auth-card) h2 {
-    font-size: 32px;
+    font-size: var(--tc-font-size-4xl);
     font-weight: 800;
     line-height: 1.25;
     letter-spacing: -0.02em;
     text-wrap: balance;
   }
   .main :global(.auth-card) > :global(.muted) {
-    font-size: 16px;
+    font-size: var(--tc-font-size-md);
   }
   .main :global(.welcome-icon) {
     color: var(--tc-primary);
     background: var(--tc-primary-soft);
     width: 56px;
     height: 56px;
-    border-radius: 16px;
+    border-radius: var(--tc-radius-md);
   }
   .main :global(.password-field) > :global(.icon-button) {
     top: 1px;
@@ -128,7 +128,7 @@
       margin-bottom: 40px;
     }
     .main :global(.auth-card) h2 {
-      font-size: 24px;
+      font-size: var(--tc-font-size-2xl);
     }
   }
 }

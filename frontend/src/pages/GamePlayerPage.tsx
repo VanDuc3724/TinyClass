@@ -1,13 +1,27 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ApiError, api } from "../lib/api";
-import { useResource, useUnsavedChanges } from "../lib/hooks";
+import { useBeforeUnload, useResource } from "../lib/hooks";
 import { trapDialogFocus } from "../lib/accessibility";
+import { childModeLink, useChildMode } from "../lib/childMode";
 import { gameMedia } from "../lib/games";
 import type { GameAttempt, GameMove } from "../lib/games";
-import { ErrorNotice, Icon, Loading } from "../components/ui";
+import { ActionModal } from "../components/ActionModal";
+import type { ActionRequest } from "../components/ActionModal";
+import { Badge, ErrorNotice, Icon, Loading } from "../components/ui";
 import { FaceContent, GameAudio, GameTypeBadge, Stars } from "./GameParts";
 import styles from "./Games.module.css";
+
+function nextMove(attempt: GameAttempt, left: string | null) {
+  if (attempt.gameType === "MATCH")
+    return left ? "Tìm thẻ ghép bên phải." : "Chọn một thẻ bên trái.";
+  if (attempt.gameType === "MEMORY")
+    return !attempt.mismatch &&
+      attempt.cards?.some((card) => card.revealed && !card.matched)
+      ? "Lật thêm một thẻ."
+      : "Lật một thẻ.";
+  return "Chạm vào thẻ con chọn.";
+}
 
 export default function GamePlayerPage() {
   const { game, child, assignment } = useParams();
@@ -30,7 +44,11 @@ function Player({
   assignment?: string;
 }) {
   const navigate = useNavigate(),
+    kidMode = useChildMode(),
     dialog = useRef<HTMLDialogElement>(null),
+    gameHeading = useRef<HTMLHeadingElement>(null),
+    questionHeading = useRef<HTMLHeadingElement>(null),
+    resultHeading = useRef<HTMLHeadingElement>(null),
     alive = useRef(false),
     serial = useRef(false);
   const [requestId, setRequestId] = useState(() => crypto.randomUUID()),
@@ -40,9 +58,10 @@ function Player({
     [fatal, setFatal] = useState(false),
     [left, setLeft] = useState<string | null>(null),
     [hiddenVersion, setHiddenVersion] = useState(-1),
-    [pending, setPending] = useState(false);
-  const pendingMove = useRef<{ attempt: string; body: GameMove } | null>(null),
-    discard = useUnsavedChanges(pending);
+    [pending, setPending] = useState(false),
+    [action, setAction] = useState<ActionRequest | null>(null);
+  const pendingMove = useRef<{ attempt: string; body: GameMove } | null>(null);
+  useBeforeUnload(pending);
   const started = useResource(
     useCallback(
       (signal) =>
@@ -60,16 +79,34 @@ function Player({
       started.data &&
       (override?.id === started.data.id ? override : started.data),
     media = (id: string) => gameMedia(child, assignment, id);
+  const exitLabel = game ? "Thoát chơi thử" : "Rời góc chơi",
+    returnLabel = game ? "Về trang trò chơi" : "Về góc chơi";
+  function exitGame() {
+    navigate(
+      game
+        ? `/teacher/games/${game}`
+        : childModeLink(`/family/children/${child}/games`, kidMode),
+    );
+  }
   function exit() {
-    if (discard())
-      navigate(
-        game ? `/teacher/games/${game}` : `/family/children/${child}/games`,
-      );
+    if (!pending) {
+      exitGame();
+      return;
+    }
+    setAction({
+      title: `${exitLabel}?`,
+      description: "Lần chọn vừa rồi chưa lưu xong.",
+      label: exitLabel,
+      cancelLabel: "Ở lại",
+      showReason: false,
+      run: async () => exitGame(),
+    });
   }
   useEffect(() => {
     alive.current = true;
     const el = dialog.current,
       previous = document.body.style.overflow;
+    gameHeading.current?.setAttribute("autofocus", "");
     el?.showModal();
     document.body.style.overflow = "hidden";
     return () => {
@@ -79,6 +116,9 @@ function Player({
     };
   }, []);
   useEffect(() => {
+    gameHeading.current?.focus({ preventScroll: true });
+  }, [requestId]);
+  useEffect(() => {
     if (!attempt?.mismatch) return;
     const timer = window.setTimeout(
       () => setHiddenVersion(attempt.version),
@@ -86,6 +126,13 @@ function Player({
     );
     return () => window.clearTimeout(timer);
   }, [attempt?.id, attempt?.version, attempt?.mismatch]);
+  useEffect(() => {
+    if (kidMode && attempt?.status === "COMPLETED")
+      resultHeading.current?.focus();
+  }, [attempt?.status, kidMode]);
+  useEffect(() => {
+    if (kidMode && attempt?.question?.id) questionHeading.current?.focus();
+  }, [attempt?.question?.id, kidMode]);
   async function move(input?: Omit<GameMove, "clientRequestId" | "version">) {
     if (!attempt || serial.current || fatal) return;
     const next = pendingMove.current || {
@@ -144,11 +191,6 @@ function Player({
   }
   async function replay() {
     if (!attempt || serial.current || pending) return;
-    if (
-      attempt.status === "IN_PROGRESS" &&
-      !window.confirm("Dừng lượt đang chơi và bắt đầu lại từ đầu?")
-    )
-      return;
     serial.current = true;
     setBusy(true);
     setError(null);
@@ -177,13 +219,36 @@ function Player({
       if (alive.current) setBusy(false);
     }
   }
+  function requestRestart() {
+    setAction({
+      title: "Bắt đầu lại?",
+      description: kidMode
+        ? "Chơi tiếp hoặc quay về đầu trò chơi."
+        : "Lượt đang chơi sẽ dừng để bắt đầu một lượt mới.",
+      label: "Bắt đầu lại",
+      cancelLabel: "Chơi tiếp",
+      cancelPrimary: kidMode,
+      cancelIcon: kidMode ? "play" : undefined,
+      confirmIcon: kidMode ? "refresh" : undefined,
+      showReason: false,
+      run: replay,
+    });
+  }
   const mismatchVisible =
       !!attempt?.mismatch && hiddenVersion !== attempt.version,
-    disabled = busy || pending || mismatchVisible;
-  return (
+    disabled = busy || pending || mismatchVisible,
+    failure = started.error || error,
+    unavailable =
+      fatal ||
+      (kidMode &&
+        started.error instanceof ApiError &&
+        [401, 403, 404].includes(started.error.status)),
+    feedback = left ? null : attempt?.feedback,
+    showInstructionAudio = kidMode && !attempt?.question?.audioFileId;
+  const player = (
     <dialog
       ref={dialog}
-      className={styles.player}
+      className={`${styles.player} ${kidMode ? styles.kidPlayer : ""}`}
       onKeyDown={trapDialogFocus}
       aria-labelledby="game-play-title"
       onCancel={(e) => {
@@ -193,71 +258,118 @@ function Player({
     >
       <div className={styles.playerInner}>
         <header className={styles.playHeader}>
-          <span>
-            {game ? "Không gian chơi thử của cô" : "Cùng bé khám phá"}
-          </span>
+          {!kidMode && (
+            <span>{game ? "Không gian chơi thử của cô" : "Cùng bé khám phá"}</span>
+          )}
           <button className="button button-ghost" onClick={exit}>
-            Rời góc chơi <Icon name="close" />
+            {kidMode && <span aria-hidden="true">←</span>}
+            {exitLabel} {!kidMode && <Icon name="close" />}
           </button>
         </header>
         <div className={styles.playTitle}>
-          <h1 id="game-play-title">{attempt?.title || "Mở trò chơi của bé"}</h1>
+          <h1 id="game-play-title" ref={gameHeading} tabIndex={-1}>
+            {attempt?.title || "Mở trò chơi của bé"}
+          </h1>
           {game && <p>Lượt chơi thử được lưu riêng để cô kiểm tra nội dung.</p>}
         </div>
-        <ErrorNotice error={started.error} retry={started.reload} />
-        <ErrorNotice
-          error={error}
-          retry={
-            !fatal
-              ? () => (pendingMove.current ? void move() : started.reload())
-              : undefined
-          }
-        />
-        {fatal ? (
+        {kidMode ? (
+          failure && !unavailable ? (
+            <div className={`error-notice ${styles.kidError}`} role="alert">
+              <p>Chưa tải được. Bé thử lại nhé.</p>
+              <button
+                className="button button-primary"
+                disabled={busy || started.loading}
+                onClick={() => {
+                  if (pendingMove.current) void move();
+                  else {
+                    setError(null);
+                    started.reload();
+                  }
+                }}
+              >
+                Thử lại
+              </button>
+            </div>
+          ) : null
+        ) : (
+          <>
+            <ErrorNotice error={started.error} retry={started.reload} />
+            <ErrorNotice
+              error={error}
+              retry={
+                !fatal
+                  ? () => (pendingMove.current ? void move() : started.reload())
+                  : undefined
+              }
+            />
+          </>
+        )}
+        {unavailable ? (
           <section className={`panel ${styles.ending}`}>
             <h2>Trò chơi hiện chưa thể mở</h2>
-            <p>
-              Quyền của bé hoặc lần giao đã thay đổi. Gia đình quay về góc chơi
-              để xem những hoạt động đang có nhé.
-            </p>
+            {kidMode ? (
+              <p>Bé có thể chọn trò khác.</p>
+            ) : (
+              <p>
+                Quyền của bé hoặc lần giao đã thay đổi. Gia đình quay về góc chơi
+                để xem những hoạt động đang có nhé.
+              </p>
+            )}
             <button className="button button-primary" onClick={exit}>
-              Về góc chơi
+              {returnLabel}
             </button>
           </section>
         ) : started.loading && !started.data ? (
-          <Loading text="Đang mở những khám phá nhỏ…" />
+          <Loading
+            text={kidMode ? "Đang mở trò chơi…" : "Đang mở những khám phá nhỏ…"}
+          />
         ) : (
           attempt && (
             <>
-              <div className={styles.tags}>
-                <GameTypeBadge type={attempt.gameType} />
-                {attempt.isPreview && (
-                  <span className={styles.tag}>Chơi thử</span>
-                )}
-              </div>
+              {!kidMode && (
+                <div className={styles.tags}>
+                  <GameTypeBadge type={attempt.gameType} />
+                  {attempt.isPreview && (
+                    <Badge label="Chơi thử" />
+                  )}
+                </div>
+              )}
               {attempt.status === "COMPLETED" ? (
                 <section
                   className={`panel ${styles.ending}`}
                   aria-label="Kết quả lượt chơi"
                 >
                   <Stars value={attempt.stars} />
-                  <h2>Mình đã khám phá xong rồi!</h2>
-                  <p>Cảm ơn bé đã kiên nhẫn quan sát và thử sức.</p>
-                  <p>
-                    {attempt.correctCount} / {attempt.totalSteps} bước hoàn
-                    thành · {attempt.moveCount} lần chọn
-                  </p>
+                  <h2 ref={resultHeading} tabIndex={kidMode ? -1 : undefined}>
+                    {kidMode ? "Bé làm được rồi!" : "Mình đã khám phá xong rồi!"}
+                  </h2>
+                  {!kidMode && (
+                    <>
+                      <p>Cảm ơn bé đã kiên nhẫn quan sát và thử sức.</p>
+                      <p>
+                        {attempt.correctCount} / {attempt.totalSteps} bước hoàn
+                        thành · {attempt.moveCount} lần chọn
+                      </p>
+                    </>
+                  )}
                   <div className={styles.actions}>
+                    {kidMode && (
+                      <button className="button button-primary" onClick={exit}>
+                        Về góc chơi <Icon name="arrow" />
+                      </button>
+                    )}
                     <button
-                      className="button button-primary"
+                      className={`button ${kidMode ? "button-ghost" : "button-primary"}`}
                       disabled={busy}
                       onClick={() => void replay()}
                     >
                       Chơi lại lần nữa
                     </button>
-                    <button className="button button-ghost" onClick={exit}>
-                      Về góc chơi
-                    </button>
+                    {!kidMode && (
+                      <button className="button button-ghost" onClick={exit}>
+                        {returnLabel}
+                      </button>
+                    )}
                   </div>
                 </section>
               ) : attempt.status === "ABANDONED" ? (
@@ -274,14 +386,18 @@ function Player({
                 </section>
               ) : (
                 <>
-                  {attempt.instructions && (
-                    <p className="info-notice">{attempt.instructions}</p>
+                  {!kidMode && (
+                    <>
+                      {attempt.instructions && (
+                        <p className="info-notice">{attempt.instructions}</p>
+                      )}
+                      <GameAudio
+                        id={attempt.instructionAudioFileId}
+                        media={media}
+                        label="Nghe hướng dẫn"
+                      />
+                    </>
                   )}
-                  <GameAudio
-                    id={attempt.instructionAudioFileId}
-                    media={media}
-                    label="Nghe hướng dẫn"
-                  />
                   <progress
                     className={styles.playProgress}
                     value={attempt.correctCount}
@@ -289,15 +405,47 @@ function Player({
                     aria-label="Tiến độ trò chơi"
                   />
                   <p className={styles.progressText}>
-                    {attempt.correctCount} / {attempt.totalSteps} bước khám phá
+                    {attempt.correctCount} / {attempt.totalSteps}{" "}
+                    {kidMode ? "đã xong" : "bước khám phá"}
                   </p>
                   <section
                     className={`panel ${styles.playPanel}`}
                     aria-label="Bàn chơi"
                   >
+                    {kidMode && (
+                      <>
+                        <p
+                          className={`${styles.kidPrompt} ${feedback === "CORRECT" ? styles.kidSuccess : ""}`}
+                          role="status"
+                        >
+                          {feedback === "CORRECT" && <Icon name="check" />}
+                          <span>
+                            {feedback === "CORRECT" && "Đúng rồi! "}
+                            {feedback === "TRY_AGAIN" && "Thử lại nhé! "}
+                            {mismatchVisible
+                              ? "Hai thẻ chưa giống nhau."
+                              : nextMove(attempt, left)}
+                          </span>
+                        </p>
+                        {attempt.hintText && (
+                          <p className={styles.hint} role="status">
+                            {attempt.hintText}
+                          </p>
+                        )}
+                        {showInstructionAudio && (
+                          <GameAudio
+                            id={attempt.instructionAudioFileId}
+                            media={media}
+                            label="Nghe cách chơi"
+                          />
+                        )}
+                      </>
+                    )}
                     {attempt.gameType === "CHOICE" && attempt.question && (
                       <>
-                        <h2 tabIndex={-1}>{attempt.question.prompt}</h2>
+                        <h2 ref={questionHeading} tabIndex={-1}>
+                          {attempt.question.prompt}
+                        </h2>
                         {attempt.question.imageFileId && (
                           <img
                             className={styles.promptImage}
@@ -338,10 +486,12 @@ function Player({
                     )}
                     {attempt.gameType === "MATCH" && (
                       <>
-                        <h2>Chọn một thẻ bên trái rồi tìm bạn bên phải nhé!</h2>
+                        {!kidMode && (
+                          <h2>Chọn một thẻ bên trái rồi tìm bạn bên phải nhé!</h2>
+                        )}
                         <div className={styles.matchGrid}>
                           <div className={styles.matchColumn}>
-                            <h3>Thẻ bên trái</h3>
+                            <h3>{kidMode ? "1. Chọn thẻ" : "Thẻ bên trái"}</h3>
                             {attempt.left?.map((c) => (
                               <div className={styles.cardCell} key={c.id}>
                                 <button
@@ -362,7 +512,7 @@ function Player({
                             ))}
                           </div>
                           <div className={styles.matchColumn}>
-                            <h3>Bạn của thẻ</h3>
+                            <h3>{kidMode ? "2. Tìm bạn" : "Bạn của thẻ"}</h3>
                             {attempt.right?.map((c) => (
                               <div className={styles.cardCell} key={c.id}>
                                 <button
@@ -392,7 +542,7 @@ function Player({
                     )}
                     {attempt.gameType === "MEMORY" && (
                       <>
-                        <h2>Tìm hai hình giống nhau nhé!</h2>
+                        {!kidMode && <h2>Tìm hai hình giống nhau nhé!</h2>}
                         <div className={styles.memoryGrid}>
                           {attempt.cards?.map((c, index) => {
                             const visible =
@@ -417,7 +567,7 @@ function Player({
                                   {visible && c.face ? (
                                     <FaceContent face={c.face} media={media} />
                                   ) : (
-                                    <Icon name="game" />
+                                     <Icon name="cards" />
                                   )}
                                 </button>
                                 {visible && c.face && (
@@ -434,37 +584,74 @@ function Player({
                       </>
                     )}
                   </section>
-                  <p className={styles.feedback} aria-live="polite">
-                    {attempt.feedback === "CORRECT"
-                      ? "Con tìm được rồi, mình tiếp tục nhé!"
-                      : attempt.feedback === "TRY_AGAIN"
-                        ? "Mình quan sát và thử lại nhé!"
-                        : "Con chọn một thẻ để bắt đầu nhé."}
-                  </p>
-                  {attempt.hintText && (
-                    <p className={styles.hint} role="status">
-                      {attempt.hintText}
-                    </p>
+                  {kidMode ? (
+                    <details className={styles.kidHelp}>
+                      <summary>
+                        Cần giúp? <Icon name="chevron" />
+                      </summary>
+                      {attempt.instructions && <p>{attempt.instructions}</p>}
+                      <div className={styles.actions}>
+                        {!showInstructionAudio && (
+                          <GameAudio
+                            id={attempt.instructionAudioFileId}
+                            media={media}
+                            label="Nghe hướng dẫn"
+                          />
+                        )}
+                        <button
+                          className="button button-ghost"
+                          disabled={disabled}
+                          onClick={() => void move({ action: "HINT" })}
+                        >
+                          Gợi ý cho con
+                        </button>
+                        <button
+                          className="button button-ghost"
+                          disabled={busy || pending}
+                           onClick={requestRestart}
+                        >
+                           <Icon name="refresh" /> Bắt đầu lại
+                        </button>
+                      </div>
+                      <p className="muted">
+                        Trò chơi tự lưu. Bé có thể nghỉ rồi chơi tiếp.
+                      </p>
+                    </details>
+                  ) : (
+                    <>
+                      <p className={styles.feedback} aria-live="polite">
+                        {attempt.feedback === "CORRECT"
+                          ? "Con tìm được rồi, mình tiếp tục nhé!"
+                          : attempt.feedback === "TRY_AGAIN"
+                            ? "Mình quan sát và thử lại nhé!"
+                            : "Con chọn một thẻ để bắt đầu nhé."}
+                      </p>
+                      {attempt.hintText && (
+                        <p className={styles.hint} role="status">
+                          {attempt.hintText}
+                        </p>
+                      )}
+                      <div className={styles.actions}>
+                        <button
+                          className="button button-ghost"
+                          disabled={disabled}
+                          onClick={() => void move({ action: "HINT" })}
+                        >
+                          Gợi ý cho con
+                        </button>
+                        <button
+                          className="button button-ghost"
+                          disabled={busy || pending}
+                           onClick={requestRestart}
+                        >
+                          Bắt đầu lại
+                        </button>
+                        <small className="muted">
+                          Lượt chơi tự lưu sau mỗi lần chọn.
+                        </small>
+                      </div>
+                    </>
                   )}
-                  <div className={styles.actions}>
-                    <button
-                      className="button button-ghost"
-                      disabled={disabled}
-                      onClick={() => void move({ action: "HINT" })}
-                    >
-                      Gợi ý cho con
-                    </button>
-                    <button
-                      className="button button-ghost"
-                      disabled={busy || pending}
-                      onClick={() => void replay()}
-                    >
-                      Bắt đầu lại
-                    </button>
-                    <small className="muted">
-                      Lượt chơi tự lưu sau mỗi lần chọn.
-                    </small>
-                  </div>
                 </>
               )}
             </>
@@ -472,5 +659,17 @@ function Player({
         )}
       </div>
     </dialog>
+  );
+  return (
+    <>
+      {player}
+      {action && (
+        <ActionModal
+          action={action}
+          onClose={() => setAction(null)}
+          onSuccess={() => setAction(null)}
+        />
+      )}
+    </>
   );
 }

@@ -7,7 +7,8 @@ import {
   useSearchParams,
 } from "react-router-dom";
 import { api, query } from "../lib/api";
-import { useResource, useUnsavedChanges } from "../lib/hooks";
+import { useRefreshOnVisible, useResource } from "../lib/hooks";
+import { useUnsavedChanges } from "../lib/unsavedChanges";
 import {
   allGameChoices,
   gameInstant,
@@ -22,7 +23,10 @@ import type {
 } from "../lib/games";
 import type { Classroom, Student } from "../lib/types";
 import { dateTimeLabel } from "../lib/format";
+import FilterBar from "../components/FilterBar";
+import { RefreshButton } from "../components/RefreshButton";
 import {
+  Badge,
   EmptyState,
   ErrorNotice,
   Field,
@@ -50,6 +54,7 @@ export function TeacherGamesPage() {
         ),
       [q, status, type, page],
     ),
+    { refreshOnVisible: true },
   );
   function filter(key: string, value: string) {
     const next = new URLSearchParams(params);
@@ -75,25 +80,25 @@ export function TeacherGamesPage() {
         <Link className="text-link" to="/teacher/game-assignments">
           Xem các lần giao và kết quả →
         </Link>
-        <button
-          className="button button-ghost"
-          onClick={data.reload}
-          disabled={data.loading}
-        >
-          Cập nhật kho
-        </button>
       </div>
-      <div className={`panel ${styles.section} ${styles.filters}`}>
+      <FilterBar
+        active={!!(q || status || type)}
+        onReset={() => setParams(new URLSearchParams())}
+      >
         <Field label="Tìm trò chơi">
-          <input
-            type="search"
-            value={q}
-            onChange={(e) => filter("q", e.target.value)}
-            placeholder="Tên trò chơi"
-          />
+          <span className="search-field">
+            <Icon name="search" />
+            <input
+              type="search"
+              value={q}
+              onChange={(e) => filter("q", e.target.value)}
+              placeholder="Tên trò chơi"
+            />
+          </span>
         </Field>
         <Field label="Trạng thái trò chơi">
           <select
+            aria-label="Trạng thái trò chơi"
             value={status}
             onChange={(e) => filter("status", e.target.value)}
           >
@@ -105,6 +110,7 @@ export function TeacherGamesPage() {
         </Field>
         <Field label="Loại trò chơi">
           <select
+            aria-label="Loại trò chơi"
             value={type}
             onChange={(e) => filter("gameType", e.target.value)}
           >
@@ -116,7 +122,7 @@ export function TeacherGamesPage() {
             ))}
           </select>
         </Field>
-      </div>
+      </FilterBar>
       <ErrorNotice error={data.error} retry={data.reload} />
       {data.loading && !data.data ? (
         <Loading />
@@ -132,9 +138,7 @@ export function TeacherGamesPage() {
                   <GameTypeBadge type={game.gameType} />
                   <GameStateBadge status={game.status} />
                 </div>
-                <h2>
-                  <Link to={`/teacher/games/${game.id}`}>{game.title}</Link>
-                </h2>
+                <h2>{game.title}</h2>
                 <p>
                   {game.instructions ||
                     "Hoạt động nhỏ để bé cùng gia đình khám phá."}
@@ -145,10 +149,10 @@ export function TeacherGamesPage() {
                 </small>
                 <div className={styles.actions}>
                   <Link
-                    className="button button-primary"
+                    className="text-link"
                     to={`/teacher/games/${game.id}`}
                   >
-                    Xem trò chơi
+                    Xem trò chơi <Icon name="arrow" />
                   </Link>
                   {game.status !== "ARCHIVED" && (
                     <Link
@@ -214,10 +218,8 @@ export function TeacherGameDetailPage() {
         <div className={styles.tags}>
           <GameTypeBadge type={g.gameType} />
           <GameStateBadge status={g.status} />
-          <span className={styles.tag}>
-            {count} {g.gameType === "CHOICE" ? "câu hỏi" : "cặp thẻ"}
-          </span>
-          <span className={styles.tag}>Bản nội dung {g.contentRevision}</span>
+          <Badge label={`${count} ${g.gameType === "CHOICE" ? "câu hỏi" : "cặp thẻ"}`} />
+          <Badge label={`Bản nội dung ${g.contentRevision}`} />
         </div>
         <p className="muted">
           Tuổi gợi ý {g.minAgeMonths}–{g.maxAgeMonths} tháng. Cô chọn nội dung
@@ -233,7 +235,7 @@ export function TeacherGameDetailPage() {
                 Chỉnh sửa
               </Link>
               <Link
-                className="button button-primary"
+                className="button button-ghost"
                 to={`/teacher/games/${g.id}/preview`}
               >
                 Chơi thử
@@ -405,7 +407,7 @@ export function TeacherGameAssignmentsPage() {
                 <p>{a.className || a.studentName || "Hoạt động riêng"}</p>
                 <p>Mở: {dateTimeLabel(a.availableAt)}</p>
                 <Link
-                  className="button button-primary"
+                  className="button button-ghost"
                   to={`/teacher/game-assignments/${a.id}`}
                 >
                   Xem kết quả
@@ -468,6 +470,7 @@ export function TeacherGameResultsPage() {
     source.reload();
     results.reload();
   };
+  useRefreshOnVisible(refresh, !source.loading && !results.loading);
   if (source.loading && !source.data) return <Loading />;
   if (!source.data)
     return <ErrorNotice error={source.error} retry={source.reload} />;
@@ -482,9 +485,12 @@ export function TeacherGameResultsPage() {
         title={a.title}
         description={`${a.className || a.studentName || "Hoạt động riêng"} · Mở ${dateTimeLabel(a.availableAt)}`}
         action={
-          <button className="button button-ghost" onClick={refresh}>
-            Cập nhật kết quả
-          </button>
+          <RefreshButton
+            label="Cập nhật kết quả"
+            onClick={refresh}
+            updatedAt={results.updatedAt}
+            loading={source.loading || results.loading}
+          />
         }
       />
       <ErrorNotice error={source.error} retry={refresh} />
@@ -492,9 +498,7 @@ export function TeacherGameResultsPage() {
         <div className={styles.tags}>
           <GameTypeBadge type={a.gameType} />
           <GameStateBadge status={a.status} />
-          <span className={styles.tag}>
-            Bản nội dung {a.snapshot.contentRevision}
-          </span>
+          <Badge label={`Bản nội dung ${a.snapshot.contentRevision}`} />
         </div>
         <p>
           {a.recipientCount} bé đã được giao · {a.revokedCount} quyền đã thu
@@ -660,9 +664,7 @@ export function GameActionDialog({
   return (
     <Modal
       title={title}
-      onClose={() => {
-        if (discard()) onClose();
-      }}
+      onClose={() => discard(onClose)}
       busy={busy}
     >
       <form onSubmit={submit}>
@@ -691,9 +693,7 @@ export function GameActionDialog({
             className="button button-ghost"
             type="button"
             disabled={busy}
-            onClick={() => {
-              if (discard()) onClose();
-            }}
+            onClick={() => discard(onClose)}
           >
             Quay lại
           </button>
@@ -769,9 +769,7 @@ export function GameAssignDialog({
   return (
     <Modal
       title="Giao trò chơi"
-      onClose={() => {
-        if (discard()) onClose();
-      }}
+      onClose={() => discard(onClose)}
       busy={busy}
       wide
     >
@@ -924,9 +922,7 @@ export function GameAssignDialog({
                 className="button button-ghost"
                 type="button"
                 disabled={busy}
-                onClick={() => {
-                  if (discard()) onClose();
-                }}
+                onClick={() => discard(onClose)}
               >
                 Quay lại
               </button>
@@ -996,9 +992,7 @@ function GameGrantDialog({
   return (
     <Modal
       title="Thêm hoặc cấp lại quyền chơi"
-      onClose={() => {
-        if (discard()) onClose();
-      }}
+      onClose={() => discard(onClose)}
       busy={busy}
     >
       <p>Chọn bé hiện đủ quyền trong lớp/đích của lần giao này.</p>

@@ -20,7 +20,7 @@
   .text {
     white-space: pre-wrap;
     overflow-wrap: anywhere;
-    font-size: 16px;
+    font-size: var(--tc-font-size-md);
     line-height: 1.7;
   }
   .late {
@@ -30,8 +30,8 @@
     color: var(--tc-warning);
     background: var(--tc-warning-soft);
     padding: 12px;
-    border-radius: 12px;
-    font-size: 14px;
+    border-radius: var(--tc-radius-md);
+    font-size: var(--tc-font-size-sm);
     margin-bottom: 20px;
   }
   .progressLabel {
@@ -39,7 +39,7 @@
     align-items: center;
     flex-wrap: wrap;
     gap: 12px;
-    font-size: 14px;
+    font-size: var(--tc-font-size-sm);
     color: var(--tc-text-muted);
     margin-bottom: 20px;
   }
@@ -47,7 +47,7 @@
     padding: 24px;
     margin: 24px 0;
     border: 1px solid var(--tc-border);
-    border-radius: 16px;
+    border-radius: var(--tc-radius-md);
     background: var(--tc-surface-muted);
   }
   .composer .heading {
@@ -59,12 +59,12 @@
   .selectedFiles {
     padding: 16px;
     background: var(--tc-surface);
-    border-radius: 12px;
+    border-radius: var(--tc-radius-md);
     margin-bottom: 20px;
   }
   .selectedFiles > p {
     overflow-wrap: anywhere;
-    font-size: 14px;
+    font-size: var(--tc-font-size-sm);
     margin-bottom: 8px;
   }
   .fileList {
@@ -79,18 +79,18 @@
     padding: 12px;
     background: var(--tc-surface);
     border: 1px solid var(--tc-border);
-    border-radius: 12px;
+    border-radius: var(--tc-radius-md);
     margin-bottom: 8px;
   }
   .fileList li > span {
     flex: 1;
     min-width: 0;
     overflow-wrap: anywhere;
-    font-size: 14px;
+    font-size: var(--tc-font-size-sm);
   }
   .fileList small {
     display: block;
-    font-size: 12px;
+    font-size: var(--tc-font-size-xs);
     color: var(--tc-text-muted);
     margin-top: 4px;
   }
@@ -104,7 +104,7 @@
     gap: 16px;
     border: 1px solid var(--tc-border);
     padding: 16px;
-    border-radius: 16px;
+    border-radius: var(--tc-radius-md);
   }
   .attempt:hover {
     background: var(--tc-primary-soft);
@@ -114,12 +114,12 @@
     min-width: 0;
   }
   .attempt strong {
-    font-size: 16px;
+    font-size: var(--tc-font-size-md);
     overflow-wrap: anywhere;
   }
   .preview {
     color: var(--tc-text-muted);
-    font-size: 14px;
+    font-size: var(--tc-font-size-sm);
     white-space: pre-wrap;
     overflow-wrap: anywhere;
     margin-top: 8px;
@@ -133,10 +133,10 @@
     min-width: 0;
     padding: 16px;
     border: 1px solid var(--tc-border);
-    border-radius: 16px;
+    border-radius: var(--tc-radius-md);
   }
   .mediaGrid article h3 {
-    font-size: 16px;
+    font-size: var(--tc-font-size-md);
     margin-bottom: 16px;
     overflow-wrap: anywhere;
   }
@@ -169,7 +169,7 @@
   .history {
     padding: 24px;
     border: 1px solid var(--tc-border);
-    border-radius: 20px;
+    border-radius: var(--tc-radius-lg);
     margin-bottom: 24px;
     background: var(--tc-surface);
   }
@@ -190,7 +190,7 @@
   }
   .history .text {
     margin-top: 8px;
-    font-size: 14px;
+    font-size: var(--tc-font-size-sm);
   }
   .eventDot {
     width: 8px;
@@ -234,7 +234,7 @@
     background: var(--tc-primary-soft);
   }
   .reviewList h2 {
-    font-size: 18px;
+    font-size: var(--tc-font-size-lg);
     margin-block: 4px;
     overflow-wrap: anywhere;
   }
@@ -255,7 +255,7 @@
     min-width: 180px;
   }
   .reopenRow h3 {
-    font-size: 18px;
+    font-size: var(--tc-font-size-lg);
     margin-bottom: 8px;
   }
   @media (max-width: 1199px) {

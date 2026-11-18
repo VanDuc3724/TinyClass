@@ -4,7 +4,7 @@ import { ErrorNotice, Field, Modal } from "../components/ui";
 import { api, ApiError } from "../lib/api";
 import { businessToday } from "../lib/format";
 import { businessLocal } from "../lib/schedule";
-import { useUnsavedChanges } from "../lib/hooks";
+import { useUnsavedChanges } from "../lib/unsavedChanges";
 import {
   absenceLabels,
   pricingLabels,
@@ -298,10 +298,10 @@ export function TuitionEditor({
     !!reason;
   const discard = useUnsavedChanges(dirty);
   function close() {
-    if (!busy && discard()) onClose();
+    if (!busy) discard(onClose);
   }
   function reload() {
-    if (!busy && discard()) onReload();
+    if (!busy) discard(onReload);
   }
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -513,7 +513,7 @@ export function EndTuitionModal({
     [error, setError] = useState<unknown>(null);
   const discard = useUnsavedChanges(to !== minimum || !!reason);
   function close() {
-    if (!busy && discard()) onClose();
+    if (!busy) discard(onClose);
   }
   async function submit(event: FormEvent) {
     event.preventDefault();

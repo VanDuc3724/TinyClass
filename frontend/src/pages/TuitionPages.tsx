@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ActionModal } from "../components/ActionModal";
+import { RefreshButton } from "../components/RefreshButton";
 import {
   Badge,
   EmptyState,
@@ -327,6 +328,7 @@ function FamilyTuitionContent({ child }: { child: string }) {
         ),
       [child, page],
     ),
+    { refreshOnVisible: true },
   );
   if (resource.loading && !resource.data) return <Loading />;
   if (!resource.data || resource.error)
@@ -342,9 +344,12 @@ function FamilyTuitionContent({ child }: { child: string }) {
         title="Điều kiện học phí"
         description="Mức phí và thời gian áp dụng cô đã chia sẻ cho bé."
         action={
-          <button className="button button-ghost" onClick={resource.reload}>
-            Cập nhật
-          </button>
+          <RefreshButton
+            label="Cập nhật"
+            loading={resource.loading}
+            onClick={resource.reload}
+            updatedAt={resource.updatedAt}
+          />
         }
       />
       <Link

@@ -307,9 +307,12 @@ export function registerCommunicationFlows(
       ).toHaveValue("Gia đình mang giấy màu thay cho hộp vật liệu.");
       await page.setViewportSize({ width: 375, height: 812 });
       await capture(page, "stale-editor-375", true);
-      page.once("dialog", (dialog) => dialog.accept());
       await modal
         .getByRole("button", { name: "Đóng và cập nhật", exact: true })
+        .click();
+      await page
+        .getByRole("dialog", { name: "Bỏ thay đổi chưa lưu?", exact: true })
+        .getByRole("button", { name: "Bỏ thay đổi", exact: true })
         .click();
       await expect(
         page.getByRole("heading", {

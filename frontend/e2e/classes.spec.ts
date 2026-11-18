@@ -59,7 +59,7 @@ test("khởi tạo giáo viên, đăng nhập, tải lại và đăng xuất b�
     path: "test-results/dashboard-empty-desktop.png",
     fullPage: true,
   });
-  await page.getByLabel("Menu tài khoản", { exact: true }).click();
+  await page.getByLabel("Cô Lan (dữ liệu kiểm thử) Giáo viên, menu tài khoản", { exact: true }).click();
   await page.getByRole("button", { name: "Đăng xuất" }).click();
   await expect(page).toHaveURL(/\/login$/);
   await expect((await page.request.get("/api/v1/classes")).status()).toBe(401);

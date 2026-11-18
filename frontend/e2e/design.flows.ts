@@ -134,6 +134,50 @@ export function registerDesignFlows(
           });
       }
     }
+
+    await page.route("**/api/v1/dashboard", async (route) => {
+      const response = await route.fetch();
+      const payload = await response.json();
+      payload.data.activity = [];
+      await route.fulfill({ response, json: payload });
+    });
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.goto("/teacher");
+    await expect(page.getByRole("heading", { name: "Chưa có hoạt động mới" })).toBeVisible();
+    const activity = page.locator("section").filter({
+      has: page.getByRole("heading", { name: "Hoạt động hôm nay", exact: true }),
+    });
+    const schedule = page.locator("section").filter({
+      has: page.getByRole("heading", { name: "Lịch dạy hôm nay", exact: true }),
+    });
+    const shortcuts = page.getByRole("complementary").filter({
+      has: page.getByRole("heading", { name: "Thao tác nhanh", exact: true }),
+    });
+    const activityBox = (await activity.boundingBox())!;
+    const scheduleBox = (await schedule.boundingBox())!;
+    const [first, second] = await shortcuts.getByRole("link").all();
+    const firstBox = (await first.boundingBox())!;
+    const secondBox = (await second.boundingBox())!;
+    expect(activityBox.height).toBeLessThan(200);
+    expect(activityBox.x).toBeCloseTo(scheduleBox.x, 0);
+    expect(firstBox.x).toBeGreaterThan(scheduleBox.x + scheduleBox.width);
+    expect(secondBox.x).toBeGreaterThan(firstBox.x);
+    expect(secondBox.y).toBeCloseTo(firstBox.y, 0);
+    await page.screenshot({
+      path: "test-results/dashboard-empty-desktop.png",
+      fullPage: true,
+    });
+
+    await page.setViewportSize({ width: 375, height: 1000 });
+    const statsLink = page.getByRole("region", { name: "Sản phẩm chờ duyệt" }).getByRole("link");
+    expect(await statsLink.evaluate((link) => {
+      const arrow = link.querySelector("[aria-hidden]")!;
+      const label = arrow.previousSibling!;
+      const lastCharacter = document.createRange();
+      lastCharacter.setStart(label, label.textContent!.length - 1);
+      lastCharacter.setEnd(label, label.textContent!.length);
+      return Math.abs(lastCharacter.getBoundingClientRect().top - arrow.getBoundingClientRect().top);
+    })).toBeLessThan(1);
     expect(runtimeErrors).toEqual([]);
   });
 
@@ -162,13 +206,13 @@ export function registerDesignFlows(
     await page.setViewportSize({ width: 1280, height: 1000 });
     await expect(page.getByRole("dialog")).toHaveCount(0);
     expect(await page.evaluate(() => document.body.style.overflow)).toBe("");
-    await page.getByLabel("Menu tài khoản", { exact: true }).click();
+    await page.getByLabel(/menu tài khoản$/i).click();
     await expect(
       page.getByRole("button", { name: "Đăng xuất", exact: true }),
     ).toBeVisible();
     await page.keyboard.press("Escape");
     await expect(
-      page.getByLabel("Menu tài khoản", { exact: true }),
+      page.getByLabel(/menu tài khoản$/i),
     ).toBeFocused();
     await expect(
       page.getByRole("button", { name: "Đăng xuất", exact: true }),

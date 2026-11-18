@@ -10,6 +10,7 @@ import {
   PageHeader,
 } from "../components/ui";
 import { api } from "../lib/api";
+import { RefreshButton } from "../components/RefreshButton";
 import { useResource } from "../lib/hooks";
 import { SessionCard } from "./ScheduleParts";
 import type { TeachingSession } from "../lib/schedule";
@@ -56,6 +57,7 @@ export default function DashboardPage() {
         ),
       [classId],
     ),
+    { refreshOnVisible: true },
   );
   const data = resource.data;
   const selectedClass = data?.classOptions.find((c) => c.id === classId);
@@ -63,55 +65,61 @@ export default function DashboardPage() {
     <>
       <PageHeader
         hero
-        eyebrow="GÓC GIÁO VIÊN"
         title={`Xin chào, ${account!.displayName}!`}
         description="Cùng chuẩn bị một ngày nhiều khám phá cho lớp nhỏ."
         action={
-          <div className={styles.headerActions}>
-            <button
-              className="button button-ghost"
-              disabled={resource.loading}
-              onClick={resource.reload}
-            >
-              Cập nhật tổng quan
-            </button>
-            <Link className="button button-primary" to="/teacher/classes/new">
-              <Icon name="plus" />
-              Tạo lớp học
-            </Link>
-          </div>
+          <Link className="button button-primary" to="/teacher/classes/new">
+            <Icon name="plus" />
+            Tạo lớp học
+          </Link>
         }
       />
       <div className={styles.scopeRow}>
         <div>
           <h2>Tổng quan lớp học</h2>
           <p className="muted">
+            {data && (
+              <span className={styles.scopeDate}>
+                <time dateTime={data.businessDate}>
+                  {dateLabel(data.businessDate)}
+                </time>
+                {" · "}
+              </span>
+            )}
             {data
-              ? `${dateLabel(data.businessDate)} · ${selectedClass?.name || "Tất cả lớp học"}`
+              ? selectedClass?.name || "Tất cả lớp học"
               : "Số liệu lớp học của bạn"}
           </p>
         </div>
-        <label className={styles.scopeSelect}>
-          <span>Phạm vi thống kê</span>
-          <select
-            aria-label="Phạm vi thống kê"
-            value={classId}
-            disabled={!data && !resource.error}
-            onChange={(e) =>
-              setParams(e.target.value ? { classId: e.target.value } : {})
-            }
-          >
-            <option value="">Tất cả lớp học</option>
-            {!data && classId && (
-              <option value={classId}>Đang tải lớp đã chọn…</option>
-            )}
-            {data?.classOptions.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div className={styles.scopeControls}>
+          <label className={styles.scopeSelect}>
+            <span>Phạm vi thống kê</span>
+            <select
+              aria-label="Phạm vi thống kê"
+              value={classId}
+              disabled={!data && !resource.error}
+              onChange={(e) =>
+                setParams(e.target.value ? { classId: e.target.value } : {})
+              }
+            >
+              <option value="">Tất cả lớp học</option>
+              {!data && classId && (
+                <option value={classId}>Đang tải lớp đã chọn…</option>
+              )}
+              {data?.classOptions.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <RefreshButton
+            label="Cập nhật tổng quan"
+            loading={resource.loading}
+            onClick={resource.reload}
+            updatedAt={resource.updatedAt}
+          />
+        </div>
       </div>
       <ErrorNotice error={resource.error} retry={resource.reload} />
       {resource.error && classId && (
@@ -185,8 +193,8 @@ export default function DashboardPage() {
                       ? classId
                         ? "Xem danh sách lớp"
                         : "Quản lý hồ sơ bé"
-                      : `Xem ${stat.label.toLocaleLowerCase("vi-VN")}`}{" "}
-                    →
+                      : `Xem ${stat.label.toLocaleLowerCase("vi-VN")}`}
+                    <span aria-hidden="true">{"\u00a0→"}</span>
                   </Link>
                 </section>
               ))}
@@ -199,54 +207,56 @@ export default function DashboardPage() {
             </p>
             {!!resource.error && (
               <p className="info-notice">
-                Đang hiển thị số liệu đã tải trước đó. Cập nhật tổng quan để thử
-                lại.
+                Đang hiển thị số liệu đã tải trước đó.
               </p>
             )}
-            <section className={`panel ${styles.summaryPanel}`}>
-              <div className="section-heading">
-                <div>
-                  <h2>Lịch dạy hôm nay</h2>
-                  <p className="muted">
-                    {data.todaySessionCount} buổi theo lịch · Giờ Việt Nam
-                  </p>
+            <div
+              className={`${styles.columns} ${data.activity.length ? "" : styles.withoutActivity}`}
+            >
+              <section className={`panel ${styles.schedulePanel}`}>
+                <div className="section-heading">
+                  <div>
+                    <h2>Lịch dạy hôm nay</h2>
+                    <p className="muted">
+                      {data.todaySessionCount} buổi theo lịch · Giờ Việt Nam
+                    </p>
+                  </div>
+                  <Link
+                    className="text-link"
+                    to={`/teacher/schedule?week=${data.businessDate}${classId ? `&classId=${classId}` : ""}`}
+                  >
+                    Xem lịch tuần
+                    <Icon name="arrow" />
+                  </Link>
                 </div>
-                <Link
-                  className="text-link"
-                  to={`/teacher/schedule?week=${data.businessDate}${classId ? `&classId=${classId}` : ""}`}
-                >
-                  Xem lịch tuần
-                  <Icon name="arrow" />
-                </Link>
-              </div>
-              {data.todaySessions.length ? (
-                <div
-                  className={`${scheduleStyles.sessionGrid} ${scheduleStyles.dashboardSessions}`}
-                >
-                  {data.todaySessions.map((session) => (
-                    <SessionCard key={session.id} session={session} teacher />
-                  ))}
-                </div>
-              ) : (
-                <EmptyState
-                  title="Hôm nay chưa có buổi trong lịch"
-                  icon="calendar"
-                  compact
-                >
-                  Cô có thể tạo lịch tuần cho lớp hoặc thêm một buổi học riêng.
-                </EmptyState>
-              )}
-            </section>
-            <div className={`${styles.columns} ${styles.columnsSpaced}`}>
-              <section className="panel">
+                {data.todaySessions.length ? (
+                  <div
+                    className={`${scheduleStyles.sessionGrid} ${scheduleStyles.dashboardSessions} ${styles.dashboardSessions}`}
+                  >
+                    {data.todaySessions.map((session) => (
+                      <SessionCard key={session.id} session={session} teacher />
+                    ))}
+                  </div>
+                ) : (
+                  <EmptyState
+                    title="Hôm nay chưa có buổi trong lịch"
+                    icon="calendar"
+                    compact
+                  >
+                    Cô có thể tạo lịch tuần cho lớp hoặc thêm một buổi học riêng.
+                  </EmptyState>
+                )}
+              </section>
+              <section className={`panel ${styles.activityPanel}`}>
                 <div className="section-heading">
                   <div>
                     <h2>Hoạt động hôm nay</h2>
-                    <p className="muted">
-                      Những bài học và hoạt động bạn vừa chia sẻ
-                    </p>
+                    {data.activity.length > 0 && (
+                      <p className="muted">
+                        Những bài học và hoạt động bạn vừa chia sẻ
+                      </p>
+                    )}
                   </div>
-                  <span className={styles.todayTag}>Hôm nay</span>
                 </div>
                 {data.activity.length ? (
                   <div className={styles.activityList}>
@@ -292,85 +302,78 @@ export default function DashboardPage() {
                   </div>
                 ) : (
                   <EmptyState
-                    title="Hôm nay đang chờ những khám phá mới"
+                    title="Chưa có hoạt động mới"
                     icon="book"
                     compact
                   >
                     {classId
-                      ? "Chưa có bài được xuất bản cho lớp này hôm nay. Bạn có thể giao một hoạt động từ thư viện."
-                      : "Bạn chưa xuất bản bài học hay giao bài hôm nay. Bắt đầu từ mục Thao tác nhanh."}
+                      ? "Chưa có bài học hay bài giao mới cho lớp này."
+                      : "Bạn chưa xuất bản bài học hay giao bài hôm nay."}
                   </EmptyState>
                 )}
               </section>
               <aside className={`panel ${styles.quickActions}`}>
                 <div className="section-heading">
-                  <div>
-                    <h2>Thao tác nhanh</h2>
-                    <p className="muted">Sẵn sàng cho những giờ học vui</p>
-                  </div>
+                  <h2>Thao tác nhanh</h2>
                 </div>
-                {(
-                  [
+                <div className={styles.quickActionGrid}>
+                  {(
                     [
-                      "Tạo bài học",
-                      "Chuẩn bị một khám phá mới",
-                      "book",
-                      "purple",
-                      "/teacher/library/lessons/new",
-                    ],
-                    [
-                      "Thêm học liệu",
-                      "Video, hình ảnh và tài liệu",
-                      "upload",
-                      "pink",
-                      "/teacher/files?upload=1",
-                    ],
-                    [
-                      "Giao bài cho lớp",
-                      "Chia sẻ hoạt động cùng gia đình",
-                      "arrow",
-                      "blue",
-                      `/teacher/assignments/new${classId && selectedClass?.status === "ACTIVE" ? `?classId=${classId}` : ""}`,
-                    ],
-                    [
-                      "Điểm danh",
-                      "Chọn buổi trong lịch rồi ghi nhận các bé",
-                      "check",
-                      "green",
-                      `/teacher/schedule${classId ? `?classId=${classId}` : ""}`,
-                    ],
-                    [
-                      "Phiếu học phí",
-                      "Theo dõi các phiếu còn phải thu",
-                      "receipt",
-                      "pink",
-                      `/teacher/invoices?collection=OPEN${classId ? `&classId=${classId}` : ""}`,
-                    ],
-                    [
-                      "Thông báo lớp",
-                      "Xem và soạn thông tin cho gia đình",
-                      "megaphone",
-                      "purple",
-                      `/teacher/announcements${classId ? `?classId=${classId}` : ""}`,
-                    ],
-                  ] as const
-                ).map(([title, description, icon, tone, to]) => (
-                  <Link className={styles.quickAction} key={title} to={to}>
-                    <span className={`${styles.actionIcon} ${styles[tone]}`}>
-                      <Icon name={icon} />
-                    </span>
-                    <div>
-                      <strong>{title}</strong>
-                      <p>{description}</p>
-                    </div>
-                    <Icon name="arrow" />
-                  </Link>
-                ))}
-                <div className={styles.tip}>
-                  <Icon name="leaf" />
-                  <p>
-                    Một hoạt động nhỏ mỗi ngày giúp bé tự tin khám phá thế giới.
-                  </p>
+                      [
+                        "Tạo bài học",
+                        "Chuẩn bị một khám phá mới",
+                        "book",
+                        "purple",
+                        "/teacher/library/lessons/new",
+                      ],
+                      [
+                        "Thêm học liệu",
+                        "Video, hình ảnh và tài liệu",
+                        "upload",
+                        "pink",
+                        "/teacher/files?upload=1",
+                      ],
+                      [
+                        "Giao bài cho lớp",
+                        "Chia sẻ hoạt động cùng gia đình",
+                        "arrow",
+                        "blue",
+                        `/teacher/assignments/new${classId && selectedClass?.status === "ACTIVE" ? `?classId=${classId}` : ""}`,
+                      ],
+                      [
+                        "Điểm danh",
+                        "Chọn buổi trong lịch rồi ghi nhận các bé",
+                        "check",
+                        "green",
+                        `/teacher/schedule${classId ? `?classId=${classId}` : ""}`,
+                      ],
+                      [
+                        "Phiếu học phí",
+                        "Theo dõi các phiếu còn phải thu",
+                        "receipt",
+                        "pink",
+                        `/teacher/invoices?collection=OPEN${classId ? `&classId=${classId}` : ""}`,
+                      ],
+                      [
+                        "Thông báo lớp",
+                        "Xem và soạn thông tin cho gia đình",
+                        "megaphone",
+                        "purple",
+                        `/teacher/announcements${classId ? `?classId=${classId}` : ""}`,
+                      ],
+                    ] as const
+                  ).map(([title, description, icon, tone, to]) => (
+                    <Link className={styles.quickAction} key={title} to={to}>
+                      <span className={`${styles.actionIcon} ${styles[tone]}`}>
+                        <Icon name={icon} />
+                      </span>
+                      <div>
+                        <strong>{title}</strong>
+                        <p>{description}</p>
+                      </div>
+                      <Icon name="arrow" />
+                    </Link>
+                  ))}
                 </div>
               </aside>
             </div>
@@ -417,18 +420,7 @@ export default function DashboardPage() {
                   ))}
                 </div>
               ) : (
-                <EmptyState
-                  title="Một lớp học mới đang chờ bạn"
-                  action={
-                    <Link
-                      className="button button-ghost"
-                      to="/teacher/classes/new"
-                    >
-                      <Icon name="plus" />
-                      Tạo lớp đầu tiên
-                    </Link>
-                  }
-                >
+                <EmptyState title="Một lớp học mới đang chờ bạn">
                   Bắt đầu bằng tên lớp, rồi thêm những gương mặt nhỏ thân quen.
                 </EmptyState>
               )}

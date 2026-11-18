@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { ActionModal } from "../components/ActionModal";
 import type { ActionRequest } from "../components/ActionModal";
+import { RefreshButton } from "../components/RefreshButton";
 import {
   Badge,
   EmptyState,
@@ -12,7 +13,7 @@ import {
   Pagination,
 } from "../components/ui";
 import { api, query } from "../lib/api";
-import { useResource } from "../lib/hooks";
+import { useRefreshOnVisible, useResource } from "../lib/hooks";
 import type {
   NoteFile,
   ProgressWorkspace,
@@ -66,6 +67,10 @@ export default function StudentProgressPage({
     [notice, setNotice] = useState<{ child: string; message: string } | null>(
       null,
     );
+  useRefreshOnVisible(
+    resource.reload,
+    !resource.loading && !editor && !history && !preview && !action,
+  );
   const data = resource.data;
   function filter(patch: Record<string, string>) {
     const next = new URLSearchParams(params);
@@ -191,14 +196,12 @@ export default function StudentProgressPage({
                   </button>
                 ))}
               </div>
-              <button
-                type="button"
-                className="button button-ghost"
-                disabled={resource.loading}
+              <RefreshButton
+                label="Cập nhật hành trình"
+                loading={resource.loading}
                 onClick={resource.reload}
-              >
-                Cập nhật hành trình
-              </button>
+                updatedAt={resource.updatedAt}
+              />
             </div>
             {!family && (
               <label className={styles.archiveFilter}>

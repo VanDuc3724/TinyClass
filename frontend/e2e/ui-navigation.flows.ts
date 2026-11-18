@@ -34,6 +34,8 @@ async function currentSection(page: Page, name: string) {
 export function registerUiNavigationFlows(email: string, password: string) {
   test("điều hướng đánh dấu đúng mục trên trang điểm danh và kết quả trò chơi", async ({ page }) => {
     await login(page, email, password);
+    await expect(page.locator(".sidebar").getByRole("link", { name: "Cài đặt" })).toBeInViewport();
+    expect(await page.locator(".sidebar").evaluate((sidebar) => sidebar.scrollHeight - sidebar.clientHeight)).toBeLessThanOrEqual(1);
     const dashboard = await data<{ businessDate: string }>(page, "/dashboard");
     const day = (offset: number) => new Date(Date.parse(`${dashboard.businessDate}T00:00:00Z`) + offset * 86_400_000).toISOString().slice(0, 10);
     const sessions = await data<{ id: string; status: string }[]>(page, `/sessions?from=${day(-30)}&to=${day(30)}&size=100`);
@@ -58,6 +60,7 @@ export function registerUiNavigationFlows(email: string, password: string) {
     await login(page, email, password);
     const main = page.locator("#main-content");
     await expect(page.getByRole("heading", { name: /^Xin chào,/ })).toBeVisible();
+    await expect(page.getByRole("region", { name: "Học sinh đang học", exact: true })).toBeVisible();
     await expect(main).toBeFocused();
     await page.evaluate(() => window.scrollTo({ top: 300, behavior: "instant" }));
     await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(100);
@@ -147,6 +150,18 @@ export function registerUiNavigationFlows(email: string, password: string) {
     await page.setViewportSize({ width: 390, height: 844 });
     await expect(page.getByRole("navigation", { name: "Điều hướng gia đình", exact: true })
       .getByRole("link", { name: "Trang chủ", exact: true })).toHaveAttribute("aria-current", "page");
+    const familyMenu = page.getByRole("button", { name: "Mở menu", exact: true });
+    const drawer = page.getByRole("dialog", { name: "Điều hướng chính", exact: true });
+    await familyMenu.click();
+    await drawer.getByRole("link", { name: "Góc chơi của bé", exact: true }).click();
+    await expect(page).toHaveURL(new RegExp(`/family/children/${childId}/games$`));
+    await expect(page.getByRole("heading", { name: "Góc chơi của bé", exact: true })).toBeVisible();
+    await expect(drawer).not.toBeVisible();
+    await familyMenu.click();
+    await drawer.getByRole("link", { name: "Nhận xét & tiến bộ", exact: true }).click();
+    await expect(page).toHaveURL(new RegExp(`/family/children/${childId}/progress$`));
+    await expect(page.getByRole("heading", { name: "Hành trình của Bé kiểm thử điều hướng", exact: true })).toBeVisible();
+    await expect(drawer).not.toBeVisible();
     await page.setViewportSize({ width: 1440, height: 1000 });
     await page.goto(`/family/children/${childId}/learning`);
     await expect(page.getByRole("heading", { name: "Góc học của bé", exact: true })).toBeVisible();
@@ -165,5 +180,81 @@ export function registerUiNavigationFlows(email: string, password: string) {
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     await expect(navigation(page)).toBeHidden();
     await expect(page.getByRole("link", { name: "Về góc gia đình", exact: true })).toBeVisible();
+
+    await page.setViewportSize({ width: 320, height: 780 });
+    await page.goto(`/family/children/${childId}`);
+    await page.getByRole("link", { name: "Mở góc của bé", exact: true }).click();
+    await expect(page).toHaveURL(/\/kids$/);
+    await page.goBack();
+    await expect(page).toHaveURL(/\/kids$/);
+    await expect(page.getByRole("heading", { name: "Chào Bé kiểm thử điều hướng!", exact: true })).toBeVisible();
+    const choices = page.getByRole("navigation", { name: "Học và chơi" });
+    await expect(choices.getByRole("link")).toHaveCount(2);
+    for (const link of await choices.getByRole("link").all()) {
+      expect((await link.boundingBox())!.height).toBeGreaterThanOrEqual(56);
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+    await expect(page.getByRole("navigation", { name: "Điều hướng gia đình" })).toHaveCount(0);
+    await page.screenshot({ path: "test-results/child-corner-320.png" });
+    await choices.getByRole("link", { name: "Học bài", exact: true }).click();
+    await expect(page).toHaveURL(/\/learning\?kid=1$/);
+    await expect(page.getByLabel(/menu tài khoản$/i)).toHaveCount(0);
+    const activity = page.getByRole("link").filter({ hasText: "Hoạt động kiểm thử điều hướng" });
+    await activity.click();
+    await expect(page).toHaveURL(/\/learning\/assignments\/[^?]+\?kid=1$/);
+    await page.locator(`a[href*="/learning/items/${assignment.items[0].id}"]`).first().click();
+    await expect(page).toHaveURL(/\/learning\/items\/[^?]+\?kid=1$/);
+    await expect(page.getByRole("heading", { name: "Bài học kiểm thử điều hướng", exact: true })).toBeVisible();
+    await expect(page.getByText("Cùng bé gọi tên một màu con yêu thích.", { exact: true })).toBeVisible();
+    const confirm = page.getByRole("button", { name: "Xác nhận đã hoàn thành", exact: true });
+    await expect(confirm).toBeHidden();
+    await page.screenshot({ path: "test-results/child-lesson-320.png" });
+    await page.getByText("Nhờ người lớn xác nhận", { exact: true }).click();
+    await expect(confirm).toBeDisabled();
+    await page.getByRole("checkbox", { name: "Tôi đã cùng bé thực hiện hoạt động này.", exact: true }).check();
+    await confirm.click();
+    await expect(page.getByRole("heading", { name: "Mình đã hoàn thành hoạt động!", exact: true })).toBeVisible();
+    await page.getByRole("link", { name: "Về góc học", exact: true }).click();
+    await expect(page).toHaveURL(/\/learning\?kid=1$/);
+    await page.getByRole("link", { name: "Về góc của bé", exact: true }).click();
+    await page.goto(`/family/children/${childId}/invoices`);
+    await expect(page).toHaveURL(/\/kids$/);
+    await expect(page.getByLabel(/menu tài khoản$/i)).toHaveCount(0);
+    const exit = page.getByRole("button", { name: "Về trang phụ huynh", exact: true });
+    const gate = page.getByRole("dialog", { name: "Nhờ người lớn xác nhận", exact: true });
+    await exit.click();
+    await gate.getByRole("button", { name: "Ở lại góc của bé", exact: true }).click();
+    await expect(gate).toBeHidden();
+    await expect(exit).toBeFocused();
+    await exit.click();
+    const answer = gate.getByRole("textbox", { name: /^Kết quả của/ });
+    const prompt = gate.locator("label");
+    const confirmExit = gate.getByRole("button", { name: "Xác nhận", exact: true });
+    const sum = (text: string) => {
+      const [, first, second] = text.match(/(\d+) \+ (\d+)/)!;
+      return String(Number(first) + Number(second));
+    };
+    const originalPrompt = await prompt.innerText();
+    await answer.fill("0");
+    await confirmExit.click();
+    await expect(gate.getByRole("alert")).toContainText("Vui lòng giải phép tính mới");
+    await expect(prompt).not.toHaveText(originalPrompt);
+    await expect(answer).toHaveValue("");
+    await expect(answer).toBeFocused();
+    const secondPrompt = await prompt.innerText();
+    await answer.fill(sum(originalPrompt));
+    await confirmExit.click();
+    await expect(prompt).not.toHaveText(secondPrompt);
+    await expect(answer).toHaveValue("");
+    await expect(answer).toBeFocused();
+    await expect(page).toHaveURL(/\/kids$/);
+    await answer.fill(sum(await prompt.innerText()));
+    await confirmExit.click();
+    await expect(page).toHaveURL(new RegExp(`/family/children/${childId}$`));
+    await expect(page.getByLabel(/menu tài khoản$/i)).toBeVisible();
+
+    await page.goto(`/family/children/${randomUUID()}/kids`);
+    await expect(page.getByRole("heading", { name: "Góc này chưa mở được" })).toBeVisible();
+    await expect(page.getByRole("navigation", { name: "Học và chơi" })).toHaveCount(0);
   });
 }

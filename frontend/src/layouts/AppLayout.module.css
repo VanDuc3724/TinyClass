@@ -1,4 +1,63 @@
 @layer components {
+  .childShell {
+    min-height: 100dvh;
+    background: var(--tc-canvas);
+  }
+  .childTopbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    padding: 8px clamp(16px, 4vw, 40px);
+    background: var(--tc-surface);
+    border-bottom: 1px solid var(--tc-border);
+  }
+  .childTopbar :global(.brand) {
+    gap: 8px;
+    font-size: var(--tc-font-size-xl);
+  }
+  .childTopbar :global(.brand-symbol) {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--tc-radius-sm);
+  }
+  .childHome,
+  .childExit {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 48px;
+    padding: 4px 0;
+    font-weight: 800;
+  }
+  .childHome {
+    min-height: 56px;
+    color: var(--tc-primary);
+  }
+  .childExit {
+    color: var(--tc-text-muted);
+    font-size: var(--tc-font-size-sm);
+    border: 0;
+    background: transparent;
+  }
+  .childHome:hover,
+  .childExit:hover {
+    text-decoration: underline;
+  }
+  .childMain {
+    width: 100%;
+    max-width: 920px;
+    margin: 0 auto;
+    padding: clamp(20px, 4vw, 40px) clamp(16px, 4vw, 32px);
+  }
+  .childMain:focus-visible {
+    outline: none;
+  }
+  .childExitError {
+    margin-top: var(--tc-space-2);
+    color: var(--tc-danger);
+  }
   .shell {
     display: flex;
     min-height: 100dvh;
@@ -42,13 +101,13 @@
   }
   .sidebar :global(.brand) {
     color: var(--tc-on-primary);
-    font-size: 24px;
+    font-size: var(--tc-font-size-2xl);
     gap: 10px;
   }
   .sidebar :global(.brand-symbol) {
     width: 36px;
     height: 36px;
-    border-radius: 12px;
+    border-radius: var(--tc-radius-md);
     color: var(--tc-on-primary);
     background: var(--tc-sidebar-active);
     box-shadow: inset 0 0 0 1px rgb(255 255 255 / 18%);
@@ -71,15 +130,15 @@
     border-radius: var(--tc-radius-pill);
     align-self: flex-start;
     margin: -4px 0 4px 2px;
-    font-size: 12px;
+    font-size: var(--tc-font-size-xs);
     font-weight: 700;
   }
   .workspacePill > span {
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: #8ff0c6;
-    box-shadow: 0 0 0 3px rgb(143 240 198 / 25%);
+    background: var(--tc-sidebar-role-dot);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--tc-sidebar-role-dot) 25%, transparent);
   }
   .navigation {
     display: flex;
@@ -96,7 +155,7 @@
     min-height: 44px;
     border-radius: var(--tc-radius-md);
     color: rgb(255 255 255 / 88%);
-    font-size: 15px;
+    font-size: var(--tc-font-size-md);
     font-weight: 600;
     transition:
       background-color var(--tc-motion-fast) var(--tc-ease),
@@ -131,7 +190,7 @@
     top: 50%;
     width: 4px;
     height: 20px;
-    border-radius: 0 4px 4px 0;
+    border-radius: 0 var(--tc-radius-pill) var(--tc-radius-pill) 0;
     background: var(--tc-on-primary);
     transform: translateY(-50%);
   }
@@ -140,10 +199,10 @@
     outline-offset: 2px;
   }
   .groupLabel {
-    font-size: 11px;
+    font-size: var(--tc-font-size-xs);
     font-weight: 800;
     letter-spacing: 0.1em;
-    color: var(--tc-sidebar-muted);
+    color: var(--tc-on-primary);
     margin: 14px 12px 4px;
   }
   .sidebarBottom {
@@ -163,37 +222,9 @@
     height: 98px;
   }
   .mascot p {
-    font-size: 12px;
+    font-size: var(--tc-font-size-xs);
     font-weight: 600;
     margin-top: 6px;
-    color: var(--tc-sidebar-muted);
-  }
-  .sidebarAccount {
-    margin-top: 12px;
-    padding: 12px 4px 0;
-    border-top: 1px solid rgb(255 255 255 / 14%);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .sidebarAccount :global(.avatar) {
-    color: var(--tc-on-primary);
-    background: rgb(255 255 255 / 18%);
-    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 22%);
-  }
-  .sidebarAccount > div {
-    min-width: 0;
-  }
-  .sidebarAccount strong {
-    display: block;
-    font-size: 14px;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-  }
-  .sidebarAccount div > span {
-    display: block;
-    font-size: 12px;
     color: var(--tc-sidebar-muted);
   }
   .workspace {
@@ -235,7 +266,7 @@
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    font-size: 14px;
+    font-size: var(--tc-font-size-sm);
     color: var(--tc-text-muted);
     font-weight: 600;
   }
@@ -251,7 +282,7 @@
     display: flex;
     gap: 8px;
     align-items: center;
-    font-size: 14px;
+    font-size: var(--tc-font-size-sm);
     color: var(--tc-text-muted);
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
@@ -292,7 +323,7 @@
     min-width: 0;
     flex: 1;
     max-width: 164px;
-    font-size: 14px;
+    font-size: var(--tc-font-size-sm);
     font-weight: 800;
     white-space: nowrap;
     overflow: hidden;
@@ -300,7 +331,7 @@
   }
   .accountName small {
     display: block;
-    font-size: 12px;
+    font-size: var(--tc-font-size-xs);
     font-weight: 600;
     color: var(--tc-text-muted);
   }
@@ -309,7 +340,7 @@
     top: calc(100% + 12px);
     right: 0;
     width: min(300px, calc(100vw - 32px));
-    border-radius: 16px;
+    border-radius: var(--tc-radius-md);
     padding: 8px;
     background: var(--tc-surface);
     border: 1px solid var(--tc-border);
@@ -329,7 +360,7 @@
     margin-bottom: 4px;
     border-bottom: 1px solid var(--tc-border);
     color: var(--tc-text-muted);
-    font-size: 12px;
+    font-size: var(--tc-font-size-xs);
     overflow-wrap: anywhere;
   }
   .accountPopover a,
@@ -342,8 +373,8 @@
     min-height: 48px;
     border: 0;
     background: transparent;
-    border-radius: 10px;
-    font-size: 14px;
+    border-radius: var(--tc-radius-md);
+    font-size: var(--tc-font-size-sm);
     font-weight: 600;
   }
   .accountPopover svg {
@@ -380,7 +411,7 @@
     gap: 16px;
     margin: 16px 32px 0;
     padding: 20px 0;
-    font-size: 12px;
+    font-size: var(--tc-font-size-xs);
     color: var(--tc-text-muted);
     border-top: 1px solid var(--tc-border);
   }
@@ -396,7 +427,7 @@
     align-items: center;
     gap: 8px;
     min-width: 0;
-    font-size: 12px;
+    font-size: var(--tc-font-size-xs);
     font-weight: 700;
     color: var(--tc-text-muted);
   }
@@ -406,7 +437,7 @@
     background-color: var(--tc-primary-soft);
     border-color: var(--tc-primary-border);
     border-radius: var(--tc-radius-pill);
-    font-size: 14px;
+    font-size: var(--tc-font-size-sm);
     font-weight: 700;
     color: var(--tc-primary);
   }
@@ -415,7 +446,7 @@
     flex-wrap: wrap;
     align-items: center;
     gap: 8px;
-    font-size: 14px;
+    font-size: var(--tc-font-size-sm);
     color: var(--tc-text-muted);
     margin-bottom: 24px;
     padding: 4px 14px 4px 4px;
@@ -429,7 +460,7 @@
   .childContext :global(.avatar) {
     width: 28px;
     height: 28px;
-    font-size: 11px;
+    font-size: var(--tc-font-size-xs);
   }
   .childContext strong {
     color: var(--tc-text);
@@ -457,7 +488,7 @@
   }
   .studying .topbarLeft > a {
     min-height: 56px;
-    font-size: 16px;
+    font-size: var(--tc-font-size-md);
   }
   @media (min-width: 1536px) {
     .main {
@@ -470,7 +501,7 @@
       margin-inline: 48px;
     }
   }
-  /* The teacher menu is long: the mascot only shows when Settings and the account still fit below it. */
+  /* Reserve space for Settings in the longer teacher menu. */
   @media (max-height: 1099px) {
     .shell:not(.family) .mascot {
       display: none;
@@ -537,7 +568,7 @@
       gap: 8px;
     }
     .topbarTitle {
-      font-size: 14px;
+      font-size: var(--tc-font-size-sm);
     }
     .date,
     .accountName,
@@ -560,7 +591,6 @@
         var(--tc-bottom-nav-height) + env(safe-area-inset-bottom) + 8px
       );
     }
-    .family .menuButton,
     .family .topbarTitle {
       display: none;
     }
@@ -615,8 +645,8 @@
       align-items: center;
       justify-content: center;
       gap: 4px;
-      border-radius: 12px;
-      font-size: 12px;
+      border-radius: var(--tc-radius-md);
+      font-size: var(--tc-font-size-xs);
       font-weight: 700;
       color: var(--tc-text-muted);
       min-height: 56px;
@@ -640,7 +670,7 @@
       gap: 4px;
     }
     .studying .topbarLeft > a {
-      font-size: 16px;
+      font-size: var(--tc-font-size-md);
       min-height: 56px;
     }
     .family.studying .workspace {

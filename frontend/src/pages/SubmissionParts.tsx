@@ -13,7 +13,7 @@ import {
 import { api } from "../lib/api";
 import { bytes } from "../lib/files";
 import { dateTimeLabel } from "../lib/format";
-import { useResource, useUnsavedChanges } from "../lib/hooks";
+import { useBeforeUnload, useResource } from "../lib/hooks";
 import { productUrl, responseLabels } from "../lib/submissions";
 import type {
   ProductFile,
@@ -350,7 +350,7 @@ function DraftComposer({
     attached.map((f) => f.id).join() !==
       (saved.attachments || []).map((f) => f.id).join() ||
     selected.length > 0;
-  useUnsavedChanges(dirty);
+  useBeforeUnload(dirty);
   const extensions: Record<string, string> = {
     IMAGE: ".png,.jpg,.jpeg,.gif,.webp",
     AUDIO: ".mp3,.wav,.ogg",

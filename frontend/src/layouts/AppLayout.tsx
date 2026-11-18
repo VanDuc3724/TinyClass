@@ -2,8 +2,11 @@ import {
   Suspense,
   useCallback,
   useEffect,
+  useId,
+  useLayoutEffect,
   useRef,
   useState,
+  type FormEvent,
   type ReactNode,
 } from "react";
 import {
@@ -20,13 +23,23 @@ import {
   Avatar,
   Brand,
   ErrorNotice,
+  Field,
   Icon,
   Loading,
+  Modal,
   ReadingElephant,
 } from "../components/ui";
 import { api } from "../lib/api";
+import { businessToday, dateLabel } from "../lib/format";
 import { useResource } from "../lib/hooks";
 import { trapDialogFocus } from "../lib/accessibility";
+import {
+  childProfilePath,
+  ParentAccessContext,
+  readChildModeProfile,
+  saveChildModeProfile,
+  useChildMode,
+} from "../lib/childMode";
 import styles from "./AppLayout.module.css";
 import NotificationBell from "../components/NotificationBell";
 import PageErrorBoundary from "../components/PageErrorBoundary";
@@ -42,7 +55,13 @@ export function RequireAccount({ role }: { role: "TEACHER" | "PARENT" }) {
       </div>
     );
   if (!auth.account)
-    return <Navigate to="/login" state={{ from: location.pathname }} replace />;
+    return (
+      <Navigate
+        to="/login"
+        state={{ from: location.pathname + location.search + location.hash }}
+        replace
+      />
+    );
   if (auth.account.role !== role)
     return (
       <Navigate
@@ -95,13 +114,194 @@ function RouteFocus() {
   return null;
 }
 export default function AppLayout() {
+  const { account } = useAuth();
+  return account?.role === "PARENT" ? (
+    <FamilyLayout key={account.id} accountId={account.id} />
+  ) : (
+    <WorkspaceLayout />
+  );
+}
+
+function FamilyLayout({ accountId }: { accountId: string }) {
+  const { pathname } = useLocation();
+  const childMode = useChildMode();
+  const profile = childMode ? childProfilePath(pathname) : null;
+  const [childProfile, setChildProfile] = useState(() =>
+    readChildModeProfile(accountId),
+  );
+  const leaving = useRef(false);
+  useLayoutEffect(() => {
+    if (!profile) leaving.current = false;
+    if (!profile || childProfile || leaving.current) return;
+    saveChildModeProfile(accountId, profile);
+    setChildProfile(profile);
+  }, [accountId, childProfile, profile]);
+  useEffect(() => {
+    const restore = (event: PageTransitionEvent) => {
+      if (event.persisted) setChildProfile(readChildModeProfile(accountId));
+    };
+    window.addEventListener("pageshow", restore);
+    return () => window.removeEventListener("pageshow", restore);
+  }, [accountId]);
+
+  if (childProfile && profile !== childProfile) {
+    return <Navigate replace to={`${childProfile}/kids`} />;
+  }
+  if (profile) {
+    return (
+      <ChildLayout
+        profile={profile}
+        onExit={() => {
+          leaving.current = true;
+          saveChildModeProfile(accountId, null);
+          setChildProfile(null);
+        }}
+      />
+    );
+  }
+  return <WorkspaceLayout />;
+}
+
+function parentChallenge(previousResult?: number) {
+  const first = 7 + Math.floor(Math.random() * 3);
+  const choices = [4, 5, 6, 7, 8].filter((second) => first + second !== previousResult);
+  return [first, choices[Math.floor(Math.random() * choices.length)]] as const;
+}
+
+function ParentConfirmation({
+  onClose,
+  onConfirm,
+}: {
+  onClose: () => void;
+  onConfirm: () => void;
+}) {
+  const [challenge, setChallenge] = useState(() => parentChallenge());
+  const [first, second] = challenge;
+  const [retry, setRetry] = useState(false);
+  const answerField = useRef<HTMLInputElement>(null);
+  const retryId = useId();
+  useLayoutEffect(() => {
+    if (retry) answerField.current?.focus();
+  }, [challenge, retry]);
+
+  function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const answer = String(
+      new FormData(event.currentTarget).get("answer"),
+    ).trim();
+    if (!/^\d{1,2}$/.test(answer) || Number(answer) !== first + second) {
+      event.currentTarget.reset();
+      setChallenge(parentChallenge(first + second));
+      setRetry(true);
+      return;
+    }
+    onConfirm();
+  }
+
+  return (
+    <Modal title="Nhờ người lớn xác nhận" onClose={onClose}>
+      <p className="muted">Phụ huynh giải phép tính để tiếp tục.</p>
+      <form onSubmit={submit}>
+        <Field label={`Kết quả của ${first} + ${second}`}>
+          <input
+            ref={answerField}
+            name="answer"
+            inputMode="numeric"
+            required
+            maxLength={2}
+            autoComplete="off"
+            aria-describedby={retry ? retryId : undefined}
+            onChange={() => setRetry(false)}
+          />
+        </Field>
+        {retry && (
+          <p id={retryId} role="alert" className={styles.childExitError}>
+            Kết quả chưa đúng. Vui lòng giải phép tính mới.
+          </p>
+        )}
+        <div className="form-actions">
+          <button
+            type="button"
+            className="button button-ghost"
+            onClick={onClose}
+          >
+            Ở lại góc của bé
+          </button>
+          <button className="button button-primary">Xác nhận</button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function ChildLayout({
+  profile,
+  onExit,
+}: {
+  profile: string;
+  onExit: () => void;
+}) {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [parentDestination, setParentDestination] = useState<string | null>(null);
+  const corner = `${profile}/kids`;
+  const atCorner = location.pathname.replace(/\/$/, "") === corner;
+  return (
+    <ParentAccessContext.Provider value={setParentDestination}>
+      <div className={styles.childShell}>
+        <a className="skip-link" href="#main-content">
+          Đến nội dung chính
+        </a>
+        <header className={styles.childTopbar}>
+          {atCorner ? (
+            <Brand />
+          ) : (
+            <Link className={styles.childHome} to={corner}>
+              <Icon name="home" />
+              Về góc của bé
+            </Link>
+          )}
+          {atCorner && (
+            <button
+              type="button"
+              className={styles.childExit}
+              onClick={() => setParentDestination(profile)}
+            >
+              Về trang phụ huynh
+            </button>
+          )}
+        </header>
+        <main className={styles.childMain} id="main-content" tabIndex={-1}>
+          <PageErrorBoundary resetKey={location.key}>
+            <Suspense fallback={<Loading text="Đang mở…" />}>
+              <RouteFocus />
+              <Outlet />
+            </Suspense>
+          </PageErrorBoundary>
+        </main>
+        {parentDestination && (
+          <ParentConfirmation
+            onClose={() => setParentDestination(null)}
+            onConfirm={() => {
+              setParentDestination(null);
+              onExit();
+              navigate(parentDestination, { replace: true });
+            }}
+          />
+        )}
+      </div>
+    </ParentAccessContext.Provider>
+  );
+}
+
+function WorkspaceLayout() {
   const { account, logout } = useAuth();
   const location = useLocation(),
     navigate = useNavigate();
   const [open, setOpen] = useState(false),
     [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>(null);
-  const [today] = useState(() => new Date());
+  const [today, setToday] = useState(businessToday);
   const [desktop, setDesktop] = useState(
     () => window.matchMedia("(min-width: 1200px)").matches,
   );
@@ -110,6 +310,7 @@ export default function AppLayout() {
   const accountMenu = useRef<HTMLDetailsElement>(null);
   const teacher = account!.role === "TEACHER",
     root = teacher ? "/teacher" : "/family";
+  const accountRole = teacher ? "Giáo viên" : "Phụ huynh";
   const verified = !!account!.emailVerifiedAt,
     accountId = account!.id;
   const routeChild = location.pathname.match(
@@ -144,6 +345,24 @@ export default function AppLayout() {
     : "/family";
   const child = children.data?.find((c) => c.id === selectedChild);
   const studying = !teacher && /\/learning\/items\//.test(location.pathname);
+  useEffect(() => {
+    let midnightTimer: number;
+    const update = () => {
+      window.clearTimeout(midnightTimer);
+      const date = businessToday();
+      setToday(date);
+      const nextMidnight = Date.parse(`${date}T00:00:00+07:00`) + 86_400_000;
+      midnightTimer = window.setTimeout(update, Math.max(1, nextMidnight - Date.now()));
+    };
+    update();
+    window.addEventListener("focus", update);
+    document.addEventListener("visibilitychange", update);
+    return () => {
+      window.clearTimeout(midnightTimer);
+      window.removeEventListener("focus", update);
+      document.removeEventListener("visibilitychange", update);
+    };
+  }, []);
   useEffect(() => {
     const query = window.matchMedia("(min-width: 1200px)");
     const resize = () => {
@@ -393,13 +612,6 @@ export default function AppLayout() {
           <Icon name={teacher ? "settings" : "user"} />
           {teacher ? "Cài đặt" : "Tài khoản"}
         </NavLink>
-        <div className={styles.sidebarAccount}>
-          <Avatar name={account!.displayName} />
-          <div>
-            <strong>{account!.displayName}</strong>
-            <span>{teacher ? "Giáo viên" : "Phụ huynh"}</span>
-          </div>
-        </div>
       </div>
     </>
   );
@@ -415,6 +627,7 @@ export default function AppLayout() {
       ) : (
         <dialog
           ref={drawer}
+          id="workspace-navigation"
           className={`sidebar ${styles.sidebar} ${styles.drawer}`}
           aria-label="Điều hướng chính"
           onKeyDown={trapDialogFocus}
@@ -441,6 +654,7 @@ export default function AppLayout() {
               className={`icon-button ${styles.menuButton}`}
               aria-label="Mở menu"
               aria-expanded={open}
+              aria-controls={!desktop ? "workspace-navigation" : undefined}
               onClick={() => setOpen(true)}
             >
               <Icon name="menu" />
@@ -451,9 +665,7 @@ export default function AppLayout() {
                 Về góc gia đình
               </Link>
             ) : (
-              <span className={styles.topbarTitle}>
-                {teacher ? "Không gian giảng dạy" : "Đồng hành cùng con"}
-              </span>
+              !teacher && <span className={styles.topbarTitle}>Đồng hành cùng con</span>
             )}
             {!teacher && children.data && children.data.length > 0 && (
               <label className={styles.childSelect}>
@@ -478,21 +690,18 @@ export default function AppLayout() {
             {(teacher || verified) && (
               <NotificationBell key={accountId} root={root} />
             )}
-            <span className={styles.date}>
+            <time className={styles.date} dateTime={today}>
               <Icon name="calendar" />
-              {new Intl.DateTimeFormat("vi-VN", {
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric",
-                timeZone: "Asia/Ho_Chi_Minh",
-              }).format(today)}
-            </span>
+              {dateLabel(today)}
+            </time>
             <details ref={accountMenu} className={styles.accountMenu}>
-              <summary aria-label="Menu tài khoản">
+              <summary
+                aria-label={`${account!.displayName} ${accountRole}, menu tài khoản`}
+              >
                 <Avatar name={account!.displayName} />
                 <span className={styles.accountName}>
                   {account!.displayName}
-                  <small>{teacher ? "Giáo viên" : "Phụ huynh"}</small>
+                  <small>{accountRole}</small>
                 </span>
                 <Icon name="chevron" />
               </summary>

@@ -384,9 +384,12 @@ export function registerPaymentFlows(
     );
     await page.setViewportSize({ width: 375, height: 812 });
     await capture(page, "stale-balance-375", modal.getByRole("alert"));
-    page.once("dialog", (dialog) => dialog.accept());
     await modal
       .getByRole("button", { name: "Đóng và cập nhật số liệu", exact: true })
+      .click();
+    await page
+      .getByRole("dialog", { name: "Bỏ thay đổi chưa lưu?", exact: true })
+      .getByRole("button", { name: "Bỏ thay đổi", exact: true })
       .click();
     await expect(modal).toHaveCount(0);
     await expect(balance(page).getByText(/600\.000/)).toBeVisible();

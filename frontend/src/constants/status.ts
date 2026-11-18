@@ -25,6 +25,8 @@ export const statusLabels: Record<string, string> = {
   NEED_RECONNECT: "Cần kết nối lại",
   NOT_STARTED: "Chưa bắt đầu",
   OPENED: "Đã mở",
+  IN_PROGRESS: "Đang chơi",
+  ABANDONED: "Đã dừng",
   PARENT_CONFIRMED: "Gia đình đã xác nhận",
   SUBMITTED: "Chờ cô duyệt",
   NEEDS_REVISION: "Cần bổ sung",
@@ -64,14 +66,14 @@ export function statusTone(status: string) {
       "PARENT_CONFIRMED",
       "PRESENT",
       "CURRENT",
-      "ISSUED",
       "RECORDED",
       "PAID",
       "NO_PAYMENT_DUE",
+      "PUBLISHED",
     ].includes(status)
   )
     return "success";
-  if (["PUBLISHED", "OPENED", "SCHEDULED", "UPCOMING"].includes(status))
+  if (["ISSUED", "OPENED", "SCHEDULED", "UPCOMING", "IN_PROGRESS"].includes(status))
     return "info";
   if (
     [

@@ -3,6 +3,7 @@ import type { FormEvent } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth/useAuth";
 import VerificationPrompt from "../auth/VerificationPrompt";
+import { RefreshButton } from "../components/RefreshButton";
 import {
   Badge,
   EmptyState,
@@ -14,7 +15,8 @@ import {
   Pagination,
 } from "../components/ui";
 import { api } from "../lib/api";
-import { useResource, useUnsavedChanges } from "../lib/hooks";
+import { useRefreshOnVisible, useResource } from "../lib/hooks";
+import { useUnsavedChanges } from "../lib/unsavedChanges";
 import { dateTimeLabel } from "../lib/format";
 import type { Announcement } from "../lib/communications";
 import { refreshNotificationBadge } from "../lib/communications";
@@ -83,6 +85,7 @@ export function AnnouncementListPage({ family = false }: { family?: boolean }) {
           : Promise.resolve(null),
       [enabled, base, classroom, status, search, page],
     ),
+    { refreshOnVisible: enabled && !creating },
   );
   return (
     <>
@@ -156,13 +159,12 @@ export function AnnouncementListPage({ family = false }: { family?: boolean }) {
                 </Field>
               </>
             )}
-            <button
-              className="button button-ghost"
-              disabled={resource.loading}
+            <RefreshButton
+              label="Cập nhật bảng tin"
+              loading={resource.loading}
               onClick={resource.reload}
-            >
-              Cập nhật bảng tin
-            </button>
+              updatedAt={resource.updatedAt}
+            />
           </div>
           <ErrorNotice
             error={resource.error || classes.error}
@@ -265,6 +267,7 @@ export function AnnouncementDetailPage({
     [history, setHistory] = useState(false);
   const [busy, setBusy] = useState(false),
     [error, setError] = useState<unknown>(null);
+  const pending = busy || resource.loading;
   const row = resource.data;
   function refresh() {
     setEditing(false);
@@ -273,6 +276,10 @@ export function AnnouncementDetailPage({
     resource.reload();
     refreshNotificationBadge();
   }
+  useRefreshOnVisible(
+    refresh,
+    enabled && !pending && !editing && !archiving && !history,
+  );
   async function action(name: "publish" | "read") {
     if (!row || busy) return;
     setBusy(true);
@@ -293,7 +300,6 @@ export function AnnouncementDetailPage({
   if (resource.loading && !row) return <Loading />;
   if (resource.error || !row)
     return <ErrorNotice error={resource.error} retry={refresh} />;
-  const pending = busy || resource.loading;
   return (
     <>
       <Link to={back} className="text-link">
@@ -303,13 +309,12 @@ export function AnnouncementDetailPage({
         eyebrow={row.className}
         title={row.title}
         action={
-          <button
-            className="button button-ghost"
-            disabled={pending}
+          <RefreshButton
+            label="Cập nhật thông báo"
+            loading={pending}
             onClick={refresh}
-          >
-            Cập nhật thông báo
-          </button>
+            updatedAt={resource.updatedAt}
+          />
         }
       />
       <ErrorNotice error={error} />
@@ -433,7 +438,7 @@ function AnnouncementEditor({
       classId !== (row?.classId || initialClass),
   );
   function close() {
-    if (!busy && discard()) onClose();
+    if (!busy) discard(onClose);
   }
   async function save(e: FormEvent) {
     e.preventDefault();
@@ -530,9 +535,7 @@ function AnnouncementEditor({
             type="button"
             className="button button-ghost"
             disabled={busy}
-            onClick={() => {
-              if (discard()) onReload();
-            }}
+            onClick={() => discard(onReload)}
           >
             Đóng và cập nhật
           </button>
@@ -590,7 +593,7 @@ function ArchiveAnnouncement({
       title="Lưu trữ thông báo"
       busy={busy}
       onClose={() => {
-        if (!busy && discard()) onClose();
+        if (!busy) discard(onClose);
       }}
     >
       <p>

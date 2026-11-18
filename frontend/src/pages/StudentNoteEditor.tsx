@@ -4,7 +4,8 @@ import { ErrorNotice, Field, Icon, Modal } from "../components/ui";
 import { api, ApiError, query } from "../lib/api";
 import { bytes, fileUrl, uploadFile } from "../lib/files";
 import { businessToday, dateTimeLabel } from "../lib/format";
-import { useResource, useUnsavedChanges } from "../lib/hooks";
+import { useResource } from "../lib/hooks";
+import { useUnsavedChanges } from "../lib/unsavedChanges";
 import type { NoteContexts, NoteFile, TeacherNote } from "../lib/studentNotes";
 import { MediaPreview } from "./FilePages";
 import styles from "./StudentNotes.module.css";
@@ -70,7 +71,7 @@ export default function StudentNoteEditor({
   );
   const locked = busy || !!uploading;
   function close() {
-    if (!locked && confirmDiscard()) onClose();
+    if (!locked) confirmDiscard(onClose);
   }
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -137,7 +138,7 @@ export default function StudentNoteEditor({
     }
   }
   async function rebase() {
-    if (!note || !confirmDiscard()) return;
+    if (!note) return;
     setBusy(true);
     setError(null);
     try {
@@ -376,7 +377,7 @@ export default function StudentNoteEditor({
                 type="button"
                 className="text-button"
                 disabled={locked}
-                onClick={() => void rebase()}
+                onClick={() => confirmDiscard(rebase)}
               >
                 Tải lại bản mới
               </button>

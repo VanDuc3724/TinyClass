@@ -4,7 +4,7 @@ import { ErrorNotice, Field, Modal } from "../components/ui";
 import { api } from "../lib/api";
 import { businessLocal } from "../lib/schedule";
 import { dateTimeLabel } from "../lib/format";
-import { useUnsavedChanges } from "../lib/hooks";
+import { useUnsavedChanges } from "../lib/unsavedChanges";
 import { moneyVnd } from "../lib/tuition";
 import type { TeacherInvoice } from "../lib/invoices";
 import { paymentInstant, paymentMethods } from "../lib/payments";
@@ -52,7 +52,7 @@ export function RecordPaymentModal({
       !!internalNote,
   );
   function close() {
-    if (!busy && discard()) onClose();
+    if (!busy) discard(onClose);
   }
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -162,9 +162,7 @@ export function RecordPaymentModal({
             type="button"
             className="button button-ghost"
             disabled={busy}
-            onClick={() => {
-              if (discard()) onReload();
-            }}
+            onClick={() => discard(onReload)}
           >
             Đóng và cập nhật số liệu
           </button>
@@ -205,7 +203,7 @@ export function VoidPaymentModal({
   const anchor = usePaymentError(error);
   const discard = useUnsavedChanges(!!reason);
   function close() {
-    if (!busy && discard()) onClose();
+    if (!busy) discard(onClose);
   }
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -252,9 +250,7 @@ export function VoidPaymentModal({
             type="button"
             className="button button-ghost"
             disabled={busy}
-            onClick={() => {
-              if (discard()) onReload();
-            }}
+            onClick={() => discard(onReload)}
           >
             Đóng và cập nhật số liệu
           </button>

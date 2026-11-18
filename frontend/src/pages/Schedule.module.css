@@ -8,7 +8,7 @@
     margin-bottom: 20px;
   }
   .weekBar h2 {
-    font-size: 20px;
+    font-size: var(--tc-font-size-xl);
     margin: 0;
   }
   .weekControls {
@@ -25,7 +25,7 @@
   }
   .zone {
     color: var(--tc-text-muted);
-    font-size: 14px;
+    font-size: var(--tc-font-size-sm);
     margin-top: 4px;
   }
   /* Each day is a row (date beside its sessions) until the area fits seven readable columns. */
@@ -57,11 +57,11 @@
     background: var(--tc-surface);
     border: 1px solid var(--tc-border);
     color: var(--tc-text-muted);
-    font-size: 12px;
+    font-size: var(--tc-font-size-xs);
     font-weight: 600;
   }
   .dayLabel time {
-    font-size: 20px;
+    font-size: var(--tc-font-size-xl);
     font-weight: 800;
     color: var(--tc-text);
   }
@@ -86,7 +86,7 @@
     border: 1px dashed var(--tc-border);
     border-radius: var(--tc-radius-md);
     color: var(--tc-text-muted);
-    font-size: 13px;
+    font-size: var(--tc-font-size-sm);
   }
   @container (min-width: 840px) {
     .week {
@@ -142,13 +142,13 @@
     border-color: var(--tc-primary);
   }
   .sessionCard h3 {
-    font-size: 18px;
+    font-size: var(--tc-font-size-lg);
     margin: 0 0 8px;
     overflow-wrap: anywhere;
   }
   .sessionCard p {
     margin: 4px 0 0;
-    font-size: 14px;
+    font-size: var(--tc-font-size-sm);
   }
   .sessionCard > div {
     min-width: 0;
@@ -164,7 +164,7 @@
     place-items: center;
     width: 44px;
     height: 44px;
-    border-radius: 12px;
+    border-radius: var(--tc-radius-md);
     background: var(--tc-info-soft);
     color: var(--tc-info);
     flex-shrink: 0;
@@ -195,15 +195,15 @@
     display: none;
   }
   .compact h3 {
-    font-size: 15px;
+    font-size: var(--tc-font-size-md);
     margin: 0 0 4px;
   }
   .compact p {
-    font-size: 13px;
+    font-size: var(--tc-font-size-sm);
     margin-top: 2px;
   }
   .compact .sessionTime {
-    font-size: 14px;
+    font-size: var(--tc-font-size-sm);
     margin-bottom: 4px;
   }
   .compact .meta {
@@ -245,7 +245,7 @@
   .sessionCard .familyNote {
     margin-top: 4px;
     padding: 8px;
-    border-radius: 8px;
+    border-radius: var(--tc-radius-sm);
     background: var(--tc-primary-soft);
     overflow-wrap: anywhere;
   }
@@ -254,7 +254,7 @@
   }
   .attendance :global(.text-button) {
     justify-self: start;
-    font-size: 13px;
+    font-size: var(--tc-font-size-sm);
   }
   .meta {
     display: flex;
@@ -294,12 +294,12 @@
     min-height: 84px;
     padding: 12px;
     background: var(--tc-primary-soft);
-    border-radius: 16px;
+    border-radius: var(--tc-radius-md);
     color: var(--tc-primary);
     font-weight: 800;
   }
   .ruleDay small {
-    font-size: 12px;
+    font-size: var(--tc-font-size-xs);
     font-weight: 600;
   }
   .ruleBody {
@@ -307,12 +307,12 @@
     min-width: 0;
   }
   .ruleBody h2 {
-    font-size: 20px;
+    font-size: var(--tc-font-size-xl);
     margin: 0 0 4px;
   }
   .ruleBody p {
     margin: 4px 0;
-    font-size: 14px;
+    font-size: var(--tc-font-size-sm);
     color: var(--tc-text-muted);
     overflow-wrap: anywhere;
   }
@@ -346,19 +346,19 @@
     flex-shrink: 0;
   }
   .hint {
-    font-size: 14px;
+    font-size: var(--tc-font-size-sm);
     color: var(--tc-text-muted);
     margin: 8px 0 20px;
   }
   .preview {
     margin: 20px 0;
     border: 1px solid var(--tc-primary);
-    border-radius: 16px;
+    border-radius: var(--tc-radius-md);
     padding: 20px;
     background: var(--tc-primary-soft);
   }
   .preview h3 {
-    font-size: 18px;
+    font-size: var(--tc-font-size-lg);
     margin: 0 0 12px;
   }
   .preview p {
@@ -370,7 +370,7 @@
   }
   .preview li {
     margin-bottom: 8px;
-    font-size: 14px;
+    font-size: var(--tc-font-size-sm);
     overflow-wrap: anywhere;
   }
   .conflicts {
@@ -392,7 +392,7 @@
     padding: 24px;
   }
   .detailPanel h2 {
-    font-size: 20px;
+    font-size: var(--tc-font-size-xl);
     margin: 0 0 16px;
   }
   .detailPanel dl {
@@ -402,7 +402,7 @@
     margin-bottom: 16px;
   }
   .detailPanel dt {
-    font-size: 14px;
+    font-size: var(--tc-font-size-sm);
     color: var(--tc-text-muted);
   }
   .detailPanel dd {
@@ -423,14 +423,14 @@
     padding-bottom: 0;
   }
   .history p {
-    font-size: 14px;
+    font-size: var(--tc-font-size-sm);
     margin: 6px 0;
     overflow-wrap: anywhere;
   }
   .notice {
     border: 1px solid color-mix(in srgb, var(--tc-success) 28%, transparent);
     background: var(--tc-success-soft);
-    border-radius: 12px;
+    border-radius: var(--tc-radius-md);
     padding: 16px;
     margin-bottom: 20px;
     color: var(--tc-success);

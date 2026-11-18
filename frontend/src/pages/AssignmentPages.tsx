@@ -13,6 +13,7 @@ import { completionLabels } from "../lib/learning";
 import type { CompletionMode, Course, Lesson } from "../lib/learning";
 import type { Classroom, Student } from "../lib/types";
 import {
+  Badge,
   EmptyState,
   ErrorNotice,
   Field,
@@ -116,9 +117,10 @@ export function AssignmentListPage() {
                       <span className="stat-icon sand">
                         <Icon name="book" />
                       </span>
-                      <span className="content-badge">
-                        {statusLabels[item.status]}
-                      </span>
+                      <Badge
+                        status={item.status}
+                        label={statusLabels[item.status]}
+                      />
                     </div>
                     <h2>{item.title}</h2>
                     <p className="muted">
@@ -450,7 +452,7 @@ function AssignmentDetail({
         }
       />
       <div className="content-meta">
-        <span className="content-badge">{statusLabels[initial.status]}</span>
+        <Badge status={initial.status} label={statusLabels[initial.status]} />
         <span>
           {initial.sourceType === "COURSE" ? "Khóa học" : "Bài học"} ·{" "}
           {initial.targetType === "CLASS" ? "Giao theo lớp" : "Giao riêng"}

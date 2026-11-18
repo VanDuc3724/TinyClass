@@ -1,0 +1,81 @@
+@layer components {
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+    gap: 16px;
+    margin-block: 16px;
+  }
+  .card {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 16px;
+    padding: 16px;
+  }
+  .cardHeading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .cardHeading h2,
+  .cardHeading h3 {
+    font-size: var(--tc-font-size-xl);
+    overflow-wrap: anywhere;
+  }
+  .icon {
+    display: grid;
+    flex: none;
+    width: 56px;
+    height: 56px;
+    place-items: center;
+    border-radius: var(--tc-radius-md);
+  }
+  .CHOICE {
+    color: var(--tc-info);
+    background: var(--tc-info-soft);
+  }
+  .MATCH {
+    color: var(--tc-success);
+    background: var(--tc-success-soft);
+  }
+  .MEMORY {
+    color: var(--tc-primary);
+    background: var(--tc-primary-soft);
+  }
+  .play {
+    min-height: 56px;
+    margin-top: auto;
+    font-size: var(--tc-font-size-lg);
+  }
+  .waiting {
+    margin-block: 16px;
+  }
+  .waiting summary {
+    min-height: 56px;
+    padding: 14px 16px;
+    font-weight: 800;
+    color: var(--tc-primary);
+  }
+  .waiting summary svg {
+    margin-inline: 4px 8px;
+    vertical-align: middle;
+  }
+  .waiting ul {
+    margin: 0;
+    padding: 0 16px 16px;
+    list-style: none;
+  }
+  .waiting li {
+    display: grid;
+    gap: 4px;
+    padding-block: 12px;
+    border-top: 1px solid var(--tc-border);
+    overflow-wrap: anywhere;
+  }
+  .waiting li span {
+    color: var(--tc-text-muted);
+  }
+  .pagination button {
+    min-height: 56px;
+  }
+}

@@ -6,7 +6,10 @@ import { bytes, fileUrl, uploadFile } from "../lib/files";
 import type { MediaFile, StorageConnection } from "../lib/files";
 import { useResource } from "../lib/hooks";
 import { instantDateLabel } from "../lib/format";
+import FilterBar from "../components/FilterBar";
+import { statusLabels } from "../constants/status";
 import {
+  Badge,
   EmptyState,
   ErrorNotice,
   Field,
@@ -56,6 +59,7 @@ export function MediaPreview({
 export default function FileLibraryPage() {
   const [params] = useSearchParams();
   const [search, setSearch] = useState(""),
+    [status, setStatus] = useState(""),
     [page, setPage] = useState(0),
     [upload, setUpload] = useState(params.get("upload") === "1");
   const [selected, setSelected] = useState<MediaFile | null>(null),
@@ -65,10 +69,10 @@ export default function FileLibraryPage() {
     useCallback(
       (signal) =>
         api.list<MediaFile>(
-          `/files${query({ q: search, page, size: 12 })}`,
+          `/files${query({ q: search, status, page, size: 12 })}`,
           signal,
         ),
-      [search, page],
+      [search, status, page],
     ),
   );
   const storage = useResource(
@@ -126,25 +130,50 @@ export default function FileLibraryPage() {
               mặc định
             </p>
           </div>
-          <span className="pill">Riêng tư</span>
+          <Badge label="Riêng tư" />
         </div>
       )}
       <ErrorNotice error={files.error || storage.error} retry={reload} />
-      <div className="list-toolbar">
-        <div className="search-field">
-          <Icon name="search" />
-          <input
-            aria-label="Tìm tài liệu"
-            placeholder="Tìm theo tên tệp…"
-            value={search}
+      <FilterBar
+        active={!!(search || status)}
+        onReset={() => {
+          setSearch("");
+          setStatus("");
+          setPage(0);
+        }}
+      >
+        <Field label="Tìm tài liệu">
+          <span className="search-field">
+            <Icon name="search" />
+            <input
+              placeholder="Tìm theo tên tệp…"
+              maxLength={150}
+              value={search}
+              onChange={(event) => {
+                setSearch(event.target.value);
+                setPage(0);
+              }}
+            />
+          </span>
+        </Field>
+        <Field label="Trạng thái tệp">
+          <select
+            aria-label="Trạng thái tệp"
+            value={status}
             onChange={(event) => {
-              setSearch(event.target.value);
+              setStatus(event.target.value);
               setPage(0);
             }}
-          />
-        </div>
-        <span className="muted">{files.data?.meta.totalElements ?? 0} tệp</span>
-      </div>
+          >
+            <option value="">Mọi trạng thái</option>
+            {["READY", "UPLOADING", "FAILED"].map((value) => (
+              <option key={value} value={value}>
+                {statusLabels[value]}
+              </option>
+            ))}
+          </select>
+        </Field>
+      </FilterBar>
       {files.loading && !files.data ? (
         <Loading />
       ) : (
@@ -188,21 +217,27 @@ export default function FileLibraryPage() {
                       {bytes(file.sizeBytes)} ·{" "}
                       {instantDateLabel(file.createdAt)}
                     </p>
-                    <span
-                      className={`file-policy ${file.learnerDownloadAllowed ? "is-allowed" : ""}`}
-                    >
-                      {file.status !== "READY"
-                        ? "Chưa sẵn sàng"
-                        : file.learnerDownloadAllowed
-                          ? "Cho phép gia đình tải"
-                          : "Gia đình chỉ xem"}
-                    </span>
+                    {file.status === "READY" ? (
+                      <Badge
+                        label={
+                          file.learnerDownloadAllowed
+                            ? "Cho phép gia đình tải"
+                            : "Gia đình chỉ xem"
+                        }
+                      />
+                    ) : (
+                      <Badge status={file.status} />
+                    )}
                   </div>
                 </button>
               ))}
             </div>
-            <Pagination meta={files.data.meta} onChange={setPage} />
+            <Pagination meta={files.data.meta} onChange={setPage} itemLabel="tệp" />
           </>
+        ) : search || status ? (
+          <EmptyState title="Không tìm thấy tài liệu phù hợp" icon="search">
+            Đổi từ khóa hoặc trạng thái tệp để tìm lại.
+          </EmptyState>
         ) : (
           <EmptyState
             title="Tủ tài liệu đang chờ bạn"

@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import type { FormEvent } from "react";
+import type { FormEvent, MouseEvent } from "react";
 import {
   Link,
   useNavigate,
@@ -17,7 +17,8 @@ import {
   Pagination,
 } from "../components/ui";
 import { api, query } from "../lib/api";
-import { useResource, useUnsavedChanges } from "../lib/hooks";
+import { useResource } from "../lib/hooks";
+import { useUnsavedChanges, useUnsavedLink } from "../lib/unsavedChanges";
 import type { Classroom } from "../lib/types";
 import FilterBar from "../components/FilterBar";
 
@@ -65,38 +66,43 @@ export function ClassListPage() {
           setParams({});
         }}
       >
-        <form
-          className="search-box"
-          onSubmit={(event) => {
-            event.preventDefault();
-            filter({ q: search, page: "0" });
-          }}
-        >
-          <Icon name="search" />
-          <input
-            aria-label="Tìm lớp học"
-            placeholder="Tìm theo tên lớp…"
-            value={search}
-            maxLength={150}
-            onChange={(event) => setSearch(event.target.value)}
-          />
-          <button className="text-button" type="submit">
-            Tìm
-          </button>
-        </form>
-        <select
-          aria-label="Trạng thái lớp"
-          value={status}
-          onChange={(event) =>
-            filter({ status: event.target.value, page: "0" })
-          }
-        >
-          <option value="">Tất cả trạng thái</option>
-          <option value="DRAFT">Chuẩn bị</option>
-          <option value="ACTIVE">Đang dạy</option>
-          <option value="COMPLETED">Đã kết thúc</option>
-          <option value="ARCHIVED">Đã lưu trữ</option>
-        </select>
+        <div className="field">
+          <label htmlFor="class-search">Tìm lớp học</label>
+          <form
+            className="search-box"
+            onSubmit={(event) => {
+              event.preventDefault();
+              filter({ q: search, page: "0" });
+            }}
+          >
+            <Icon name="search" />
+            <input
+              id="class-search"
+              placeholder="Tìm theo tên lớp…"
+              value={search}
+              maxLength={150}
+              onChange={(event) => setSearch(event.target.value)}
+            />
+            <button className="text-button" type="submit">
+              Tìm
+            </button>
+          </form>
+        </div>
+        <Field label="Trạng thái lớp">
+          <select
+            aria-label="Trạng thái lớp"
+            value={status}
+            onChange={(event) =>
+              filter({ status: event.target.value, page: "0" })
+            }
+          >
+            <option value="">Tất cả trạng thái</option>
+            <option value="DRAFT">Chuẩn bị</option>
+            <option value="ACTIVE">Đang dạy</option>
+            <option value="COMPLETED">Đã kết thúc</option>
+            <option value="ARCHIVED">Đã lưu trữ</option>
+          </select>
+        </Field>
       </FilterBar>
       <ErrorNotice error={resource.error} retry={resource.reload} />
       {resource.loading && !resource.data ? (
@@ -216,10 +222,14 @@ function ClassForm({ classroom }: { classroom: Classroom | null }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>(null);
   const [dirty, setDirty] = useState(false);
-  const canLeave = useUnsavedChanges(dirty);
+  const discard = useUnsavedChanges(dirty);
+  const followLink = useUnsavedLink(dirty, discard);
   const back = classroom
     ? `/teacher/classes/${classroom.id}`
     : "/teacher/classes";
+  function goBack(event: MouseEvent<HTMLAnchorElement>) {
+    followLink(event, back);
+  }
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const values = new FormData(event.currentTarget);
@@ -271,9 +281,7 @@ function ClassForm({ classroom }: { classroom: Classroom | null }) {
       <Link
         className="back-link"
         to={back}
-        onClick={(event) => {
-          if (!canLeave()) event.preventDefault();
-        }}
+        onClick={goBack}
       >
         ← Trở về lớp học
       </Link>
@@ -389,7 +397,8 @@ function ClassForm({ classroom }: { classroom: Classroom | null }) {
             to={back}
             className="button button-ghost"
             onClick={(event) => {
-              if (busy || !canLeave()) event.preventDefault();
+              if (busy) event.preventDefault();
+              else goBack(event);
             }}
           >
             Hủy

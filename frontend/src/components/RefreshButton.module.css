@@ -1,0 +1,9 @@
+@layer components {
+  .refresh {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--tc-space-1);
+    color: var(--tc-text-muted);
+    font-size: var(--tc-font-size-xs);
+  }
+}

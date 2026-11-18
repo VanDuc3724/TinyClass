@@ -13,7 +13,8 @@ import {
 } from "../components/ui";
 import { api, ApiError } from "../lib/api";
 import { businessToday, dateLabel } from "../lib/format";
-import { useResource, useUnsavedChanges } from "../lib/hooks";
+import { useResource } from "../lib/hooks";
+import { useUnsavedChanges } from "../lib/unsavedChanges";
 import { addDays, weekdays } from "../lib/schedule";
 import type { SchedulePlan, ScheduleRule } from "../lib/schedule";
 import type { Classroom } from "../lib/types";
@@ -196,10 +197,8 @@ function RuleEditor({
     [plan, setPlan] = useState<SchedulePlan | null>(null),
     [confirmed, setConfirmed] = useState(false),
     [dirty, setDirty] = useState(false);
-  const canLeave = useUnsavedChanges(dirty),
-    close = () => {
-      if (canLeave()) onClose();
-    };
+  const discard = useUnsavedChanges(dirty),
+    close = () => discard(onClose);
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);

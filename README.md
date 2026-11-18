@@ -32,6 +32,8 @@ Cấu hình Google thật tạm hoãn theo yêu cầu; các luồng trên dùng 
 
 TC-029 bổ sung **Kho trò chơi / Góc chơi của bé** với Chọn hình đúng, Ghép cặp và Lật thẻ ghi nhớ. Cô soạn/chơi thử/giao cho lớp hoặc từng bé; gia đình chơi tiếp, xem sao/bộ sưu tập và lịch sử. Mỗi lần giao giữ bản nội dung riêng, quyền được kiểm tra cả khi rời lớp/thu hồi. Xem [hướng dẫn góc chơi](doc/18-goc-choi.md) và [spec](doc/spec/07-games.md).
 
+Để đưa máy cho bé, phụ huynh đăng nhập, chọn hồ sơ rồi bấm **Mở góc của bé**. Bé chọn **Học bài** hoặc **Chơi** bằng nút lớn. Từ góc của bé, bấm **Về trang phụ huynh** để xem lịch, học phí và các thông tin gia đình.
+
 Nghiệm thu TC-029 ngày 08–09/11/2026: **214 kiểm thử backend, 47 E2E, build/lint đạt**. Có ba trò chơi và sáu lần giao demo để review tại **http://127.0.0.1:5175**. Xem [báo cáo](doc/verification/2026-11-08-games.md).
 
 Tối ưu ngày 17/11/2026: bộ chọn ảnh/âm thanh phân trang và lọc tại server, tìm kiếm chờ ngừng gõ; thống kê tiến độ gộp truy vấn theo trang; màn hình lỗi giữ điều hướng và có nút tải lại. Xem [phạm vi và kết quả kiểm tra](doc/verification/2026-11-17-optimization.md).
@@ -174,5 +176,7 @@ Dừng các dịch vụ local của project bằng `docker compose --profile tes
 - [Nghiệm thu TC-017 và ảnh minh chứng](doc/verification/2026-11-02-schedule.md)
 
 Profile production yêu cầu các biến `TINYCLASS_DATABASE_URL`, `TINYCLASS_DATABASE_USERNAME`, `TINYCLASS_DATABASE_PASSWORD`, bật secure cookie và không nhập `.env` local. Tệp upload nằm trong database nên sao lưu database là đủ; dung lượng database tăng theo quota tệp.
+
+Khi nâng cấp từ bản trước V19, gắn đúng thư mục upload cũ ở chế độ đọc và đặt `TINYCLASS_UPLOAD_ROOT` thành đường dẫn mà backend truy cập được. Nếu còn tệp cần nhập mà đường dẫn bị thiếu, không đọc được hoặc đi qua liên kết tượng trưng, profile production sẽ dừng khởi động và ghi lỗi cấu hình. Kiểm tra log trước khi tháo thư mục cũ. Tệp xác nhận bị thiếu hoặc sai kích thước hay SHA-256 được đánh dấu FAILED. Lỗi đọc có thể được khắc phục và thử nhập lại khi khởi động.
 
 Email production mặc định chưa bật. Khi dùng dịch vụ SMTP thật, cấu hình `TINYCLASS_MAIL_ENABLED=true`, `TINYCLASS_PUBLIC_URL` là URL HTTPS của ứng dụng, `TINYCLASS_MAIL_HOST`, `TINYCLASS_MAIL_PORT`, `TINYCLASS_MAIL_USERNAME`, `TINYCLASS_MAIL_PASSWORD` và `TINYCLASS_MAIL_FROM`. Production yêu cầu STARTTLS; kết quả Mailpit không thay cho kiểm tra nhà cung cấp thật.

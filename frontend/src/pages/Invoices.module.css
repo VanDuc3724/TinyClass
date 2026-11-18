@@ -11,7 +11,7 @@
   }
   .paymentSummary dt {
     color: var(--tc-text-muted);
-    font-size: 13px;
+    font-size: var(--tc-font-size-sm);
     margin-bottom: 4px;
   }
   .paymentSummary dd {
@@ -63,13 +63,13 @@
     color: var(--tc-text-muted);
   }
   .total {
-    font-size: 30px;
+    font-size: var(--tc-font-size-3xl);
     font-weight: 800;
     color: var(--tc-primary);
     margin: 20px 0;
   }
   .total small {
-    font-size: 14px;
+    font-size: var(--tc-font-size-sm);
     font-weight: 600;
     display: block;
     color: var(--tc-text-muted);
@@ -90,7 +90,7 @@
     padding: 18px 0;
   }
   .line h3 {
-    font-size: 16px;
+    font-size: var(--tc-font-size-md);
   }
   .line p {
     white-space: pre-wrap;
@@ -108,7 +108,7 @@
   .warning {
     background: var(--tc-warning-soft);
     color: var(--tc-warning);
-    border-radius: 12px;
+    border-radius: var(--tc-radius-md);
     padding: 16px;
     margin: 16px 0;
     line-height: 1.6;
@@ -116,21 +116,21 @@
   .information {
     background: var(--tc-primary-soft);
     color: var(--tc-primary);
-    border-radius: 12px;
+    border-radius: var(--tc-radius-md);
     padding: 16px;
     margin: 16px 0;
     line-height: 1.6;
   }
   .private {
     background: var(--tc-surface-muted);
-    border-radius: 12px;
+    border-radius: var(--tc-radius-md);
     padding: 16px;
     margin: 16px 0;
     white-space: pre-wrap;
   }
   .private strong {
     display: block;
-    font-size: 13px;
+    font-size: var(--tc-font-size-sm);
     margin-bottom: 6px;
   }
   .actions {
@@ -177,7 +177,7 @@
       flex: 1 1 140px;
     }
     .total {
-      font-size: 26px;
+      font-size: var(--tc-font-size-2xl);
     }
     .toolbar > * {
       width: 100%;

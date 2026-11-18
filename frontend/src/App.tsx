@@ -5,6 +5,7 @@ import { useAuth } from "./auth/useAuth";
 import AppLayout, { RequireAccount } from "./layouts/AppLayout";
 import { LoginPage, SetupPage } from "./pages/AuthPages";
 import { EmptyState, Loading, PageHeader } from "./components/ui";
+import { UnsavedChangesProvider } from "./components/UnsavedChanges";
 import VerificationPrompt from "./auth/VerificationPrompt";
 
 // Login stays in the entry bundle; every other screen downloads its own chunk on first visit.
@@ -105,6 +106,7 @@ const FamilyChildPage = lazyPage(
   () => import("./pages/FamilyPages"),
   "FamilyChildPage",
 );
+const ChildCornerPage = lazy(() => import("./pages/ChildCornerPage"));
 const ReviewListPage = lazyPage(
   () => import("./pages/SubmissionPages"),
   "ReviewListPage",
@@ -290,7 +292,7 @@ function NotFound() {
   );
 }
 export default function App() {
-  return (
+  const routes = (
     <BrowserRouter>
       <AuthProvider>
         <Suspense fallback={<Loading />}>
@@ -420,6 +422,7 @@ export default function App() {
             <Route element={<RequireAccount role="PARENT" />}>
               <Route path="/family" element={<AppLayout />}>
                 <Route index element={<FamilyHomePage />} />
+                <Route path="children/:child/kids" element={<ChildCornerPage />} />
                 <Route
                   path="children/:child/games"
                   element={<FamilyGamesPage />}
@@ -494,4 +497,5 @@ export default function App() {
       </AuthProvider>
     </BrowserRouter>
   );
+  return <UnsavedChangesProvider>{routes}</UnsavedChangesProvider>;
 }

@@ -124,6 +124,12 @@ export function registerLearningFlows(
     await expect(
       page.getByRole("heading", { name: "Hạt mầm.png" }),
     ).toBeVisible();
+    await expect(page.getByText("2 tệp", { exact: true })).toHaveCount(1);
+    await expect(page.getByText("2 kết quả", { exact: true })).toHaveCount(0);
+    await page.getByLabel("Trạng thái tệp", { exact: true }).selectOption("FAILED");
+    await expect(page.getByRole("heading", { name: "Không tìm thấy tài liệu phù hợp" })).toBeVisible();
+    await page.getByRole("button", { name: "Xóa bộ lọc", exact: true }).click();
+    await expect(page.getByText("2 tệp", { exact: true })).toBeVisible();
     await page.screenshot({
       path: "test-results/files-desktop.png",
       fullPage: true,
@@ -377,6 +383,15 @@ export function registerLearningFlows(
       await expect(
         page.getByText("1/1 bài hoàn thành", { exact: true }),
       ).toBeVisible();
+
+      await parent.goto(`/family/children/${childId}/learning/items/${itemId}?kid=1`);
+      const play = parent.getByRole("button", { name: "Xem video", exact: true });
+      await expect(play).toBeVisible();
+      expect((await play.boundingBox())!.height).toBeGreaterThanOrEqual(56);
+      const video = parent.getByRole("region", { name: "Nội dung bài học" }).locator("video");
+      expect(await video.evaluate((el: HTMLVideoElement) => el.paused && el.currentTime === 0)).toBe(true);
+      await play.click();
+      await expect.poll(() => video.evaluate((el: HTMLVideoElement) => el.currentTime)).toBeGreaterThan(0.2);
       expect(errors).toEqual([]);
     } finally {
       await context.close();

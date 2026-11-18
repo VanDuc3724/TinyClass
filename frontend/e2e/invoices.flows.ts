@@ -497,8 +497,11 @@ export function registerInvoiceFlows(
     );
     await page.setViewportSize({ width: 375, height: 812 });
     await capture(page, "stale-draft-375", page.getByRole("alert"));
-    page.once("dialog", (dialog) => dialog.accept());
     await page
+      .getByRole("button", { name: "Tải lại dữ liệu đã lưu", exact: true })
+      .click();
+    await page
+      .getByRole("dialog", { name: "Tải lại dữ liệu đã lưu?" })
       .getByRole("button", { name: "Tải lại dữ liệu đã lưu", exact: true })
       .click();
     await expect(page.getByLabel(/^Ghi chú gửi gia đình/)).toHaveValue(

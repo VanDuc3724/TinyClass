@@ -157,7 +157,14 @@ export function registerSubmissionFlows(
       const parent = await parentContext.newPage();
       parent.on("pageerror", (error) => errors.push(error.message));
       await login(parent, parentEmail, parentPassword, "family");
-      await parent.goto(itemPath());
+      await parent.goto(`${itemPath()}?kid=1`);
+      await parent.getByRole("button", { name: "Gửi bài cùng người lớn", exact: true }).click();
+      const gate = parent.getByRole("dialog", { name: "Nhờ người lớn xác nhận", exact: true });
+      const [, first, second] = (await gate.locator("label").innerText()).match(/(\d+) \+ (\d+)/)!;
+      await gate.getByRole("textbox", { name: /^Kết quả của/ }).fill(String(Number(first) + Number(second)));
+      await gate.getByRole("button", { name: "Xác nhận", exact: true }).click();
+      await expect(parent).toHaveURL((url) => url.pathname === itemPath() && url.search === "" && url.hash === "#san-pham");
+      await expect(parent.locator("#san-pham")).toBeFocused();
       await parent
         .getByRole("button", { name: "Tạo bản nháp sản phẩm", exact: true })
         .click();

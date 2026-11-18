@@ -17,7 +17,7 @@
 body {
   margin: 0;
   min-width: 320px;
-  font-size: 16px;
+  font-size: var(--tc-font-size-md);
   line-height: 1.6;
   background: var(--tc-canvas);
 }
@@ -65,7 +65,7 @@ p {
   margin: 0;
 }
 h1 {
-  font-size: 32px;
+  font-size: var(--tc-font-size-4xl);
   line-height: 1.3;
   font-weight: 800;
   letter-spacing: -0.02em;
@@ -73,13 +73,13 @@ h1 {
   text-wrap: balance;
 }
 h2 {
-  font-size: 20px;
+  font-size: var(--tc-font-size-xl);
   line-height: 1.4;
   font-weight: 700;
   letter-spacing: -0.01em;
 }
 h3 {
-  font-size: 18px;
+  font-size: var(--tc-font-size-lg);
   line-height: 1.4;
   font-weight: 700;
 }
@@ -108,7 +108,7 @@ textarea {
   width: 100%;
   min-width: 0;
   min-height: var(--tc-control-height);
-  font-size: 16px;
+  font-size: var(--tc-font-size-md);
   font-weight: 500;
   transition:
     border-color var(--tc-motion-fast) var(--tc-ease),
@@ -178,7 +178,7 @@ input[type="radio"]:focus-visible {
 input[type="file"] {
   padding: 5px 6px;
   color: var(--tc-text-muted);
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
   cursor: pointer;
 }
 input[type="file"]::file-selector-button {
@@ -217,11 +217,11 @@ progress {
 /* ---------- Text helpers ---------- */
 .muted {
   color: var(--tc-text-muted);
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
 }
 .eyebrow {
   color: var(--tc-primary);
-  font-size: 12px;
+  font-size: var(--tc-font-size-xs);
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -260,7 +260,7 @@ progress {
   align-items: center;
   gap: 12px;
   color: var(--tc-primary);
-  font-size: 28px;
+  font-size: var(--tc-font-size-3xl);
   font-weight: 800;
   letter-spacing: -0.03em;
   white-space: nowrap;
@@ -270,7 +270,7 @@ progress {
   place-items: center;
   width: 40px;
   height: 40px;
-  border-radius: 14px;
+  border-radius: var(--tc-radius-md);
   background: var(--tc-primary-soft);
   color: var(--tc-primary);
 }
@@ -287,7 +287,7 @@ progress {
   padding: 10px 18px;
   border: 1px solid transparent;
   border-radius: var(--tc-radius-md);
-  font-size: 16px;
+  font-size: var(--tc-font-size-md);
   font-weight: 700;
   line-height: 1.4;
   min-height: 44px;
@@ -334,7 +334,7 @@ progress {
 .button-small {
   min-height: 44px;
   padding: 8px 14px;
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
 }
 .button-full {
   width: 100%;
@@ -370,7 +370,7 @@ progress {
 .text-link,
 .back-link {
   color: var(--tc-primary);
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
   font-weight: 700;
 }
 .text-button {
@@ -379,6 +379,9 @@ progress {
   min-height: 44px;
   padding: 8px;
   border-radius: var(--tc-radius-sm);
+}
+.text-button-danger {
+  color: var(--tc-danger-hover);
 }
 .text-button:hover:not(:disabled) {
   text-decoration: underline;
@@ -430,7 +433,7 @@ progress {
   flex-direction: column;
   gap: 8px;
   margin-bottom: 20px;
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
   font-weight: 600;
   min-width: 0;
 }
@@ -441,7 +444,7 @@ progress {
   gap: 8px;
 }
 .field small {
-  font-size: 12px;
+  font-size: var(--tc-font-size-xs);
   font-weight: 600;
 }
 .field > span > small {
@@ -453,7 +456,7 @@ progress {
 .field input,
 .field textarea,
 .field select {
-  font-size: 16px;
+  font-size: var(--tc-font-size-md);
   font-weight: 500;
 }
 .editor-panel {
@@ -478,7 +481,7 @@ progress {
   justify-content: space-between;
   padding: 20px 0;
   color: var(--tc-text-muted);
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
   font-variant-numeric: tabular-nums;
 }
 .panel > .pagination {
@@ -496,7 +499,7 @@ progress {
 .info-notice {
   padding: 14px 16px;
   border-radius: var(--tc-radius-md);
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
   line-height: 1.6;
   margin-bottom: 20px;
   overflow-wrap: anywhere;
@@ -535,7 +538,7 @@ progress {
   flex-shrink: 0;
   min-height: 44px;
   padding: 12px 16px;
-  font-size: 16px;
+  font-size: var(--tc-font-size-md);
   font-weight: 600;
   color: var(--tc-text-muted);
   border: 0;
@@ -557,7 +560,7 @@ progress {
   background: transparent;
 }
 .tabs span {
-  font-size: 12px;
+  font-size: var(--tc-font-size-xs);
   padding: 2px 8px;
   margin-left: 4px;
   color: var(--tc-primary);
@@ -573,7 +576,7 @@ progress {
 table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
   font-variant-numeric: tabular-nums;
 }
 td,
@@ -586,7 +589,7 @@ th {
 th {
   background: var(--tc-surface-muted);
   color: var(--tc-text-muted);
-  font-size: 13px;
+  font-size: var(--tc-font-size-sm);
   font-weight: 700;
   padding-block: 12px;
 }
@@ -607,7 +610,7 @@ tbody tr:last-child > td {
   place-items: center;
   width: 48px;
   height: 48px;
-  border-radius: 14px;
+  border-radius: var(--tc-radius-md);
   flex-shrink: 0;
 }
 .mint {
@@ -619,24 +622,6 @@ tbody tr:last-child > td {
   background: var(--tc-accent-soft);
 }
 .sand {
-  color: var(--tc-info);
-  background: var(--tc-info-soft);
-}
-.pill,
-.content-badge {
-  display: inline-flex;
-  align-items: center;
-  border-radius: var(--tc-radius-pill);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0;
-  line-height: 1.6;
-  padding: 4px 12px;
-  color: var(--tc-text-muted);
-  background: var(--tc-surface-muted);
-  white-space: nowrap;
-}
-.content-badge.published {
   color: var(--tc-info);
   background: var(--tc-info-soft);
 }
@@ -653,7 +638,7 @@ tbody tr:last-child > td {
 }
 .search-field input {
   min-height: 44px;
-  font-size: 16px;
+  font-size: var(--tc-font-size-md);
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -670,7 +655,7 @@ tbody tr:last-child > td {
 }
 .search-box input {
   min-height: 44px;
-  font-size: 16px;
+  font-size: var(--tc-font-size-md);
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -702,7 +687,7 @@ tbody tr:last-child > td {
 }
 .library-tabs button {
   min-height: 44px;
-  font-size: 16px;
+  font-size: var(--tc-font-size-md);
   padding: 10px 16px;
   border-radius: var(--tc-radius-md) var(--tc-radius-md) 0 0;
 }
@@ -710,7 +695,7 @@ tbody tr:last-child > td {
   padding: 24px;
 }
 .library-card h2 {
-  font-size: 18px;
+  font-size: var(--tc-font-size-lg);
 }
 .file-art {
   height: auto;
@@ -740,7 +725,7 @@ tbody tr:last-child > td {
   background: var(--tc-surface-muted);
   color: var(--tc-text-muted);
   padding: 16px;
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
 }
 video.media-preview {
   aspect-ratio: 16 / 9;
@@ -753,11 +738,11 @@ video.media-preview {
   min-height: 72px;
 }
 .lesson-detail h2 {
-  font-size: 24px;
+  font-size: var(--tc-font-size-2xl);
 }
 .lesson-detail .prose,
 .lesson-detail p {
-  font-size: 18px;
+  font-size: var(--tc-font-size-lg);
 }
 
 /* ---------- Settings ---------- */
@@ -773,7 +758,7 @@ video.media-preview {
   min-height: 44px;
   padding: 8px 16px;
   border-radius: var(--tc-radius-pill);
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
   color: var(--tc-primary);
   background: var(--tc-primary-soft);
   font-weight: 700;
@@ -847,7 +832,7 @@ button.file-card:hover {
   padding: 24px;
 }
 .class-card-content h2 {
-  font-size: 18px;
+  font-size: var(--tc-font-size-lg);
 }
 /* Detail headers: white surface warming into the brand tint on the right. */
 .class-detail-hero,
@@ -872,19 +857,19 @@ button.file-card:hover {
 }
 .detail-hero-text h1,
 .student-profile-heading h1 {
-  font-size: 32px;
+  font-size: var(--tc-font-size-4xl);
   font-weight: 800;
 }
 .details-panel {
   padding: 24px;
 }
 .details-panel dt {
-  font-size: 13px;
+  font-size: var(--tc-font-size-sm);
   font-weight: 600;
   color: var(--tc-text-muted);
 }
 .details-panel dd {
-  font-size: 16px;
+  font-size: var(--tc-font-size-md);
   overflow-wrap: anywhere;
 }
 .student-profile-heading > div:nth-child(2) {
@@ -901,10 +886,10 @@ button.file-card:hover {
   gap: 12px;
 }
 .picker-list strong {
-  font-size: 16px;
+  font-size: var(--tc-font-size-md);
 }
 .picker-list small {
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
 }
 
 /* ---------- Modal ---------- */
@@ -916,7 +901,7 @@ button.file-card:hover {
   margin-bottom: 20px;
 }
 .modal-header h2 {
-  font-size: 20px;
+  font-size: var(--tc-font-size-xl);
 }
 .modal-header .icon-button {
   margin: -8px -8px -8px 0;
@@ -970,7 +955,7 @@ button.file-card:hover {
     gap: 12px;
     padding: 16px;
     border: 1px solid var(--tc-border);
-    border-radius: 16px;
+    border-radius: var(--tc-radius-md);
   }
   .student-table tbody tr:hover > td {
     background: transparent;
@@ -997,7 +982,7 @@ button.file-card:hover {
   .student-table td[data-label]::before {
     content: attr(data-label);
     display: block;
-    font-size: 12px;
+    font-size: var(--tc-font-size-xs);
     color: var(--tc-text-muted);
     margin-bottom: 4px;
   }
@@ -1008,11 +993,11 @@ button.file-card:hover {
   h1,
   .detail-hero-text h1,
   .student-profile-heading h1 {
-    font-size: 24px;
+    font-size: var(--tc-font-size-2xl);
   }
   h2,
   .section-heading h2 {
-    font-size: 18px;
+    font-size: var(--tc-font-size-lg);
   }
   .panel,
   .class-card {
@@ -1048,7 +1033,7 @@ button.file-card:hover {
   .page-heading .muted,
   .section-heading .muted,
   .student-profile-heading .muted {
-    font-size: 14px;
+    font-size: var(--tc-font-size-sm);
   }
   .filter-bar {
     flex-wrap: wrap;

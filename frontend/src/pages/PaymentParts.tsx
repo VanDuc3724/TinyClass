@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { RefreshButton } from "../components/RefreshButton";
 import {
   Badge,
   EmptyState,
@@ -94,13 +95,12 @@ export function PaymentPanel({
           <h2>Lịch sử thanh toán</h2>
           <p>Các lần ghi nhận và bản ghi đã điều chỉnh của phiếu.</p>
         </div>
-        <button
-          className="button button-ghost"
-          disabled={resource.loading || pending}
+        <RefreshButton
+          label="Cập nhật lịch sử"
+          loading={resource.loading || pending}
           onClick={onRefresh || resource.reload}
-        >
-          Cập nhật lịch sử
-        </button>
+          updatedAt={resource.updatedAt}
+        />
       </div>
       <ErrorNotice
         error={resource.error}

@@ -633,9 +633,12 @@ export function registerStudentNoteFlows(
     await expect(modal.getByLabel("Nội dung nhận xét")).toHaveValue(draftBody);
     await page.setViewportSize({ width: 375, height: 900 });
     await capture(page, "teacher-conflict-375", modal.getByRole("alert"));
-    page.once("dialog", (dialog) => dialog.accept());
     await modal
       .getByRole("button", { name: "Tải lại bản mới", exact: true })
+      .click();
+    await page
+      .getByRole("dialog", { name: "Bỏ thay đổi chưa lưu?", exact: true })
+      .getByRole("button", { name: "Bỏ thay đổi", exact: true })
       .click();
     await expect(modal.getByLabel("Nội dung nhận xét")).toHaveValue(
       "Bản đã lưu từ một cửa sổ khác.",

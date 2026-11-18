@@ -31,14 +31,14 @@
     color: var(--tc-text-muted);
   }
   .amount {
-    font-size: 28px;
+    font-size: var(--tc-font-size-3xl);
     line-height: 1.35;
     font-weight: 800;
     color: var(--tc-primary);
     margin: 0 0 18px;
   }
   .amount small {
-    font-size: 14px;
+    font-size: var(--tc-font-size-sm);
     font-weight: 600;
     color: var(--tc-text-muted);
   }
@@ -49,7 +49,7 @@
     margin: 0;
   }
   .terms dt {
-    font-size: 13px;
+    font-size: var(--tc-font-size-sm);
     color: var(--tc-text-muted);
     margin-bottom: 4px;
   }
@@ -64,13 +64,13 @@
   .private {
     padding: 16px;
     background: var(--tc-surface-muted);
-    border-radius: 12px;
+    border-radius: var(--tc-radius-md);
     margin: 18px 0 0;
     white-space: pre-wrap;
   }
   .private strong {
     display: block;
-    font-size: 13px;
+    font-size: var(--tc-font-size-sm);
     margin-bottom: 6px;
   }
   .actions {
@@ -83,7 +83,7 @@
   .information {
     background: var(--tc-primary-soft);
     color: var(--tc-primary);
-    border-radius: 12px;
+    border-radius: var(--tc-radius-md);
     padding: 16px;
     line-height: 1.6;
     margin: 16px 0;
@@ -100,14 +100,14 @@
     min-width: 0;
   }
   .fieldset legend {
-    font-size: 18px;
+    font-size: var(--tc-font-size-lg);
     font-weight: 800;
     margin: 16px 0;
   }
   .source {
     padding: 18px;
     border: 1px solid var(--tc-border);
-    border-radius: 12px;
+    border-radius: var(--tc-radius-md);
     margin: 8px 0 20px;
   }
   .member {
@@ -128,7 +128,7 @@
     border-bottom: 1px solid var(--tc-border);
   }
   .history h3 {
-    font-size: 16px;
+    font-size: var(--tc-font-size-md);
     margin: 0 0 6px;
   }
   .history details {
@@ -157,7 +157,7 @@
       gap: 12px;
     }
     .amount {
-      font-size: 24px;
+      font-size: var(--tc-font-size-2xl);
     }
     .actions > button {
       flex: 1 1 130px;

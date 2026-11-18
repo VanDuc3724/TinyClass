@@ -15,7 +15,7 @@ import { ActionModal } from "../components/ActionModal";
 import type { ActionRequest } from "../components/ActionModal";
 import FilterBar from "../components/FilterBar";
 import { api, query } from "../lib/api";
-import { useResource, useUnsavedChanges } from "../lib/hooks";
+import { useBeforeUnload, useResource } from "../lib/hooks";
 import { dateTimeLabel } from "../lib/format";
 import { fileUrl, uploadFile } from "../lib/files";
 import type { Classroom, Student } from "../lib/types";
@@ -51,6 +51,7 @@ export function ReviewListPage() {
         ),
       [status, classId, studentId, lessonId, page],
     ),
+    { refreshOnVisible: true },
   );
   const options = useResource(
     useCallback(async (signal) => {
@@ -68,11 +69,6 @@ export function ReviewListPage() {
         eyebrow="ĐỒNG HÀNH CÙNG GIA ĐÌNH"
         title="Sản phẩm của bé"
         description="Xem những khám phá gia đình đã gửi, phản hồi và ghi nhận bước tiến của bé."
-        action={
-          <button className="button button-ghost" onClick={data.reload}>
-            Cập nhật danh sách
-          </button>
-        }
       />
       <FilterBar
         className={styles.filters}
@@ -271,7 +267,7 @@ function ReviewForm({
     [busy, setBusy] = useState(false),
     [done, setDone] = useState(false),
     [error, setError] = useState<unknown>(null);
-  useUnsavedChanges(!done && !!(feedback || audio || selected));
+  useBeforeUnload(!done && !!(feedback || audio || selected));
   async function upload() {
     if (!selected) return;
     setBusy(true);

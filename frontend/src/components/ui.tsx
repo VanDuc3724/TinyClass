@@ -7,7 +7,7 @@ import {
   useRef,
   useState,
 } from "react";
-import type { ReactNode, SVGProps } from "react";
+import type { ReactNode, RefObject, SVGProps } from "react";
 import { ApiError } from "../lib/api";
 import {
   classStatusLabels,
@@ -18,8 +18,10 @@ import {
 import styles from "./ui.module.css";
 import { trapDialogFocus } from "../lib/accessibility";
 
-type IconName =
+export type IconName =
   | "game"
+  | "cards"
+  | "play"
   | "home"
   | "bell"
   | "classes"
@@ -47,6 +49,9 @@ type IconName =
   | "receipt"
   | "wallet"
   | "message"
+  | "volume"
+  | "refresh"
+  | "star"
   | "filter";
 const paths: Record<IconName, ReactNode> = {
   game: (
@@ -55,6 +60,13 @@ const paths: Record<IconName, ReactNode> = {
       <path d="M7 10v5m-2.5-2.5h5M16 11h.01M19 14h.01" />
     </>
   ),
+  cards: (
+    <>
+      <rect x="8" y="3" width="12" height="16" rx="2" />
+      <path d="M5 6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h10m-1-14 3 4-3 4-3-4Z" />
+    </>
+  ),
+  play: <path d="m8 5 12 7-12 7Z" />,
   bell: (
     <>
       <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
@@ -183,6 +195,13 @@ const paths: Record<IconName, ReactNode> = {
       <path d="M8 9h8M8 12h5" />
     </>
   ),
+  volume: (
+    <>
+      <path d="M3 9v6h4l5 4V5L7 9Zm12.5 0a4 4 0 0 1 0 6M18 6a8 8 0 0 1 0 12" />
+    </>
+  ),
+  refresh: <path d="M20 8a8 8 0 1 0 0 8m0-12v4h-4" />,
+  star: <path d="m12 2.5 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3.1-5.8 3.1 1.1-6.5-4.7-4.6 6.5-.9Z" />,
   filter: <path d="M4 5h16l-6 7.5V18l-4 2v-7.5Z" />,
 };
 export function Icon({
@@ -244,22 +263,24 @@ export function Avatar({
 export function Badge({
   status,
   context,
-}: {
-  status: string;
-  context?: "class" | "submission";
-}) {
+  label,
+}:
+  | { status: string; context?: "class" | "submission"; label?: string }
+  | { status?: undefined; context?: undefined; label: string }) {
+  const labels =
+    context === "class"
+      ? classStatusLabels
+      : context === "submission"
+        ? submissionStatusLabels
+        : statusLabels;
+  const text =
+    label ?? (status && (labels[status] || statusLabels[status] || status));
   return (
     <span
-      className={`badge ${styles.badge} ${styles[statusTone(status)] || ""}`}
+      className={`badge ${styles.badge} ${status ? styles[statusTone(status)] || "" : styles.badgeLabel}`}
     >
-      <span />
-      {(context === "class"
-        ? classStatusLabels[status]
-        : context === "submission"
-          ? submissionStatusLabels[status]
-          : statusLabels[status]) ||
-        statusLabels[status] ||
-        status}
+      {status && <span aria-hidden="true" />}
+      {text}
     </span>
   );
 }
@@ -393,7 +414,7 @@ export function PageHeader({
   action,
   hero = false,
 }: {
-  eyebrow: string;
+  eyebrow?: string;
   title: string;
   description?: string;
   action?: ReactNode;
@@ -405,7 +426,7 @@ export function PageHeader({
       className={`page-heading ${styles.pageHeader} ${hero ? styles.hero : ""}`}
     >
       <div>
-        <p className="eyebrow">{eyebrow}</p>
+        {eyebrow && <p className="eyebrow">{eyebrow}</p>}
         <h1>{title}</h1>
         {description && <p className="muted">{description}</p>}
       </div>
@@ -416,22 +437,25 @@ export function PageHeader({
 export function Pagination({
   meta,
   onChange,
+  itemLabel = "kết quả",
 }: {
   meta: { page: number; totalPages: number; totalElements: number };
   onChange: (page: number) => void;
+  itemLabel?: string;
 }) {
   if (meta.totalElements === 0) return null;
+  const count = `${meta.totalElements} ${itemLabel}`;
   // A single page only needs the count; paging buttons would both be disabled.
   if (meta.totalPages <= 1 && meta.page === 0)
     return (
       <div className="pagination">
-        <span>{meta.totalElements} kết quả</span>
+        <span>{count}</span>
       </div>
     );
   return (
     <div className="pagination">
       <span>
-        {meta.totalElements} kết quả · Trang {meta.page + 1}/
+        {count} · Trang {meta.page + 1}/
         {Math.max(1, meta.totalPages)}
       </span>
       <div>
@@ -461,12 +485,14 @@ export function Modal({
   onClose,
   busy = false,
   wide = false,
+  initialFocus,
 }: {
   title: string;
   children: ReactNode;
   onClose: () => void;
   busy?: boolean;
   wide?: boolean;
+  initialFocus?: RefObject<HTMLElement | null>;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const titleId = useId();
@@ -474,14 +500,18 @@ export function Modal({
     const element = dialog.current!;
     const previousFocus = document.activeElement as HTMLElement | null;
     const previousOverflow = document.body.style.overflow;
+    const focusTarget = initialFocus?.current;
+    focusTarget?.setAttribute("autofocus", "");
     element.showModal();
-    document.body.style.overflow = "hidden";
+    if (focusTarget !== document.activeElement) focusTarget?.focus();
+    if (previousOverflow !== "hidden") document.body.style.overflow = "hidden";
     return () => {
       element.close();
-      document.body.style.overflow = previousOverflow;
+      if (previousOverflow !== "hidden")
+        document.body.style.overflow = previousOverflow;
       previousFocus?.focus();
     };
-  }, []);
+  }, [initialFocus]);
   return (
     <dialog
       ref={dialog}

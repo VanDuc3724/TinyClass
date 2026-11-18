@@ -1,0 +1,217 @@
+@layer components {
+  .list {
+    display: grid;
+    gap: 12px;
+  }
+  .card,
+  .step {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 64px;
+    padding: 12px 16px;
+    border: 1px solid var(--tc-border);
+    border-radius: var(--tc-radius-md);
+    background: var(--tc-surface);
+    font-size: var(--tc-font-size-lg);
+  }
+  .card {
+    min-height: 80px;
+    box-shadow: var(--tc-shadow-card);
+  }
+  .card:hover,
+  .step:hover {
+    border-color: var(--tc-primary-border);
+    background: var(--tc-primary-soft);
+  }
+  .cardIcon {
+    display: grid;
+    flex: 0 0 48px;
+    height: 48px;
+    place-items: center;
+    border-radius: var(--tc-radius-md);
+    background: var(--tc-primary-soft);
+    color: var(--tc-primary);
+  }
+  .cardText {
+    display: grid;
+    flex: 1;
+    min-width: 0;
+    gap: 2px;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+  .cardText > span {
+    color: var(--tc-primary);
+    font-size: var(--tc-font-size-md);
+    font-weight: 700;
+  }
+  .card > svg,
+  .step > svg,
+  .details summary > svg,
+  .primary svg {
+    flex-shrink: 0;
+  }
+  .steps,
+  .waiting {
+    list-style: none;
+    display: grid;
+    gap: 8px;
+    padding: 0;
+    margin: 8px 0 0;
+  }
+  .step > span {
+    flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .waiting > li {
+    display: grid;
+    gap: 4px;
+    padding: 12px;
+    overflow-wrap: anywhere;
+  }
+  .waiting span {
+    color: var(--tc-text-muted);
+  }
+  .details,
+  .lessonPanel {
+    margin-bottom: 16px;
+  }
+  .list + .details,
+  .primary + .details {
+    margin-top: 16px;
+  }
+  .details {
+    padding: 0 12px;
+    border: 1px solid var(--tc-border);
+    border-radius: var(--tc-radius-md);
+    background: var(--tc-surface);
+  }
+  .details summary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 56px;
+    padding: 8px 4px;
+    list-style: none;
+    color: var(--tc-primary);
+    font-weight: 800;
+    cursor: pointer;
+    line-height: 1.35;
+  }
+  .details summary::-webkit-details-marker {
+    display: none;
+  }
+  .details summary > svg:last-child {
+    margin-left: auto;
+  }
+  .details[open] summary > svg:last-child {
+    transform: rotate(180deg);
+  }
+  .details[open] {
+    padding-bottom: 12px;
+  }
+  .confirm {
+    background: var(--tc-primary-soft);
+    border-color: var(--tc-primary-border);
+  }
+  .confirm summary {
+    min-height: 64px;
+    font-size: var(--tc-font-size-lg);
+  }
+  .adultBody {
+    display: grid;
+    gap: 8px;
+    padding: 4px;
+  }
+  .adultBody :global(.checkbox-field) {
+    min-height: 56px;
+  }
+  .adultBody :global(.button),
+  .paging :global(.button),
+  .secondary {
+    min-height: 56px;
+  }
+  .primary {
+    min-height: 64px;
+    width: 100%;
+    max-width: 600px;
+    margin-bottom: 12px;
+    justify-content: center;
+    font-size: var(--tc-font-size-lg);
+    white-space: normal;
+    text-align: center;
+    overflow-wrap: anywhere;
+  }
+  .secondary {
+    margin-bottom: 16px;
+  }
+  .paging {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 16px;
+  }
+  .lessonPanel {
+    display: grid;
+    gap: 20px;
+    padding: clamp(12px, 3vw, 24px);
+  }
+  .lessonBlock p,
+  .instructions p,
+  .adultBody p {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    line-height: 1.6;
+  }
+  .lessonBlock > p,
+  .instructions p {
+    font-size: var(--tc-font-size-lg);
+  }
+  .lessonBlock > .caption,
+  .caption {
+    margin-top: 8px;
+    color: var(--tc-text-muted);
+    font-size: var(--tc-font-size-md);
+    text-align: center;
+  }
+  .media {
+    display: grid;
+    justify-items: center;
+    gap: 8px;
+  }
+  .media :global(.media-audio) {
+    max-width: 100%;
+  }
+  .mediaPlay {
+    min-height: 56px;
+    width: min(100%, 300px);
+    font-size: var(--tc-font-size-lg);
+  }
+  .instructions,
+  .success {
+    padding: 16px;
+    border-radius: var(--tc-radius-md);
+  }
+  .instructions {
+    background: var(--tc-warning-soft);
+  }
+  .instructions h2 {
+    margin-bottom: 8px;
+  }
+  .success {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    color: var(--tc-success);
+    background: var(--tc-success-soft);
+  }
+  .success svg {
+    flex-shrink: 0;
+  }
+  .productAnchor {
+    scroll-margin-block-start: calc(var(--tc-topbar-height) + 16px);
+  }
+}

@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { ActionModal } from "../components/ActionModal";
+import { RefreshButton } from "../components/RefreshButton";
 import {
   Badge,
   EmptyState,
@@ -12,7 +13,7 @@ import {
 } from "../components/ui";
 import { api, query } from "../lib/api";
 import { dateLabel } from "../lib/format";
-import { useResource } from "../lib/hooks";
+import { useRefreshOnVisible, useResource } from "../lib/hooks";
 import type {
   FamilyInvoiceWorkspace,
   InvoiceSummary,
@@ -78,6 +79,7 @@ export function InvoiceListPage() {
         ),
       [status, collection, page, enrollment, classId, student],
     ),
+    { refreshOnVisible: true },
   );
   function change(key: string, value: string) {
     const next = new URLSearchParams(params);
@@ -127,13 +129,16 @@ export function InvoiceListPage() {
               Bỏ lọc theo bé/lớp
             </Link>
           )}
-          <button className="button button-ghost" onClick={resource.reload}>
-            Cập nhật danh sách
-          </button>
+          <RefreshButton
+            label="Cập nhật danh sách"
+            loading={resource.loading}
+            onClick={resource.reload}
+            updatedAt={resource.updatedAt}
+          />
         </div>
       </div>
       <ErrorNotice error={resource.error} retry={resource.reload} />
-      {resource.loading ? (
+      {resource.loading && !resource.data ? (
         <Loading />
       ) : (
         resource.data && (
@@ -180,6 +185,10 @@ function InvoiceDetail({ id }: { id: string }) {
   const [recording, setRecording] = useState(false),
     [voiding, setVoiding] = useState<TeacherPayment | null>(null),
     [paymentRevision, setPaymentRevision] = useState(0);
+  useRefreshOnVisible(
+    refresh,
+    !resource.loading && !action && !recording && !voiding,
+  );
   if (resource.loading && !resource.data) return <Loading />;
   if (!resource.data || resource.error)
     return <ErrorNotice error={resource.error} retry={resource.reload} />;
@@ -204,9 +213,12 @@ function InvoiceDetail({ id }: { id: string }) {
         title={invoice.invoiceCode}
         description="Số tiền và điều kiện được giữ theo từng phiếu."
         action={
-          <button className="button button-ghost" onClick={refresh}>
-            Cập nhật phiếu
-          </button>
+          <RefreshButton
+            label="Cập nhật phiếu"
+            loading={resource.loading}
+            onClick={refresh}
+            updatedAt={resource.updatedAt}
+          />
         }
       />
       <div className={styles.actions}>
@@ -344,6 +356,7 @@ function FamilyInvoices({ child }: { child: string }) {
         ),
       [child, page],
     ),
+    { refreshOnVisible: true },
   );
   if (resource.loading && !resource.data) return <Loading />;
   if (!resource.data || resource.error)
@@ -359,9 +372,12 @@ function FamilyInvoices({ child }: { child: string }) {
         title="Phiếu học phí"
         description="Các phiếu cô đã phát hành cho bé và lịch sử phiếu đã hủy."
         action={
-          <button className="button button-ghost" onClick={resource.reload}>
-            Cập nhật phiếu
-          </button>
+          <RefreshButton
+            label="Cập nhật phiếu"
+            loading={resource.loading}
+            onClick={resource.reload}
+            updatedAt={resource.updatedAt}
+          />
         }
       />
       {data.invoices.data.length ? (
@@ -405,6 +421,7 @@ function FamilyInvoiceDetail({ child, id }: { child: string; id: string }) {
       [child, id],
     ),
   );
+  useRefreshOnVisible(refresh, !resource.loading);
   if (resource.loading && !resource.data) return <Loading />;
   if (!resource.data || resource.error)
     return <ErrorNotice error={resource.error} retry={resource.reload} />;
@@ -423,9 +440,12 @@ function FamilyInvoiceDetail({ child, id }: { child: string; id: string }) {
         title={invoice.invoiceCode}
         description="Liên hệ cô nếu gia đình cần làm rõ khoản thu trên phiếu."
         action={
-          <button className="button button-ghost" onClick={refresh}>
-            Cập nhật phiếu
-          </button>
+          <RefreshButton
+            label="Cập nhật phiếu"
+            loading={resource.loading}
+            onClick={refresh}
+            updatedAt={resource.updatedAt}
+          />
         }
       />
       <div className={styles.stack}>

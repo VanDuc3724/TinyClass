@@ -2,6 +2,15 @@
   color-scheme: light;
 
   --tc-font: "Nunito", "Segoe UI", Arial, sans-serif;
+  --tc-font-size-xs: 0.75rem;
+  --tc-font-size-sm: 0.875rem;
+  --tc-font-size-md: 1rem;
+  --tc-font-size-lg: 1.125rem;
+  --tc-font-size-xl: 1.25rem;
+  --tc-font-size-2xl: 1.5rem;
+  --tc-font-size-3xl: 1.875rem;
+  --tc-font-size-4xl: 2rem;
+  --tc-font-size-5xl: 2.25rem;
 
   /* Brand */
   --tc-primary: #5926cf;
@@ -16,6 +25,8 @@
   --tc-sidebar-hover: rgb(255 255 255 / 10%);
   --tc-sidebar-active: rgb(255 255 255 / 18%);
   --tc-sidebar-muted: rgb(255 255 255 / 68%);
+  --tc-sidebar-role-dot: #8ff0c6;
+  --tc-sidebar-role-dot: #8ff0c6;
   --tc-on-primary: #ffffff;
 
   /* Semantic tones: text/icon colour + pastel background */
@@ -27,6 +38,8 @@
   --tc-info-soft: #eef4ff;
   --tc-warning: #986100;
   --tc-warning-soft: #fff6de;
+  --tc-game-star-fill: #ffca45;
+  --tc-game-star-fill: #ffca45;
   --tc-danger: #c43755;
   --tc-danger-hover: #a82a46;
   --tc-danger-soft: #fff0f3;

@@ -292,14 +292,19 @@ export function registerScheduleFlows(
     await page
       .getByRole("button", { name: "Đổi buổi học", exact: true })
       .click();
-    const modal = page.getByRole("dialog");
+    const modal = page.getByRole("dialog", {
+      name: "Điều chỉnh riêng buổi học",
+    });
     await modal.getByLabel("Bắt đầu", { exact: true }).fill(`${base}T11:00`);
     await modal.getByLabel("Kết thúc", { exact: true }).fill(`${base}T12:00`);
     await modal
       .getByLabel("Lý do đổi buổi")
       .fill("Gia đình thống nhất chuyển sang 11 giờ.");
-    page.once("dialog", (dialog) => dialog.dismiss());
     await page.keyboard.press("Escape");
+    await page
+      .getByRole("dialog", { name: "Bỏ thay đổi buổi học?" })
+      .getByRole("button", { name: "Hủy", exact: true })
+      .click();
     await expect(modal).toBeVisible();
     await expect(modal.getByLabel("Bắt đầu", { exact: true })).toHaveValue(
       `${base}T11:00`,

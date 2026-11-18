@@ -161,6 +161,8 @@ Font mục tiêu là **Nunito** với bộ ký tự tiếng Việt, trọng lư�
 | Badge và chú thích ngắn | 12px | 12px | 600 / 1.4 |
 | Số liệu tổng quan | 36px | 30px | 800 / 1.2 |
 
+Khai báo cỡ chữ bằng `--tc-font-size-*` và bo góc bằng `--tc-radius-*`. Đặt mã màu hex trong `src/styles/tokens.css` rồi dùng biến ở các tệp khác. CSS Module đặt các quy tắc bên trong `@layer components`. Lệnh `npm run lint:css` kiểm tra các quy ước này.
+
 - Dùng thang khoảng cách bội số 4px; khoảng cách giữa các khối là 24px, trên điện thoại là 16px.
 - Thẻ có padding 24px ở desktop và 16px trên điện thoại. Form dài giới hạn khoảng 760px để dễ đọc.
 - Số lượng và số tiền dùng `font-variant-numeric: tabular-nums` khi cần so sánh theo cột.
@@ -552,12 +554,13 @@ Trong trang bài học, thứ tự là **Tiêu đề → Hướng dẫn → Nộ
 
 Khi bài bị thu hồi hoặc bé đã rời lớp, thay nội dung bằng thông báo hết quyền và lối về danh sách còn truy cập được. Lịch sử sản phẩm/nhận xét riêng của bé hiển thị theo chính sách nghiệp vụ; việc đã đóng học phí không tự cấp lại quyền bài học.
 
-### 9.2. Góc học của bé
+### 9.2. Góc của bé
 
 - Dùng cùng màu nhận diện, tăng kích thước nút lên tối thiểu 56px; nhãn ngắn như **Xem bài · Nghe · Làm cùng con**.
 - Giảm điều hướng, ưu tiên nội dung và một hành động tiếp theo. Ẩn menu quản lý, liên hệ gia đình và học phí khỏi chế độ này.
 - Video/âm thanh bắt đầu bằng thao tác rõ ràng; không tự phát có âm thanh. Giữ điều khiển phát/dừng và hỗ trợ phụ đề khi có.
-- Có nút **Về góc gia đình** dễ tìm. Đây là chế độ trong tài khoản phụ huynh, không phải tài khoản hoặc vai trò mới; chưa thêm PIN khi chưa có yêu cầu.
+- Phụ huynh bấm **Mở góc của bé** từ hồ sơ để mở màn hình có hai lựa chọn **Học bài** và **Chơi**. Giữ nút **Về góc của bé** trên các màn hình học/chơi. Người lớn trở về hồ sơ bằng **Về trang phụ huynh**.
+- Góc của bé dùng phiên đăng nhập và quyền truy cập hiện tại của phụ huynh. Xác nhận bài và gửi sản phẩm vẫn do người lớn thực hiện.
 
 ## 10. Trạng thái dữ liệu, tương tác và nội dung
 

@@ -9,7 +9,8 @@ import {
 import { api, query } from "../lib/api";
 import { fileUrl } from "../lib/files";
 import type { MediaFile, StorageConnection } from "../lib/files";
-import { useResource, useUnsavedChanges } from "../lib/hooks";
+import { useResource } from "../lib/hooks";
+import { useUnsavedChanges } from "../lib/unsavedChanges";
 import { completionLabels, contentStatus } from "../lib/learning";
 import type {
   Block,
@@ -19,6 +20,7 @@ import type {
   Topic,
 } from "../lib/learning";
 import {
+  Badge,
   EmptyState,
   ErrorNotice,
   Field,
@@ -170,48 +172,53 @@ export function LibraryPage() {
               active={!!(search || status || topic)}
               onReset={() => setParams({ tab }, { replace: true })}
             >
-              <div className="search-field">
-                <Icon name="search" />
-                <input
-                  aria-label="Tìm học liệu"
-                  placeholder="Tìm bài hoặc khóa học…"
-                  value={search}
-                  onChange={(event) => {
-                    filter({ q: event.target.value });
-                  }}
-                />
-              </div>
-              <select
-                aria-label="Trạng thái học liệu"
-                value={status}
-                onChange={(event) => {
-                  filter({ status: event.target.value });
-                }}
-              >
-                <option value="">Mọi trạng thái</option>
-                {Object.entries(contentStatus).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-              {tab === "lessons" && (
+              <Field label="Tìm học liệu">
+                <span className="search-field">
+                  <Icon name="search" />
+                  <input
+                    placeholder="Tìm bài hoặc khóa học…"
+                    value={search}
+                    onChange={(event) => {
+                      filter({ q: event.target.value });
+                    }}
+                  />
+                </span>
+              </Field>
+              <Field label="Trạng thái học liệu">
                 <select
-                  aria-label="Lọc chủ đề"
-                  value={topic}
+                  aria-label="Trạng thái học liệu"
+                  value={status}
                   onChange={(event) => {
-                    filter({ topicId: event.target.value });
+                    filter({ status: event.target.value });
                   }}
                 >
-                  <option value="">Mọi chủ đề</option>
-                  {topics.data
-                    ?.filter((item) => !item.archivedAt)
-                    .map((item) => (
-                      <option key={item.id} value={item.id}>
-                        {item.name}
-                      </option>
-                    ))}
+                  <option value="">Mọi trạng thái</option>
+                  {Object.entries(contentStatus).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
                 </select>
+              </Field>
+              {tab === "lessons" && (
+                <Field label="Lọc chủ đề">
+                  <select
+                    aria-label="Lọc chủ đề"
+                    value={topic}
+                    onChange={(event) => {
+                      filter({ topicId: event.target.value });
+                    }}
+                  >
+                    <option value="">Mọi chủ đề</option>
+                    {topics.data
+                      ?.filter((item) => !item.archivedAt)
+                      .map((item) => (
+                        <option key={item.id} value={item.id}>
+                          {item.name}
+                        </option>
+                      ))}
+                  </select>
+                </Field>
               )}
             </FilterBar>
             {items.loading && !items.data ? (
@@ -229,11 +236,7 @@ export function LibraryPage() {
                         <span className="stat-icon mint">
                           <Icon name="book" />
                         </span>
-                        <span
-                          className={`content-badge ${item.status.toLowerCase()}`}
-                        >
-                          {contentStatus[item.status]}
-                        </span>
+                        <Badge status={item.status} />
                       </div>
                       <h2>{item.title}</h2>
                       <p className="muted">
@@ -406,7 +409,7 @@ function LessonEditor({ initial }: { initial: Lesson | null }) {
     [busy, setBusy] = useState(false),
     [error, setError] = useState<unknown>(null),
     [uploadFor, setUploadFor] = useState<number | null>(null);
-  const mayLeave = useUnsavedChanges(dirty);
+  const discard = useUnsavedChanges(dirty);
   const choices = useResource(
     useCallback(async (signal) => {
       const [topics, files, storage] = await Promise.all([
@@ -788,10 +791,7 @@ function LessonEditor({ initial }: { initial: Lesson | null }) {
               type="button"
               className="button button-ghost button-full"
               disabled={busy}
-              onClick={() => {
-                if (mayLeave())
-                  navigate(initial ? `${root}/lessons/${initial.id}` : root);
-              }}
+              onClick={() => discard(() => navigate(initial ? `${root}/lessons/${initial.id}` : root))}
             >
               Quay lại
             </button>
@@ -844,7 +844,7 @@ function CourseEditor({ initial }: { initial: Course | null }) {
   const [busy, setBusy] = useState(false),
     [dirty, setDirty] = useState(false),
     [error, setError] = useState<unknown>(null);
-  const mayLeave = useUnsavedChanges(dirty);
+  const discard = useUnsavedChanges(dirty);
   const choices = useResource(
     useCallback((signal) => api.list<Lesson>("/lessons?size=100", signal), []),
   );
@@ -1086,14 +1086,7 @@ function CourseEditor({ initial }: { initial: Course | null }) {
             type="button"
             className="button button-ghost button-full"
             disabled={busy}
-            onClick={() => {
-              if (mayLeave())
-                navigate(
-                  initial
-                    ? `${root}/courses/${initial.id}`
-                    : `${root}?tab=courses`,
-                );
-            }}
+            onClick={() => discard(() => navigate(initial ? `${root}/courses/${initial.id}` : `${root}?tab=courses`))}
           >
             Quay lại
           </button>
@@ -1224,9 +1217,7 @@ export function LibraryDetailPage({ type }: { type: "lessons" | "courses" }) {
         action={actions}
       />
       <div className="content-meta">
-        <span className={`content-badge ${item.status.toLowerCase()}`}>
-          {contentStatus[item.status]}
-        </span>
+        <Badge status={item.status} />
         {type === "lessons" && (
           <span>
             {completionLabels[item.defaultCompletionMode]}

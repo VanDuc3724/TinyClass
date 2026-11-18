@@ -1,5 +1,5 @@
 /* Feature layouts; theme and shared controls are defined in base.css and CSS Modules. */
-/* Pills, icon tiles and link hovers live in base.css; only layout-specific rules remain here. */
+/* Shared controls and link hovers live in base.css and CSS Modules. */
 .filter-bar {
   display: flex;
   align-items: center;
@@ -10,7 +10,7 @@
 .filter-bar > select {
   width: auto;
   min-width: 175px;
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
 }
 .inside-panel {
   margin: 0;
@@ -23,7 +23,7 @@
   gap: 8px;
   background: var(--tc-surface);
   border: 1px solid var(--tc-border);
-  border-radius: 8px;
+  border-radius: var(--tc-radius-sm);
   padding: 0 12px;
   width: 390px;
   max-width: 100%;
@@ -34,7 +34,7 @@
   border: 0;
   background: transparent;
   min-width: 0;
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
 }
 .class-grid {
   display: grid;
@@ -66,7 +66,7 @@
   color: var(--tc-primary);
   background: var(--tc-surface);
   padding: 16px;
-  border-radius: 20px 20px 20px 6px;
+  border-radius: var(--tc-radius-lg) var(--tc-radius-lg) var(--tc-radius-lg) var(--tc-radius-sm);
   box-shadow: var(--tc-shadow-xs);
 }
 .class-tint-1 .class-art {
@@ -103,12 +103,12 @@
   padding: 21px 21px 0;
 }
 .class-card-content h2 {
-  font-size: 17px;
+  font-size: var(--tc-font-size-lg);
   overflow-wrap: anywhere;
 }
 .card-description {
   color: var(--muted);
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
   margin: 9px 0 18px;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -120,7 +120,7 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
   color: var(--tc-text-muted);
 }
 .class-meta span {
@@ -140,7 +140,7 @@
   padding: 16px 0;
   margin-top: 20px;
   border-top: 1px solid var(--tc-border);
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
   font-weight: 700;
   color: var(--tc-primary);
 }
@@ -163,7 +163,7 @@ a.class-card:hover .class-card-footer svg {
   min-height: 32px;
   margin-bottom: 16px;
   color: var(--tc-primary);
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
 }
 .editor-panel {
   max-width: 850px;
@@ -185,17 +185,17 @@ a.class-card:hover .class-card-footer svg {
   place-items: center;
   width: 36px;
   height: 36px;
-  border-radius: 12px;
+  border-radius: var(--tc-radius-md);
   background: var(--tc-primary-soft);
   color: var(--tc-primary);
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
   font-weight: 800;
 }
 .form-section-title h2 {
-  font-size: 16px;
+  font-size: var(--tc-font-size-md);
 }
 .form-section-title .muted {
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
   margin-top: 2px;
 }
 .form-actions {
@@ -214,13 +214,13 @@ a.class-card:hover .class-card-footer svg {
   padding: 28px;
   border: 1px solid var(--tc-border);
   background: var(--tc-surface-muted);
-  border-radius: 13px;
+  border-radius: var(--tc-radius-md);
   margin-bottom: 25px;
 }
 .detail-class-icon {
   width: 85px;
   height: 90px;
-  border-radius: 24px;
+  border-radius: var(--tc-radius-xl);
   background: var(--tc-surface);
   display: grid;
   place-items: center;
@@ -231,13 +231,13 @@ a.class-card:hover .class-card-footer svg {
   min-width: 0;
 }
 .detail-hero-text h1 {
-  font-size: 27px;
+  font-size: var(--tc-font-size-2xl);
   margin: 8px 0;
   overflow-wrap: anywhere;
 }
 .detail-hero-text p {
   color: var(--tc-primary);
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -284,7 +284,7 @@ a.class-card:hover .class-card-footer svg {
   width: 200px;
   background: var(--tc-surface);
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: var(--tc-radius-md);
   box-shadow: var(--tc-shadow-overlay);
   z-index: var(--tc-z-popover);
   padding: 6px;
@@ -297,9 +297,9 @@ a.class-card:hover .class-card-footer svg {
   border: 0;
   text-align: left;
   padding: 10px 12px;
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
   font-weight: 600;
-  border-radius: 10px;
+  border-radius: var(--tc-radius-md);
 }
 .action-menu button:hover {
   background: var(--tc-primary-soft);
@@ -316,7 +316,7 @@ table {
 }
 td strong {
   color: var(--tc-text);
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
   font-weight: 700;
 }
 .person-link {
@@ -330,7 +330,7 @@ a.person-link:hover {
 }
 .person-link small {
   display: block;
-  font-size: 13px;
+  font-size: var(--tc-font-size-sm);
   font-weight: 500;
   color: var(--tc-text-muted);
   margin-top: 2px;
@@ -339,6 +339,9 @@ a.person-link:hover {
   display: flex;
   gap: 8px;
   align-items: center;
+}
+.class-member-actions {
+  flex-wrap: wrap;
 }
 .details-panel {
   padding: 27px;
@@ -354,18 +357,18 @@ a.person-link:hover {
 }
 .details-panel dt {
   color: var(--tc-primary);
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
   margin-bottom: 7px;
 }
 .details-panel dd {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
   overflow-wrap: anywhere;
 }
 .prose {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-  font-size: 15px;
+  font-size: var(--tc-font-size-md);
   color: var(--tc-text);
   line-height: 1.8;
 }
@@ -412,16 +415,16 @@ a.person-link:hover {
   place-items: center;
   width: 40px;
   height: 40px;
-  border-radius: 12px;
+  border-radius: var(--tc-radius-md);
   color: var(--tc-warning);
   background: var(--tc-warning-soft);
   margin-bottom: 12px;
 }
 .private-note h2 {
-  font-size: 16px;
+  font-size: var(--tc-font-size-md);
 }
 .private-note .muted {
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
   margin: 8px 0 19px;
 }
 .modal-header {
@@ -446,20 +449,20 @@ a.person-link:hover {
   min-width: 0;
 }
 .picker-list strong {
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
   display: block;
 }
 .picker-list small {
   display: block;
   margin-top: 3px;
   color: var(--muted);
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
 }
 .modal-bottom-link {
   display: flex;
   gap: 14px;
   justify-content: space-between;
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
   color: var(--tc-primary);
   margin-top: 20px;
   padding-top: 20px;
@@ -485,7 +488,7 @@ a.person-link:hover {
   top: 32px;
   bottom: -8px;
   width: 2px;
-  border-radius: 2px;
+  border-radius: var(--tc-radius-pill);
   background: var(--tc-border);
 }
 .timeline-dot {
@@ -498,17 +501,17 @@ a.person-link:hover {
   box-shadow: 0 0 0 4px var(--tc-primary-soft);
 }
 .timeline strong {
-  font-size: 15px;
+  font-size: var(--tc-font-size-md);
 }
 .timeline small {
   display: block;
-  font-size: 13px;
+  font-size: var(--tc-font-size-sm);
   color: var(--tc-text-muted);
   margin-top: 4px;
 }
 .timeline p {
   margin-top: 8px;
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
   color: var(--tc-text);
   white-space: pre-wrap;
 }
@@ -516,7 +519,7 @@ a.person-link:hover {
   display: flex;
   flex-wrap: wrap;
   gap: 18px;
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
   color: var(--tc-primary);
 }
 .story-features span {
@@ -531,14 +534,14 @@ a.person-link:hover {
   width: min(390px, 100%);
 }
 .auth-card h2 {
-  font-size: 29px;
+  font-size: var(--tc-font-size-3xl);
   line-height: 1.4;
   font-weight: 600;
   margin: 13px 0;
   letter-spacing: -0.8px;
 }
 .auth-card > .muted {
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
   margin-bottom: 32px;
 }
 .welcome-icon {
@@ -546,7 +549,7 @@ a.person-link:hover {
   place-items: center;
   width: 44px;
   height: 44px;
-  border-radius: 14px;
+  border-radius: var(--tc-radius-md);
   background: var(--tc-primary-soft);
   color: var(--tc-primary);
   margin-bottom: 24px;
@@ -555,7 +558,7 @@ a.person-link:hover {
   margin-top: 24px;
 }
 .auth-card .field {
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
   margin-bottom: 21px;
 }
 .auth-card .field input {
@@ -566,7 +569,7 @@ a.person-link:hover {
 }
 .auth-help {
   text-align: center;
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
   color: var(--tc-text-muted);
   margin-top: 27px;
 }
@@ -634,7 +637,7 @@ a.person-link:hover {
     margin-bottom: 45px;
   }
   .auth-card h2 {
-    font-size: 27px;
+    font-size: var(--tc-font-size-2xl);
   }
   .class-detail-hero {
     gap: 17px;
@@ -643,13 +646,13 @@ a.person-link:hover {
   .detail-class-icon {
     width: 60px;
     height: 66px;
-    border-radius: 18px;
+    border-radius: var(--tc-radius-lg);
   }
   .detail-class-icon svg {
     width: 29px;
   }
   .detail-hero-text h1 {
-    font-size: 23px;
+    font-size: var(--tc-font-size-2xl);
   }
   .detail-actions {
     width: 100%;
@@ -698,23 +701,23 @@ a.person-link:hover {
     gap: 10px;
   }
   .picker-list .button-small {
-    font-size: 14px;
+    font-size: var(--tc-font-size-sm);
     padding: 8px;
   }
   .picker-list strong {
-    font-size: 14px;
+    font-size: var(--tc-font-size-sm);
   }
   .student-profile-heading {
     gap: 15px;
   }
   .student-profile-heading h1 {
-    font-size: 24px;
+    font-size: var(--tc-font-size-2xl);
   }
   .student-profile-heading .muted {
-    font-size: 14px;
+    font-size: var(--tc-font-size-sm);
   }
   .detail-hero-text p {
-    font-size: 14px;
+    font-size: var(--tc-font-size-sm);
   }
 }
 
@@ -723,7 +726,7 @@ a.person-link:hover {
   align-items: center;
   gap: 12px;
   color: var(--tc-text-muted);
-  font-size: 13px;
+  font-size: var(--tc-font-size-sm);
   font-weight: 600;
   margin: 24px 0 16px;
 }
@@ -746,7 +749,7 @@ a.person-link:hover {
   color: var(--tc-info);
   font-family: var(--tc-font);
   font-weight: 700;
-  font-size: 20px;
+  font-size: var(--tc-font-size-xl);
 }
 .methods-list {
   padding: 0 24px;
@@ -764,11 +767,11 @@ a.person-link:hover {
   min-width: 150px;
 }
 .method-row strong {
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
 }
 .method-row p,
 .method-hint {
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
   color: var(--muted);
   margin-top: 5px;
 }
@@ -788,10 +791,10 @@ a.person-link:hover {
   border-top: 1px solid var(--border);
 }
 .panel-subheading h3 {
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
 }
 .panel-subheading .muted {
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
 }
 .verification-prompt {
   padding: 18px 0;
@@ -800,7 +803,7 @@ a.person-link:hover {
   margin-bottom: 13px;
 }
 .verification-prompt > h2 {
-  font-size: 20px;
+  font-size: var(--tc-font-size-xl);
   margin-bottom: 12px;
 }
 .verification-prompt > .muted {
@@ -835,7 +838,7 @@ a.person-link:hover {
   padding-top: 20px;
   margin-top: 20px;
   border-top: 1px solid var(--border);
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
   color: var(--muted);
   flex-wrap: wrap;
 }
@@ -856,9 +859,9 @@ a.person-link:hover {
   min-height: 40px;
   background: transparent;
   border: 0;
-  border-radius: 9px;
+  border-radius: var(--tc-radius-sm);
   padding: 10px;
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
   font-weight: 600;
   color: var(--muted);
 }
@@ -909,13 +912,6 @@ a.person-link:hover {
   background: var(--surface);
   box-shadow: var(--tc-shadow-card);
 }
-.list-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin: 24px 0;
-}
 .search-field {
   display: flex;
   align-items: center;
@@ -923,7 +919,7 @@ a.person-link:hover {
   min-width: 0;
   width: min(460px, 100%);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--tc-radius-md);
   padding: 10px 14px;
   background: var(--surface);
 }
@@ -933,12 +929,12 @@ a.person-link:hover {
   border: 0;
   outline: none;
   background: transparent;
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
 }
 .storage-banner p {
   margin: 5px 0 0;
 }
-.storage-banner > .pill {
+.storage-banner > .badge {
   margin-left: auto;
 }
 .file-grid {
@@ -965,7 +961,7 @@ a.person-link:hover {
   color: var(--tc-primary);
 }
 .file-art > span {
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
   letter-spacing: 0.14em;
 }
 .file-art img {
@@ -973,41 +969,34 @@ a.person-link:hover {
   height: 100%;
   object-fit: cover;
 }
+.file-art.file-image {
+  padding: var(--tc-space-2);
+}
+.file-art.file-image img {
+  border: 1px solid var(--tc-border-strong);
+  border-radius: var(--tc-radius-sm);
+}
 .file-card-body {
   padding: 20px;
 }
 .file-card-body h2 {
   font-family: var(--tc-font);
-  font-size: 16px;
+  font-size: var(--tc-font-size-md);
   line-height: 1.5;
   overflow-wrap: anywhere;
   margin: 0 0 8px;
 }
 .file-card-body p {
   color: var(--muted);
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
   margin: 0 0 16px;
-}
-.file-policy {
-  display: inline-flex;
-  align-items: center;
-  font-size: 12px;
-  font-weight: 700;
-  border-radius: var(--tc-radius-pill);
-  padding: 4px 12px;
-  background: var(--tc-warning-soft);
-  color: var(--tc-warning);
-}
-.file-policy.is-allowed {
-  background: var(--tc-success-soft);
-  color: var(--tc-success);
 }
 .media-preview {
   display: block;
   max-height: 55vh;
   width: 100%;
   object-fit: contain;
-  border-radius: 10px;
+  border-radius: var(--tc-radius-md);
   background: var(--tc-surface-muted);
   margin-bottom: 18px;
 }
@@ -1019,7 +1008,7 @@ a.person-link:hover {
   width: 100%;
   height: 55vh;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--tc-radius-md);
 }
 .policy-editor {
   padding: 16px;
@@ -1030,7 +1019,7 @@ a.person-link:hover {
 }
 .policy-editor p {
   margin-top: 0;
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
   color: var(--muted);
 }
 .checkbox-field {
@@ -1038,7 +1027,7 @@ a.person-link:hover {
   align-items: flex-start;
   gap: 12px;
   margin: 18px 0;
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
   line-height: 1.6;
 }
 .checkbox-field input {
@@ -1063,7 +1052,7 @@ a.person-link:hover {
     gap: 12px;
     flex-wrap: wrap;
   }
-  .storage-banner > .pill {
+  .storage-banner > .badge {
     margin-left: 0;
   }
   .file-art {
@@ -1109,13 +1098,13 @@ a.person-link:hover {
   flex-direction: column;
 }
 .library-card h2 {
-  font-size: 21px;
+  font-size: var(--tc-font-size-xl);
   line-height: 1.4;
   margin: 22px 0 10px;
   overflow-wrap: anywhere;
 }
 .library-card > p {
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
   line-height: 1.8;
   display: -webkit-box;
   -webkit-line-clamp: 3;
@@ -1132,12 +1121,8 @@ a.person-link:hover {
 .library-card-footer {
   margin-top: auto;
   padding-top: 24px;
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
   color: var(--muted);
-}
-.content-badge.archived {
-  background: var(--tc-surface-muted);
-  color: var(--tc-text-muted);
 }
 .topic-row {
   display: flex;
@@ -1157,7 +1142,7 @@ a.person-link:hover {
   flex: 1;
 }
 .topic-row p {
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
   margin: 6px 0 0;
 }
 .topic-dot {
@@ -1179,17 +1164,17 @@ a.person-link:hover {
   margin-bottom: 24px;
 }
 .editor-section h2 {
-  font-size: 20px;
+  font-size: var(--tc-font-size-xl);
   margin: 0 0 20px;
 }
 .editor-section h3 {
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
   margin-top: 26px;
 }
 .block-editor {
   background: var(--tc-surface);
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: var(--tc-radius-md);
   padding: 20px;
   margin: 20px 0;
   box-shadow: var(--tc-shadow-xs);
@@ -1207,7 +1192,7 @@ a.person-link:hover {
 }
 .block-toolbar strong {
   margin-right: auto;
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
 }
 .block-toolbar select {
   max-width: 180px;
@@ -1218,7 +1203,7 @@ a.person-link:hover {
   margin: 18px 0;
 }
 .choice-fieldset legend {
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
   font-weight: 600;
 }
 .shared-update {
@@ -1226,7 +1211,7 @@ a.person-link:hover {
   border-radius: var(--tc-radius-md);
   background: var(--tc-warning-soft);
   color: var(--tc-warning);
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
 }
 .editor-save {
   display: grid;
@@ -1256,7 +1241,7 @@ a.person-link:hover {
   overflow-wrap: anywhere;
 }
 .course-lesson-row p {
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
   margin: 8px 0;
 }
 .course-lesson-row .checkbox-field {
@@ -1270,7 +1255,7 @@ a.person-link:hover {
   background: var(--tc-primary-soft);
   border-radius: 50%;
   color: var(--green);
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
   font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
@@ -1280,7 +1265,7 @@ a.person-link:hover {
   flex-wrap: wrap;
   gap: 20px;
   color: var(--muted);
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
   margin: 0 0 24px;
 }
 .lesson-detail,
@@ -1304,14 +1289,14 @@ a.person-link:hover {
 }
 .guidance-box h2,
 .activity-box h2 {
-  font-size: 20px;
+  font-size: var(--tc-font-size-xl);
   margin-top: 0;
 }
 .activity-box {
   background: var(--tc-warning-soft);
 }
 .media-caption {
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
   color: var(--muted);
   text-align: center;
 }
@@ -1339,19 +1324,13 @@ a.person-link:hover {
   .library-grid {
     grid-template-columns: 1fr;
   }
-  .list-toolbar {
-    flex-wrap: wrap;
-  }
-  .list-toolbar .search-field {
-    width: 100%;
-  }
   .topic-row {
     flex-wrap: wrap;
     gap: 12px;
     padding: 18px;
   }
   .topic-row > .muted {
-    font-size: 14px;
+    font-size: var(--tc-font-size-sm);
   }
   .lesson-detail,
   .course-detail {
@@ -1385,7 +1364,7 @@ a.person-link:hover {
 .learning-progress {
   margin: 22px 0 4px;
   color: var(--muted);
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
 }
 .learning-progress > div {
   display: flex;
@@ -1398,17 +1377,17 @@ a.person-link:hover {
   width: 100%;
   height: 8px;
   border: 0;
-  border-radius: 10px;
+  border-radius: var(--tc-radius-md);
   overflow: hidden;
   accent-color: var(--green);
 }
 .learning-progress progress::-webkit-progress-bar {
   background: var(--tc-surface-muted);
-  border-radius: 10px;
+  border-radius: var(--tc-radius-md);
 }
 .learning-progress progress::-webkit-progress-value {
   background: var(--tc-primary);
-  border-radius: 10px;
+  border-radius: var(--tc-radius-md);
 }
 .completed-message {
   display: flex;
@@ -1430,7 +1409,7 @@ a.person-link:hover {
 }
 .completed-message p {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--tc-font-size-sm);
 }
 .completion-panel {
   margin-top: 24px;
@@ -1444,5 +1423,5 @@ a.person-link:hover {
 }
 .download-list h2 {
   width: 100%;
-  font-size: 18px;
+  font-size: var(--tc-font-size-lg);
 }

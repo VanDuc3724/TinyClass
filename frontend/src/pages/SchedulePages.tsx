@@ -18,9 +18,10 @@ import {
   Pagination,
 } from "../components/ui";
 import FilterBar from "../components/FilterBar";
+import { RefreshButton } from "../components/RefreshButton";
 import { api, query } from "../lib/api";
 import { businessToday, dateLabel, dateTimeLabel } from "../lib/format";
-import { useResource } from "../lib/hooks";
+import { useRefreshOnVisible, useResource } from "../lib/hooks";
 import {
   addDays,
   businessLocal,
@@ -91,6 +92,12 @@ export function CalendarPage({ family = false }: { family?: boolean }) {
       [family, child],
     ),
   );
+  function refresh() {
+    data.reload();
+    options.reload();
+  }
+  const refreshing = data.loading || options.loading;
+  useRefreshOnVisible(refresh, !refreshing);
   const classSelect = (
     <select
       aria-label="Lọc lớp trong lịch"
@@ -130,15 +137,12 @@ export function CalendarPage({ family = false }: { family?: boolean }) {
               Thêm buổi học
             </Link>
           ) : (
-            <button
-              className="button button-ghost"
-              onClick={() => {
-                data.reload();
-                options.reload();
-              }}
-            >
-              Cập nhật lịch
-            </button>
+            <RefreshButton
+              label="Cập nhật lịch"
+              loading={refreshing}
+              onClick={refresh}
+              updatedAt={data.updatedAt}
+            />
           )
         }
       />
@@ -181,10 +185,7 @@ export function CalendarPage({ family = false }: { family?: boolean }) {
       />
       <ErrorNotice
         error={data.error || options.error}
-        retry={() => {
-          data.reload();
-          options.reload();
-        }}
+        retry={refresh}
       />
       {data.loading && !data.data ? (
         <Loading text="Đang mở lịch tuần…" />
@@ -239,9 +240,30 @@ export function NewSessionPage() {
   const classes = useResource(
     useCallback((signal) => scheduleClasses("/classes", signal), []),
   );
+  const [dirty, setDirty] = useState(false);
+  const [confirmDiscard, setConfirmDiscard] = useState(false);
+  function requestClose() {
+    if (dirty) setConfirmDiscard(true);
+    else navigate("/teacher/schedule");
+  }
   return (
     <>
-      <Link className="back-link" to="/teacher/schedule">
+      <Link
+        className="back-link"
+        to="/teacher/schedule"
+        onClick={(event) => {
+          if (
+            dirty &&
+            !event.metaKey &&
+            !event.ctrlKey &&
+            !event.shiftKey &&
+            !event.altKey
+          ) {
+            event.preventDefault();
+            requestClose();
+          }
+        }}
+      >
         ← Về lịch dạy
       </Link>
       <PageHeader
@@ -259,13 +281,20 @@ export function NewSessionPage() {
               classes={classes.data}
               initialClass={params.get("classId") || undefined}
               initialDate={params.get("date") || undefined}
-              onClose={() => navigate("/teacher/schedule")}
+              onClose={requestClose}
+              onDirtyChange={setDirty}
               onSaved={(session) =>
                 navigate(`/teacher/schedule/sessions/${session.id}`)
               }
             />
           </section>
         )
+      )}
+      {confirmDiscard && (
+        <DiscardSessionChanges
+          onClose={() => setConfirmDiscard(false)}
+          onDiscard={() => navigate("/teacher/schedule")}
+        />
       )}
     </>
   );
@@ -511,34 +540,63 @@ function SessionEditor({
   onSaved: () => void;
 }) {
   const [busy, setBusy] = useState(false),
-    [dirty, setDirty] = useState(false);
+    [dirty, setDirty] = useState(false),
+    [confirmDiscard, setConfirmDiscard] = useState(false);
+  function requestClose() {
+    if (dirty) setConfirmDiscard(true);
+    else onClose();
+  }
   return (
-    <Modal
-      title="Điều chỉnh riêng buổi học"
-      busy={busy}
-      onClose={() => {
-        if (
-          !dirty ||
-          window.confirm("Bạn có thay đổi chưa lưu. Rời biểu mẫu này?")
-        )
-          onClose();
+    <>
+      <Modal
+        title="Điều chỉnh riêng buổi học"
+        busy={busy}
+        onClose={requestClose}
+      >
+        <SessionForm
+          classes={[
+            {
+              id: session.classId,
+              name: session.className,
+              status: session.classStatus || "ACTIVE",
+              location: session.location,
+            },
+          ]}
+          session={session}
+          onClose={requestClose}
+          onSaved={onSaved}
+          onBusyChange={setBusy}
+          onDirtyChange={setDirty}
+        />
+      </Modal>
+      {confirmDiscard && (
+        <DiscardSessionChanges
+          onClose={() => setConfirmDiscard(false)}
+          onDiscard={onClose}
+        />
+      )}
+    </>
+  );
+}
+
+function DiscardSessionChanges({
+  onClose,
+  onDiscard,
+}: {
+  onClose: () => void;
+  onDiscard: () => void;
+}) {
+  return (
+    <ActionModal
+      action={{
+        title: "Bỏ thay đổi buổi học?",
+        description: "Các thay đổi chưa lưu trên buổi học sẽ bị mất.",
+        label: "Bỏ thay đổi",
+        showReason: false,
+        run: async () => onDiscard(),
       }}
-    >
-      <SessionForm
-        classes={[
-          {
-            id: session.classId,
-            name: session.className,
-            status: session.classStatus || "ACTIVE",
-            location: session.location,
-          },
-        ]}
-        session={session}
-        onClose={onClose}
-        onSaved={onSaved}
-        onBusyChange={setBusy}
-        onDirtyChange={setDirty}
-      />
-    </Modal>
+      onClose={onClose}
+      onSuccess={onClose}
+    />
   );
 }

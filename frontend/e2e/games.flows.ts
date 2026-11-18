@@ -77,7 +77,6 @@ export function registerGameFlows(
     browser,
   }) => {
     test.setTimeout(120000);
-    page.on("dialog", (d) => d.accept());
     await login(page);
     classroom = (
       await post(
@@ -192,9 +191,17 @@ export function registerGameFlows(
     ]) {
       await page.goto("/teacher/games/new");
       await page.getByLabel("Tên trò chơi", { exact: true }).fill(title);
-      await page
-        .getByRole("combobox", { name: "Kiểu trò chơi", exact: true })
-        .selectOption(type);
+      if (type !== "CHOICE") {
+        const picker = page.getByRole("combobox", { name: "Kiểu trò chơi", exact: true });
+        const changeType = page.getByRole("dialog", { name: "Đổi kiểu trò chơi?" });
+        await picker.selectOption(type);
+        await expect(changeType.getByRole("button", { name: "Hủy" })).toBeFocused();
+        await page.keyboard.press("Enter");
+        await expect(picker).toHaveValue("CHOICE");
+        await picker.selectOption(type);
+        await changeType.getByRole("button", { name: "Đổi kiểu trò chơi" }).click();
+        await expect(picker).toHaveValue(type);
+      }
       await page.getByRole("button", { name: "Dùng nội dung gợi ý" }).click();
       if (type === "CHOICE") {
         const assetRequests: URL[] = [];
@@ -290,7 +297,7 @@ export function registerGameFlows(
             .getByRole("region", { name: "Kết quả lượt chơi" })
             .getByLabel("3 sao"),
         ).toBeVisible();
-        await page.getByRole("button", { name: "Rời góc chơi" }).click();
+        await page.getByRole("button", { name: "Thoát chơi thử", exact: true }).click();
       }
       await page
         .getByRole("button", { name: "Xuất bản trò chơi", exact: true })
@@ -528,6 +535,8 @@ export function registerGameFlows(
     });
     await expect(history.getByRole("listitem")).toHaveCount(3);
     await expect(history.getByLabel(/^[0-3] sao$/)).toHaveCount(3);
+    await expect(page.getByText("3 trò chơi được giao", { exact: true })).toHaveCount(1);
+    await expect(page.getByText("3 kết quả", { exact: true })).toHaveCount(0);
     await page.setViewportSize({ width: 320, height: 844 });
     expect(
       await history.evaluate((list) => {
@@ -542,6 +551,43 @@ export function registerGameFlows(
     await capture(page, "collection-320");
     await page.setViewportSize({ width: 390, height: 844 });
     await capture(page, "collection-mobile");
+
+    // A child can return to the board without seeing the parent's history or settings.
+    await page.setViewportSize({ width: 320, height: 780 });
+    await page.goto(`/family/children/${child}/kids`);
+    await page.getByRole("link", { name: "Chơi", exact: true }).click();
+    await expect(page).toHaveURL(/\/games\?kid=1$/);
+    await expect(page.getByRole("list", { name: "Lịch sử lượt chơi hoàn thành" })).toHaveCount(0);
+    await expect(page.getByLabel(/menu tài khoản/i)).toHaveCount(0);
+    await page.getByRole("article").filter({ has: page.getByRole("heading", { name: "Nhớ những loại quả", exact: true }) })
+      .getByRole("link", { name: "Chơi lại", exact: true }).click();
+    await expect(page).toHaveURL(/\/play\?kid=1$/);
+    const firstCard = page.getByRole("button", { name: "Thẻ 1", exact: true });
+    await expect(firstCard).toBeInViewport();
+    await expect(page.getByRole("heading", { name: "Nhớ những loại quả", exact: true })).toBeFocused();
+    await page.keyboard.press("Enter");
+    await expect(firstCard).toBeVisible();
+    await expect(page.getByText("Lật một thẻ.", { exact: true })).toBeVisible();
+    await page.screenshot({ path: "test-results/child-memory-320.png" });
+    await firstCard.click();
+    await expect(page.getByText("Lật thêm một thẻ.", { exact: true })).toBeVisible();
+    await page.getByText("Cần giúp?", { exact: true }).click();
+    const restart = page.getByRole("button", { name: "Bắt đầu lại", exact: true });
+    const confirmRestart = page.getByRole("dialog", { name: "Bắt đầu lại?" });
+    await restart.click();
+    await expect(confirmRestart.getByRole("button", { name: "Chơi tiếp" })).toBeFocused();
+    await page.keyboard.press("Enter");
+    await expect(restart).toBeFocused();
+    await expect(page.getByText("Lật thêm một thẻ.", { exact: true })).toBeVisible();
+    await restart.click();
+    await confirmRestart.getByRole("button", { name: "Bắt đầu lại" }).click();
+    await expect(confirmRestart).toHaveCount(0);
+    await expect(firstCard).toBeEnabled();
+    await expect(page.getByText("Lật một thẻ.", { exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "Rời góc chơi", exact: true }).click();
+    await expect(page).toHaveURL(/\/games\?kid=1$/);
+    await page.getByRole("link", { name: "Về góc của bé", exact: true }).click();
+    await expect(page).toHaveURL(/\/kids$/);
     expect(errors).toEqual([]);
   });
   test("trò chơi: cô xem kết quả, rời lớp chặn chơi và quay lại cần cấp quyền rõ ràng", async ({

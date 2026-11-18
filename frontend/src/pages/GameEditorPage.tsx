@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { FormEvent } from "react";
+import type { FormEvent, MouseEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ApiError, api, apiUrl } from "../lib/api";
-import { useResource, useUnsavedChanges } from "../lib/hooks";
+import { useBeforeUnload, useResource } from "../lib/hooks";
+import { ActionModal } from "../components/ActionModal";
+import type { ActionRequest } from "../components/ActionModal";
 import { ErrorNotice, Field, Loading, PageHeader } from "../components/ui";
 import {
   emptyContent,
@@ -39,6 +41,8 @@ const initial = (): Draft => ({
   maxAgeMonths: 72,
   content: emptyContent("CHOICE"),
 });
+const hasFaceContent = (face: GameFace | null) =>
+  !!(face?.label?.trim() || face?.imageFileId || face?.audioFileId);
 export default function GameEditorPage() {
   const { game } = useParams();
   return <Editor key={game || "new"} id={game} />;
@@ -49,7 +53,8 @@ function Editor({ id }: { id?: string }) {
     [reason, setReason] = useState(""),
     [busy, setBusy] = useState(false),
     [error, setError] = useState<unknown>(null),
-    [picker, setPicker] = useState<Picker | null>(null);
+    [picker, setPicker] = useState<Picker | null>(null),
+    [action, setAction] = useState<ActionRequest | null>(null);
   const source = useResource(
     useCallback(
       (signal) =>
@@ -98,9 +103,9 @@ function Editor({ id }: { id?: string }) {
         behavior: "smooth",
       });
   }, [error]);
-  const discard = useUnsavedChanges(
-    JSON.stringify(draft) !== fingerprint || !!reason.trim(),
-  );
+  const dirty = JSON.stringify(draft) !== fingerprint || !!reason.trim(),
+    backTo = id ? `/teacher/games/${id}` : "/teacher/games";
+  useBeforeUnload(dirty);
   const published = source.data?.status === "PUBLISHED",
     archived = source.data?.status === "ARCHIVED";
   function change<K extends keyof Draft>(key: K, value: Draft[K]) {
@@ -131,13 +136,35 @@ function Editor({ id }: { id?: string }) {
   }
   function changeType(type: GameType) {
     if (type === draft.gameType) return;
+    setAction({
+      title: "Đổi kiểu trò chơi?",
+      description:
+        "Câu hỏi, thẻ và tệp đính kèm trong kiểu hiện tại sẽ bị thay thế.",
+      label: "Đổi kiểu trò chơi",
+      showReason: false,
+      run: async () => {
+        setDraft((d) => ({ ...d, gameType: type, content: emptyContent(type) }));
+      },
+    });
+  }
+  function confirmExit(event: MouseEvent<HTMLAnchorElement>) {
     if (
-      !window.confirm(
-        "Đổi kiểu trò chơi sẽ thay phần câu hỏi/thẻ đang soạn. Tiếp tục?",
-      )
+      !dirty ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
     )
       return;
-    setDraft((d) => ({ ...d, gameType: type, content: emptyContent(type) }));
+    event.preventDefault();
+    setAction({
+      title: "Rời biểu mẫu trò chơi?",
+      description: "Các thay đổi chưa lưu sẽ bị bỏ.",
+      label: "Rời biểu mẫu",
+      cancelLabel: "Tiếp tục chỉnh sửa",
+      showReason: false,
+      run: async () => navigate(backTo),
+    });
   }
   async function save(event: FormEvent) {
     event.preventDefault();
@@ -166,16 +193,32 @@ function Editor({ id }: { id?: string }) {
   }
   function sample() {
     if (
-      draft.content.questions.some((q) => q.prompt.trim()) ||
-      draft.content.pairs.some((p) => p.left.label.trim())
-    ) {
-      if (
-        !window.confirm(
-          "Dùng nội dung gợi ý sẽ thay câu hỏi/thẻ đang soạn. Tiếp tục?",
-        )
+      draft.content.instructionAudioFileId ||
+      draft.content.questions.some(
+        (q) =>
+          q.prompt?.trim() ||
+          q.hint?.trim() ||
+          q.imageFileId ||
+          q.audioFileId ||
+          q.options.some(hasFaceContent),
+      ) ||
+      draft.content.pairs.some(
+        (p) => hasFaceContent(p.left) || hasFaceContent(p.right),
       )
-        return;
+    ) {
+      setAction({
+        title: "Dùng nội dung gợi ý?",
+        description:
+          "Câu hỏi, thẻ và tệp đính kèm đang soạn sẽ bị thay bằng nội dung gợi ý.",
+        label: "Dùng nội dung gợi ý",
+        showReason: false,
+        run: async () => applySample(),
+      });
+    } else {
+      applySample();
     }
+  }
+  function applySample() {
     setDraft((d) => ({
       ...d,
       title:
@@ -195,10 +238,8 @@ function Editor({ id }: { id?: string }) {
     <div className={styles.editor}>
       <Link
         className="back-link"
-        to={id ? `/teacher/games/${id}` : "/teacher/games"}
-        onClick={(e) => {
-          if (!discard()) e.preventDefault();
-        }}
+        to={backTo}
+        onClick={confirmExit}
       >
         ← Về kho trò chơi
       </Link>
@@ -600,10 +641,8 @@ function Editor({ id }: { id?: string }) {
             </button>
             <Link
               className="button button-ghost"
-              to={id ? `/teacher/games/${id}` : "/teacher/games"}
-              onClick={(e) => {
-                if (!discard()) e.preventDefault();
-              }}
+              to={backTo}
+              onClick={confirmExit}
             >
               Quay lại
             </Link>
@@ -618,6 +657,13 @@ function Editor({ id }: { id?: string }) {
             picker.pick(value);
             setPicker(null);
           }}
+        />
+      )}
+      {action && (
+        <ActionModal
+          action={action}
+          onClose={() => setAction(null)}
+          onSuccess={() => setAction(null)}
         />
       )}
     </div>
