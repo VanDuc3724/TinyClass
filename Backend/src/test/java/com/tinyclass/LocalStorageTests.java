@@ -49,17 +49,21 @@ class LocalStorageTests {
             var bytes=b.binaryGet("/files/"+id+"/content",Map.of());
             assertThat(bytes.statusCode()).isEqualTo(200); assertThat(bytes.body()).isEqualTo(PNG);
             assertThat(bytes.headers().firstValue("Content-Disposition").orElse("")).startsWith("inline;");
-            assertThat(bytes.headers().firstValue("Cache-Control").orElse("")).isEqualTo("private, no-cache");
+            assertThat(bytes.headers().firstValue("Cache-Control")).hasValue("private, no-store");
             String etag=bytes.headers().firstValue("ETag").orElseThrow();
             assertThat(etag).isEqualTo("\""+HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(PNG))+"\"");
             var cached=b.binaryGet("/files/"+id+"/content",Map.of("If-None-Match",etag));
             assertThat(cached.statusCode()).isEqualTo(304); assertThat(cached.body()).isEmpty();
+            assertThat(cached.headers().firstValue("Cache-Control")).hasValue("private, no-store");
             assertThat(b.binaryGet("/files/"+id+"/content",Map.of("If-None-Match","\"stale\"")).statusCode()).isEqualTo(200);
             var range=b.binaryGet("/files/"+id+"/content",Map.of("Range","bytes=5-12"));
             assertThat(range.statusCode()).isEqualTo(206); assertThat(range.body()).isEqualTo(Arrays.copyOfRange(PNG,5,13));
             assertThat(range.headers().firstValue("Content-Range").orElse("")).isEqualTo("bytes 5-12/"+PNG.length);
+            assertThat(range.headers().firstValue("Cache-Control")).hasValue("private, no-store");
             assertThat(b.binaryGet("/files/"+id+"/content",Map.of("Range","bytes=9999-")).statusCode()).isEqualTo(416);
-            assertThat(b.binaryGet("/files/"+id+"/download",Map.of()).headers().firstValue("Content-Disposition").orElse("")).startsWith("attachment;");
+            var download=b.binaryGet("/files/"+id+"/download",Map.of());
+            assertThat(download.headers().firstValue("Content-Disposition").orElse("")).startsWith("attachment;");
+            assertThat(download.headers().firstValue("Cache-Control")).hasValue("private, no-store");
             assertThat(jdbc.queryForList("select octet_length(data) from file_chunks where file_id=?",Integer.class,UUID.fromString(id))).containsExactly(PNG.length);
             assertThat(b.get("/files").data().size()).isEqualTo(1);
         }
@@ -79,11 +83,12 @@ class LocalStorageTests {
         }
     }
     @Test void legacyUploadsAreImportedOnlyFromServerKeysWithMatchingBytes(@TempDir Path temp) throws Exception {
-        Path legacy=Files.createDirectories(temp.resolve("uploads"));
+        Path legacy=Files.createDirectories(temp.toRealPath().resolve("uploads"));
         byte[] tampered=PNG.clone(); tampered[tampered.length-1]^=1;
         try(var b=teacher()) {
             String kept=upload(b,"old.png","image/png",PNG).data().path("id").stringValue();
             String changed=upload(b,"changed.png","image/png",PNG).data().path("id").stringValue();
+            String missing=upload(b,"missing.png","image/png",PNG).data().path("id").stringValue();
             String escaped=upload(b,"escaped.png","image/png",PNG).data().path("id").stringValue();
             // Rows from before V19 have metadata only; their bytes sit under the old upload root.
             for(var entry:Map.of(kept,PNG,changed,tampered).entrySet()) {
@@ -95,8 +100,12 @@ class LocalStorageTests {
             jdbc.update("delete from file_chunks");
             assertThat(importer.importFrom(legacy)).isEqualTo(1);
             assertThat(b.binaryGet("/files/"+kept+"/content",Map.of()).body()).isEqualTo(PNG);
-            assertThat(b.binaryGet("/files/"+changed+"/content",Map.of()).statusCode()).isEqualTo(503);
-            assertThat(b.binaryGet("/files/"+escaped+"/content",Map.of()).statusCode()).isEqualTo(503);
+            for (String rejected : List.of(changed,missing,escaped)) {
+                assertThat(b.get("/files/"+rejected).data().path("status").stringValue()).isEqualTo("FAILED");
+                assertThat(b.binaryGet("/files/"+rejected+"/content",Map.of()).statusCode()).isEqualTo(404);
+            }
+            assertThat(jdbc.queryForList("select file_id from file_chunks",UUID.class)).containsExactly(UUID.fromString(kept));
+            assertThat(files.readyWithoutContent()).isEmpty();
             assertThat(importer.importFrom(legacy)).isZero();
         }
     }

@@ -9,7 +9,6 @@ import com.tinyclass.storage.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.security.*;
 import java.time.Instant;
 import java.util.*;
 import static com.tinyclass.common.persistence.DomainStore.*;
@@ -39,7 +38,7 @@ public class AssignmentService {
         validateDates(input.availableAt(),input.dueAt());
         // Serializes retries without trusting an unsigned client-provided owner or role.
         db.one("select id from users where id=? for update",actor);
-        String hash=hash(db.json(input));
+        String hash=db.requestHash(input);
         var previous=db.rows("select id,request_hash from assignments where teacher_id=? and client_request_id=?",actor,input.clientRequestId());
         if(!previous.isEmpty()) {
             if(!hash.equals(previous.getFirst().get("requestHash"))) throw conflict("IDEMPOTENCY_CONFLICT","Mã yêu cầu đã dùng cho nội dung khác.");
@@ -225,5 +224,4 @@ public class AssignmentService {
     }
     private void validateDates(Instant available,Instant due) { if(available!=null&&due!=null&&due.isBefore(available)) throw problem("INVALID_DATE_RANGE","Hạn hoàn thành phải sau thời điểm mở."); }
     private Object stamp(Instant value) { return value==null?null:java.sql.Timestamp.from(value); }
-    private String hash(String value) { try { return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(value.getBytes(java.nio.charset.StandardCharsets.UTF_8))); } catch(NoSuchAlgorithmException ex) { throw new IllegalStateException(ex); } }
 }

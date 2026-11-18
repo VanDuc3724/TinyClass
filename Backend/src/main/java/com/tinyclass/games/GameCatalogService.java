@@ -8,8 +8,6 @@ import com.tinyclass.storage.FileService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.*;
 import tools.jackson.databind.json.JsonMapper;
-import java.nio.charset.StandardCharsets;
-import java.security.*;
 import java.sql.Timestamp;
 import java.time.*;
 import java.util.*;
@@ -19,7 +17,17 @@ import static com.tinyclass.common.persistence.DomainStore.*;
 @Transactional(readOnly=true,isolation=Isolation.REPEATABLE_READ)
 public class GameCatalogService {
     static final String FAMILY_FROM=" from game_assignments ga join game_recipients r on r.game_assignment_id=ga.id join students s on s.id=r.student_id left join classes c on c.id=ga.class_id left join class_enrollments e on e.id=r.source_enrollment_id where r.student_id=? and s.status='ACTIVE' and ga.status='ACTIVE' and r.revoked_at is null and (ga.target_type='STUDENT' or(c.status='ACTIVE' and e.status='ACTIVE'))";
-    private static final String ASSIGNMENT="select ga.id,ga.game_id,ga.title,ga.target_type,ga.class_id,ga.student_id,c.name as class_name,s.full_name as student_name,ga.available_at,ga.due_at,ga.status,ga.version,ga.linked_lesson_id,ga.linked_course_id,ga.created_at,ga.snapshot->>'gameType' as game_type,ga.snapshot->>'contentRevision' as content_revision from game_assignments ga left join classes c on c.id=ga.class_id left join students s on s.id=ga.student_id ";
+    private static final String ASSIGNMENT_COLUMNS = """
+            select ga.id, ga.game_id, ga.title, ga.target_type, ga.class_id, ga.student_id,
+                   c.name as class_name, s.full_name as student_name, ga.available_at, ga.due_at,
+                   ga.status, ga.version, ga.linked_lesson_id, ga.linked_course_id, ga.created_at,
+                   ga.snapshot->>'gameType' as game_type, ga.snapshot->>'contentRevision' as content_revision
+            """;
+    private static final String ASSIGNMENT_FROM = """
+            from game_assignments ga
+            left join classes c on c.id=ga.class_id
+            left join students s on s.id=ga.student_id
+            """;
     private final DomainStore db;
     private final JsonMapper json;
     private final GameRules rules;
@@ -43,7 +51,7 @@ public class GameCatalogService {
         if(id==null){
             if(input.version()!=null||input.clientRequestId()==null)throw problem("INVALID_GAME_CREATE","Tạo trò chơi cần mã yêu cầu mới, không dùng version cũ.");
             db.one("select id from users where id=? and role='TEACHER' and status='ACTIVE' for update",actor);
-            String fingerprint=hash(db.json(input));var previous=db.rows("select id,request_hash from learning_games where teacher_id=? and client_request_id=?",actor,input.clientRequestId());
+            String fingerprint=db.requestHash(input);var previous=db.rows("select id,request_hash from learning_games where teacher_id=? and client_request_id=?",actor,input.clientRequestId());
             if(!previous.isEmpty()){if(!fingerprint.equals(previous.getFirst().get("requestHash")))throw conflict("GAME_REQUEST_REUSED","Mã lưu đã dùng cho nội dung khác.");return game(actor,id(previous.getFirst(),"id"));}
             UUID created=UUID.randomUUID();db.update("insert into learning_games(id,teacher_id,title,game_type,instructions,min_age_months,max_age_months,content,client_request_id,request_hash) values(?,?,?,?,?,?,?,?::jsonb,?,?)",created,actor,input.title().strip(),input.gameType(),clean(input.instructions()),age(input.minAgeMonths(),36),age(input.maxAgeMonths(),72),db.json(input.content()),input.clientRequestId(),fingerprint);
             var after=game(actor,created);audit(actor,"GAME_CREATED","GAME",created,Map.of(),after,null,trace);return after;
@@ -71,7 +79,7 @@ public class GameCatalogService {
     @Transactional
     public Map<String,Object> assign(UUID actor,GameDtos.Assign input,String trace){
         db.one("select id from users where id=? and role='TEACHER' and status='ACTIVE' for update",actor);
-        String fingerprint=hash(db.json(input));var previous=db.rows("select id,request_hash from game_assignments where teacher_id=? and client_request_id=?",actor,input.clientRequestId());
+        String fingerprint=db.requestHash(input);var previous=db.rows("select id,request_hash from game_assignments where teacher_id=? and client_request_id=?",actor,input.clientRequestId());
         if(!previous.isEmpty()){if(!fingerprint.equals(previous.getFirst().get("requestHash")))throw conflict("GAME_REQUEST_REUSED","Mã giao đã dùng cho nội dung khác.");return assignment(actor,id(previous.getFirst(),"id"));}
         var game=ownedGame(actor,input.gameId(),true);if(!"PUBLISHED".equals(game.get("status")))throw conflict("GAME_NOT_PUBLISHED","Xuất bản trò chơi trước khi giao.");rules.validate(actor,input(game),true);
         if(input.availableAt().atZone(ZoneId.of("Asia/Ho_Chi_Minh")).getYear()<1900||input.availableAt().atZone(ZoneId.of("Asia/Ho_Chi_Minh")).getYear()>2200||input.dueAt()!=null&&input.dueAt().isBefore(input.availableAt()))throw problem("INVALID_GAME_DATES","Ngày mở/hạn gợi ý chưa hợp lệ.");
@@ -83,22 +91,31 @@ public class GameCatalogService {
         if(input.linkedLessonId()!=null)db.one("select id from lessons where id=? and teacher_id=? and status='PUBLISHED'",input.linkedLessonId(),actor);
         if(input.linkedCourseId()!=null)db.one("select id from courses where id=? and teacher_id=? and status='PUBLISHED'",input.linkedCourseId(),actor);
         UUID id=UUID.randomUUID();db.update("insert into game_assignments(id,teacher_id,game_id,title,target_type,class_id,student_id,linked_lesson_id,linked_course_id,snapshot,available_at,due_at,client_request_id,request_hash) values(?,?,?,?,?,?,?,?,?,?::jsonb,?,?,?,?)",id,actor,input.gameId(),input.title().strip(),input.targetType(),input.classId(),input.studentId(),input.linkedLessonId(),input.linkedCourseId(),db.json(snapshot(game)),stamp(input.availableAt()),stamp(input.dueAt()),input.clientRequestId(),fingerprint);
-        if(classroom)db.update("insert into game_recipients(game_assignment_id,student_id,source_enrollment_id) select ?,e.student_id,e.id from class_enrollments e join students s on s.id=e.student_id where e.class_id=? and e.status='ACTIVE' and s.status='ACTIVE'",id,input.classId());
-        else db.update("insert into game_recipients(game_assignment_id,student_id) values(?,?)",id,input.studentId());
+        if (classroom) {
+            int recipients = db.update("insert into game_recipients(game_assignment_id,student_id,source_enrollment_id) select ?,e.student_id,e.id from class_enrollments e join students s on s.id=e.student_id where e.class_id=? and e.status='ACTIVE' and s.status='ACTIVE'", id, input.classId());
+            if (recipients == 0) throw conflict("NO_RECIPIENTS", "Thêm bé đang hoạt động trước khi giao trò chơi cho lớp.");
+        } else {
+            db.update("insert into game_recipients(game_assignment_id,student_id) values(?,?)", id, input.studentId());
+        }
         var after=assignment(actor,id);audit(actor,"GAME_ASSIGNED","GAME_ASSIGNMENT",id,Map.of(),after,null,trace);return after;
     }
     public Map<String,Object> assignment(UUID actor,UUID id){
-        var result=db.one(ASSIGNMENT+"where ga.id=? and ga.teacher_id=?",id,actor);
-        result.put("snapshot",db.one("select snapshot from game_assignments where id=?",id).get("snapshot"));
-        result.put("recipientCount",db.count("select count(*) from game_recipients where game_assignment_id=?",id));
-        result.put("revokedCount",db.count("select count(*) from game_recipients where game_assignment_id=? and revoked_at is not null",id));return result;
+        return db.one(ASSIGNMENT_COLUMNS + ", ga.snapshot, counts.recipient_count, counts.revoked_count\n"
+                + ASSIGNMENT_FROM + """
+                cross join lateral (
+                    select count(*) as recipient_count, count(*) filter (where r.revoked_at is not null) as revoked_count
+                    from game_recipients r
+                    where r.game_assignment_id=ga.id
+                ) counts
+                where ga.id=? and ga.teacher_id=?
+                """, id, actor);
     }
     Map<String,Object> ownedAssignment(UUID actor,UUID id,boolean lock){return db.one("select * from game_assignments where id=? and teacher_id=?"+(lock?" for update":""),id,actor);}
     public PageResponse<Map<String,Object>> assignments(UUID actor,UUID gameId,UUID classId,int page,int size){
         pagination(page,size);var args=new ArrayList<Object>(List.of(actor));String where="where ga.teacher_id=?";
         if(gameId!=null){where+=" and ga.game_id=?";args.add(gameId);}if(classId!=null){db.one("select id from classes where id=? and teacher_id=?",classId,actor);where+=" and ga.class_id=?";args.add(classId);}
         long count=db.count("select count(*) from game_assignments ga "+where,args.toArray());args.add(size);args.add((long)page*size);
-        return db.page(db.rows(ASSIGNMENT+where+" order by ga.created_at desc,ga.id desc limit ? offset ?",args.toArray()),count,page,size);
+        return db.page(db.rows(ASSIGNMENT_COLUMNS+ASSIGNMENT_FROM+where+" order by ga.created_at desc,ga.id desc limit ? offset ?",args.toArray()),count,page,size);
     }
     @Transactional
     public Map<String,Object> revoke(UUID actor,UUID id,GameDtos.Action input,String trace){var before=ownedAssignment(actor,id,true);version(before,input.version());reason(input.reason());if(!"ACTIVE".equals(before.get("status")))throw conflict("INVALID_STATE","Lần giao đã được thu hồi.");db.update("update game_assignments set status='REVOKED',revoke_reason=?,version=version+1,updated_at=clock_timestamp() where id=?",input.reason().strip(),id);var after=assignment(actor,id);audit(actor,"GAME_ASSIGNMENT_REVOKED","GAME_ASSIGNMENT",id,assignmentSummary(before),after,input.reason().strip(),trace);return after;}
@@ -124,26 +141,32 @@ public class GameCatalogService {
         var rows=db.rows("select r.student_id,s.full_name as student_name,r.revoked_at,r.revoke_reason,coalesce(t.attempts,0) as attempts,coalesce(t.completed_attempts,0) as completed_attempts,coalesce(t.best_stars,0) as best_stars,t.last_completed_at from game_recipients r join students s on s.id=r.student_id left join ("+stats+") t on t.student_id=r.student_id where r.game_assignment_id=? order by s.full_name,r.student_id limit ? offset ?",assignment,assignment,size,(long)page*size);
         return db.page(rows,count,page,size);
     }
-    public PageResponse<Map<String,Object>> studentResults(UUID actor,UUID assignment,UUID child,int page,int size){ownedAssignment(actor,assignment,false);db.one("select student_id from game_recipients where game_assignment_id=? and student_id=?",assignment,child);return attemptHistory("a.game_assignment_id=? and a.student_id=?",new ArrayList<>(List.of(assignment,child)),page,size,false);}
+    public PageResponse<Map<String,Object>> studentResults(UUID actor,UUID assignment,UUID child,int page,int size){ownedAssignment(actor,assignment,false);db.one("select student_id from game_recipients where game_assignment_id=? and student_id=?",assignment,child);return attemptHistory("a.game_assignment_id=? and a.student_id=?",new ArrayList<>(List.of(assignment,child)),page,size);}
 
     public PageResponse<Map<String,Object>> familyList(UUID parent,UUID child,int page,int size){return familyList(parent,child,"",List.of(),page,size);}
     private PageResponse<Map<String,Object>> familyList(UUID parent,UUID child,String context,List<Object> contextArgs,int page,int size){
         guardians.child(parent,child);pagination(page,size);var args=new ArrayList<Object>(List.of(child));String from=FAMILY_FROM;
         from+=context;args.addAll(contextArgs);
         long count=db.count("select count(*)"+from,args.toArray());var values=new ArrayList<Object>();values.add(parent);values.addAll(args);values.add(size);values.add((long)page*size);
-        String columns="select ga.id,ga.title,ga.snapshot->>'gameType' as game_type,ga.available_at,ga.due_at,c.name as class_name,ga.available_at>clock_timestamp() as locked,coalesce((select max(a.stars) from game_attempts a where a.game_assignment_id=ga.id and a.student_id=r.student_id and a.status='COMPLETED' and not a.is_preview),0) as best_stars,(select a.id from game_attempts a where a.game_assignment_id=ga.id and a.student_id=r.student_id and a.created_by=? and a.status='IN_PROGRESS' and not a.is_preview) as active_attempt_id";
+        String columns="select ga.id,ga.title,ga.snapshot->>'gameType' as game_type,ga.available_at,ga.due_at,c.name as class_name,ga.available_at>statement_timestamp() as locked,coalesce((select max(a.stars) from game_attempts a where a.game_assignment_id=ga.id and a.student_id=r.student_id and a.status='COMPLETED' and not a.is_preview),0) as best_stars,(select a.id from game_attempts a where a.game_assignment_id=ga.id and a.student_id=r.student_id and a.created_by=? and a.status='IN_PROGRESS' and not a.is_preview) as active_attempt_id";
         return db.page(db.rows(columns+from+" order by ga.available_at desc,ga.id desc limit ? offset ?",values.toArray()),count,page,size);
     }
-    public Map<String,Object> familyAssignment(UUID parent,UUID child,UUID assignment){var row=access(parent,child,assignment,false,false);var result=new LinkedHashMap<String,Object>();for(String key:List.of("id","title","availableAt","dueAt","className"))result.put(key,row.get(key));var snap=GameEngine.object(row,"snapshot");for(String key:List.of("gameType","instructions","minAgeMonths","maxAgeMonths"))result.put(key,snap.get(key));result.put("locked",((Instant)row.get("availableAt")).isAfter(Instant.now()));return result;}
+    public Map<String,Object> familyAssignment(UUID parent,UUID child,UUID assignment){var row=access(parent,child,assignment,false,false);var result=new LinkedHashMap<String,Object>();for(String key:List.of("id","title","availableAt","dueAt","className","locked"))result.put(key,row.get(key));var snap=GameEngine.object(row,"snapshot");for(String key:List.of("gameType","instructions","minAgeMonths","maxAgeMonths"))result.put(key,snap.get(key));return result;}
     Map<String,Object> access(UUID parent,UUID child,UUID assignment,boolean open,boolean lock){
         guardians.child(parent,child);
-        if(lock){db.one("select id from users where id=? and role='PARENT' and status='ACTIVE' for update",parent);db.one("select id from student_guardians where guardian_user_id=? and student_id=? and status='ACTIVE' for update",parent,child);db.one("select id from game_assignments where id=? for update",assignment);}
-        var result=db.one("select ga.*,c.name as class_name"+FAMILY_FROM+" and ga.id=?"+(lock?" for update of r":""),child,assignment);
-        if(open&&((Instant)result.get("availableAt")).isAfter(Instant.now()))throw new ApiException(org.springframework.http.HttpStatus.FORBIDDEN,"GAME_NOT_AVAILABLE","Trò chơi chưa đến giờ mở.");return result;
+        if(lock){
+            // Serialize play with class and enrollment changes in the same lock order as grant.
+            db.rows("select c.id from game_assignments ga join classes c on c.id=ga.class_id where ga.id=? for share of c",assignment);
+            db.one("select id from users where id=? and role='PARENT' and status='ACTIVE' for update",parent);
+            db.one("select id from student_guardians where guardian_user_id=? and student_id=? and status='ACTIVE' for update",parent,child);
+            db.one("select id from game_assignments where id=? for share",assignment);
+        }
+        var result=db.one("select ga.*,c.name as class_name,ga.available_at>statement_timestamp() as locked"+FAMILY_FROM+" and ga.id=?"+(lock?" for update of r":""),child,assignment);
+        if(open&&Boolean.TRUE.equals(result.get("locked")))throw new ApiException(org.springframework.http.HttpStatus.FORBIDDEN,"GAME_NOT_AVAILABLE","Trò chơi chưa đến giờ mở.");return result;
     }
     public Map<String,Object> collection(UUID parent,UUID child){guardians.child(parent,child);var summary=db.one("select count(*) as completed_assignments,coalesce(sum(best),0) as total_stars from (select max(stars) as best from game_attempts where student_id=? and not is_preview and status='COMPLETED' group by game_assignment_id) t",child);long n=number(summary,"completedAssignments");var badges=new ArrayList<Map<String,Object>>();if(n>=1)badges.add(Map.of("code","FIRST_GAME","label","Khám phá đầu tiên"));if(n>=3)badges.add(Map.of("code","THREE_GAMES","label","Nhà khám phá nhỏ"));if(n>=5)badges.add(Map.of("code","FIVE_GAMES","label","Chăm chỉ mỗi ngày"));summary.put("badges",badges);return summary;}
-    public PageResponse<Map<String,Object>> history(UUID parent,UUID child,int page,int size){guardians.child(parent,child);return attemptHistory("a.student_id=? and a.status='COMPLETED'",new ArrayList<>(List.of(child)),page,size,true);}
-    private PageResponse<Map<String,Object>> attemptHistory(String where,ArrayList<Object> args,int page,int size,boolean family){
+    public PageResponse<Map<String,Object>> history(UUID parent,UUID child,int page,int size){guardians.child(parent,child);return attemptHistory("a.student_id=? and a.status='COMPLETED'",new ArrayList<>(List.of(child)),page,size);}
+    private PageResponse<Map<String,Object>> attemptHistory(String where,ArrayList<Object> args,int page,int size){
         pagination(page,size);where+=" and not a.is_preview";long count=db.count("select count(*) from game_attempts a where "+where,args.toArray());args.add(size);args.add((long)page*size);
         var data=db.rows("select a.id,a.game_assignment_id,ga.title,a.snapshot->>'gameType' as game_type,c.name as class_name,a.status,a.total_steps,a.correct_count,a.wrong_count,a.move_count,a.hint_count,a.stars,a.started_at,a.completed_at,extract(epoch from(coalesce(a.completed_at,a.updated_at)-a.started_at))::bigint as duration_seconds from game_attempts a join game_assignments ga on ga.id=a.game_assignment_id left join classes c on c.id=ga.class_id where "+where+" order by a.started_at desc,a.id desc limit ? offset ?",args.toArray());return db.page(data,count,page,size);
     }
@@ -160,5 +183,4 @@ public class GameCatalogService {
     private static void status(String value,Set<String> allowed){if(clean(value)!=null&&!allowed.contains(value))throw problem("INVALID_GAME_FILTER","Bộ lọc trò chơi chưa hợp lệ.");}
     static void reason(String value){if(clean(value)==null)throw problem("REASON_REQUIRED","Nhập lý do cho thay đổi này.");}
     static Timestamp stamp(Instant value){return value==null?null:Timestamp.from(value);}
-    static String hash(String text){try{return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(text.getBytes(StandardCharsets.UTF_8)));}catch(NoSuchAlgorithmException impossible){throw new IllegalStateException(impossible);}}
 }

@@ -14,7 +14,7 @@ TINYCLASS_STORAGE_QUOTA_BYTES=5368709120
 
 Đây là mặc định kỹ thuật 5 GiB cho giáo viên, có thể điều chỉnh theo dung lượng database/ngân sách. Khởi động lại backend sau khi sửa cấu hình.
 
-Tệp upload trước V19 nằm trong `.local/uploads/`. Khi khởi động với profile local, backend chép từng tệp READY còn thiếu vào database nếu kích thước và SHA-256 khớp metadata rồi ghi log số tệp đã nhập. Tệp thiếu hoặc không khớp được cảnh báo trong log và vẫn trả STORAGE_UNAVAILABLE. Thư mục cũ chỉ được đọc; khi log không còn cảnh báo thì có thể xóa. Đặt `TINYCLASS_UPLOAD_ROOT` nếu thư mục cũ nằm chỗ khác.
+Tệp upload trước V19 nằm trong `.local/uploads/`. Khi khởi động với profile local, backend chép từng tệp READY còn thiếu vào database nếu kích thước và SHA-256 khớp metadata rồi ghi log số tệp đã nhập. Với thư mục upload cũ đã truy cập được, tệp xác nhận bị thiếu hoặc không khớp được đánh dấu FAILED và giữ metadata. Lỗi đọc và đường dẫn có liên kết tượng trưng được ghi log để có thể khắc phục và thử lại khi khởi động. Đặt `TINYCLASS_UPLOAD_ROOT` nếu thư mục cũ nằm chỗ khác, và giữ thư mục đó đến khi kiểm tra kết quả nhập.
 
 Sao lưu database là đủ cho cả metadata và tệp (ví dụ `pg_dump`); bản sao lớn theo dung lượng tệp. JAR không chứa học liệu. Kiểm tra khôi phục và triển khai thực tế thuộc TC-027.
 

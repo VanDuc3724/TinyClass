@@ -7,8 +7,6 @@ import com.tinyclass.billing.TuitionDtos.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.*;
 import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
-import java.security.*;
 import java.time.*;
 import java.util.*;
 import static com.tinyclass.common.persistence.DomainStore.*;
@@ -114,7 +112,7 @@ public class TuitionService {
     private void date(LocalDate day){if(day==null||day.getYear()<1900||day.getYear()>2200)throw problem("INVALID_DATE","Ngày hiệu lực cần trong năm 1900–2200.");}
     private void overlap(UUID enrollment,LocalDate from,LocalDate to,UUID ignore){var args=new ArrayList<Object>();args.add(enrollment);args.add(from);args.add(to);if(ignore!=null)args.add(ignore);if(db.count("select count(*) from enrollment_tuition_agreements where enrollment_id=? and status<>'CANCELLED' and coalesce(effective_to,date '9999-12-31')>=? and effective_from<=coalesce(?::date,date '9999-12-31')"+(ignore==null?"":" and id<>?"),args.toArray())>0)throw conflict("AGREEMENT_OVERLAP","Khoảng ngày đã có mức học phí. Chọn thay mức của thỏa thuận hiện tại hoặc một khoảng không trùng.");}
     private Map<String,Object> retry(UUID teacher,UUID enrollment,UUID request,String hash){var found=db.rows("select id,request_hash from enrollment_tuition_agreements where enrollment_id=? and client_request_id=?",enrollment,request);if(found.isEmpty())return null;var row=found.getFirst();if(!hash.equals(row.get("requestHash")))throw conflict("REQUEST_REUSED","Mã lưu đã dùng cho nội dung khác. Tải lại để đối chiếu bản đã lưu.");return teacherDetail(teacher,id(row,"id"));}
-    private String fingerprint(AgreementInput i,UUID replaced){return hash(db.json(Arrays.asList(replaced,i.version(),i.source(),i.policyVersion(),i.terms()==null?null:terms(i.terms()),i.effectiveFrom(),i.effectiveTo(),clean(i.internalNote()),clean(i.reason()))));}
+    private String fingerprint(AgreementInput i,UUID replaced){return db.requestHash(Arrays.asList(replaced,i.version(),i.source(),i.policyVersion(),i.terms()==null?null:terms(i.terms()),i.effectiveFrom(),i.effectiveTo(),clean(i.internalNote()),clean(i.reason())));}
     private Map<String,Object> decorate(Map<String,Object> row,boolean family){var result=new LinkedHashMap<>(row);result.remove("requestHash");result.remove("clientRequestId");String period="CANCELLED".equals(row.get("status"))?"CANCELLED":today().isBefore((LocalDate)row.get("effectiveFrom"))?"UPCOMING":row.get("effectiveTo")!=null&&today().isAfter((LocalDate)row.get("effectiveTo"))?"ENDED":"CURRENT";result.put("periodState",period);
         if(!family){var usage=invoiceUsage(id(row,"id"));LocalDate billed=(LocalDate)usage.get("billedThrough");boolean has=number(usage,"invoiceCount")>0;boolean available=!"CANCELLED".equals(row.get("status"))&&row.get("replacementId")==null;result.put("billedThrough",billed);result.put("hasInvoices",has);result.put("canReplace",available&&active(row)&&!"ENDED".equals(period)&&!(has&&"FULL_PROGRAM".equals(row.get("pricingMode")))&&(billed==null||row.get("effectiveTo")==null||billed.isBefore((LocalDate)row.get("effectiveTo"))));result.put("canEnd",available&&(row.get("effectiveTo")==null||!((LocalDate)row.get("effectiveTo")).isBefore(today())));result.put("canCancel",available&&!has&&!((LocalDate)row.get("effectiveFrom")).isBefore(today()));return result;}
         var publicRow=new LinkedHashMap<String,Object>();for(String key:List.of("id","classId","className","effectiveFrom","effectiveTo","status","periodState","cancelledAt","updatedAt"))publicRow.put(key,result.get(key));for(String key:TERMS)publicRow.put(key,result.get(key));return publicRow;
@@ -137,5 +135,4 @@ public class TuitionService {
     private void write(String table,UUID id,Map<String,Object> values){var args=new ArrayList<Object>(values.values());args.add(id);db.update("update "+table+" set "+String.join(",",values.keySet().stream().map(k->column(k)+"=?").toList())+",updated_at=clock_timestamp(),version=version+1 where id=?",args.toArray());}
     private String column(String key){return key.replaceAll("([A-Z])","_$1").toLowerCase(Locale.ROOT);}
     private static LocalDate today(){return LocalDate.now(ZONE);}
-    private static String hash(String value){try{return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8)));}catch(NoSuchAlgorithmException failure){throw new IllegalStateException(failure);}}
 }

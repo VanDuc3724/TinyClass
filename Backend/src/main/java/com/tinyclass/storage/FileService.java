@@ -3,8 +3,11 @@ package com.tinyclass.storage;
 import com.tinyclass.auth.*;
 import com.tinyclass.common.api.*;
 import com.tinyclass.common.audit.*;
+import com.tinyclass.common.persistence.Timestamps;
 import com.tinyclass.storage.FileDtos.*;
 import org.apache.tika.Tika;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.*;
@@ -16,12 +19,15 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.*;
 import java.text.Normalizer;
+import java.time.Duration;
 import java.util.*;
 
 @Service
 public class FileService {
     private record Kind(long limit, Set<String> extensions) {}
+    private static final Logger log=LoggerFactory.getLogger(FileService.class);
     private static final long MB=1024L*1024;
+    private static final Duration UPLOAD_IDLE_LIMIT=Duration.ofHours(1);
     private static final Map<String,Kind> TYPES=Map.ofEntries(
             Map.entry("image/png",new Kind(10*MB,Set.of("png"))), Map.entry("image/jpeg",new Kind(10*MB,Set.of("jpg","jpeg"))),
             Map.entry("image/gif",new Kind(10*MB,Set.of("gif"))), Map.entry("image/webp",new Kind(10*MB,Set.of("webp"))),
@@ -32,7 +38,7 @@ public class FileService {
     private final StorageConnectionRepository connections;
     private final UserAccountRepository users;
     private final AuditEventRepository audit;
-    private final StorageAdapter storage;
+    private final DatabaseStorageAdapter storage;
     private final TransactionTemplate tx;
     private final long quota;
     private final Tika tika=new Tika();
@@ -44,12 +50,23 @@ public class FileService {
         if(quota<=0) throw new IllegalStateException("Storage quota must be positive");
     }
     public List<ConnectionView> connections(UUID actor) {
-        return tx.execute(status->{ ensureLocal(actor); return connections.findByTeacherId(actor).stream()
+        return tx.execute(status->{
+            var connection=ensureLocal(actor);
+            discardStaleUploads(connection.getId());
+            return connections.findByTeacherId(actor).stream()
                 .map(c->new ConnectionView(c.getId(),c.getProvider(),c.getDisplayName(),c.getStatus(),c.isDefaultStorage(),files.used(actor),quota)).toList(); });
     }
     private StorageConnection ensureLocal(UUID actor) {
         users.lockById(actor).orElseThrow(FileService::missing);
         return connections.findByTeacherIdAndProvider(actor,"LOCAL").orElseGet(()->connections.saveAndFlush(new StorageConnection(actor)));
+    }
+    private void discardStaleUploads(UUID connection) {
+        // Recover reservations left behind when the process stops during an upload.
+        for(var file:files.lockStaleUploads(connection,Timestamps.now().minus(UPLOAD_IDLE_LIMIT))) failUpload(file);
+    }
+    private void failUpload(StoredFile file) {
+        storage.deleteChunks(file.getId());
+        file.failed();
     }
     public PageResponse<FileView> list(UUID actor,String q,String purpose,String mediaType,String status,int page,int size) {
         if(page<0||size<1||size>100) throw problem(HttpStatus.BAD_REQUEST,"INVALID_PAGINATION","Phân trang chưa hợp lệ.");
@@ -100,7 +117,8 @@ public class FileService {
         String claimed=normalizeMime(Objects.toString(part.getContentType(),"application/octet-stream").split(";")[0]);
         if(kind==null||!kind.extensions().contains(extension)||(!"application/octet-stream".equals(claimed)&&!mime.equals(claimed)))
             throw problem(HttpStatus.BAD_REQUEST,"UNSUPPORTED_FILE_TYPE","Định dạng/nội dung tệp không khớp. Dùng ảnh, PDF, MP3/WAV/OGG, MP4 hoặc WebM.");
-        if(part.getSize()>kind.limit()) throw problem(HttpStatus.CONTENT_TOO_LARGE,"FILE_TOO_LARGE","Tệp vượt quá giới hạn cho định dạng này.");
+        long expectedSize=part.getSize();
+        if(expectedSize>kind.limit()) throw problem(HttpStatus.CONTENT_TOO_LARGE,"FILE_TOO_LARGE","Tệp vượt quá giới hạn cho định dạng này.");
         if("PROFILE_ASSET".equals(purpose)&&!mime.startsWith("image/")) throw problem(HttpStatus.BAD_REQUEST,"INVALID_PROFILE_FILE","Ảnh hồ sơ phải là tệp ảnh.");
         if("SUBMISSION_ASSET".equals(purpose)&&!responses.contains(responseType(mime)))
             throw problem(HttpStatus.BAD_REQUEST,"RESPONSE_TYPE_NOT_ALLOWED","Loại tệp này không nằm trong yêu cầu của bài. Chọn ảnh, âm thanh hoặc video cô cho phép.");
@@ -109,25 +127,35 @@ public class FileService {
             var defaultConnection=ensureLocal(teacher); // Teacher lock also serializes family quota reservations.
             var connection=connectionId==null?defaultConnection:connections.findByIdAndTeacherId(connectionId,teacher).orElseThrow(FileService::missing);
             if(!"CONNECTED".equals(connection.getStatus())||!"LOCAL".equals(connection.getProvider())) throw unavailable();
-            if(files.used(teacher)+part.getSize()>quota) throw problem(HttpStatus.CONFLICT,"STORAGE_QUOTA_EXCEEDED","Kho đã hết dung lượng cho phép.");
+            discardStaleUploads(connection.getId());
+            if(files.used(teacher)+expectedSize>quota) return null;
             var reservedFile=new StoredFile(actor,connection.getId(),purpose,allowed,
-                    teacher+"/"+UUID.randomUUID()+"."+extension,name,detected,part.getSize());
+                    teacher+"/"+UUID.randomUUID()+"."+extension,name,detected,expectedSize);
             if(child!=null) reservedFile.submissionContext(child,item);
             return files.saveAndFlush(reservedFile);
         });
-        try(var input=part.getInputStream()) {
-            // Bytes and READY commit together, so a failed upload leaves no partial content behind.
+        if(reserved==null) throw problem(HttpStatus.CONFLICT,"STORAGE_QUOTA_EXCEEDED","Kho đã hết dung lượng cho phép.");
+        try {
+            StorageAdapter.Written written;
+            // UPLOADING keeps committed chunks private until the full stream has been verified.
+            try(var input=part.getInputStream()) {
+                written=storage.writeUpload(reserved,input,kind.limit());
+            }
+            if(written.size()!=expectedSize) throw new IllegalStateException("Upload size changed");
             return tx.execute(status->{
                 var saved=files.lockOwned(reserved.getId(),actor).orElseThrow(FileService::missing);
-                StorageAdapter.Written written;
-                try { written=storage.write(saved,input,kind.limit()); } catch(IOException failure) { throw new UncheckedIOException(failure); }
-                if(written.size()!=part.getSize()) throw new IllegalStateException("Upload size changed");
+                if(!"UPLOADING".equals(saved.getStatus())) throw unavailable();
                 saved.ready(written); files.flush();
                 audit.save(new AuditEvent(actor,"FILE_UPLOADED","FILE",saved.getId(),Map.of("purpose",purpose,"sizeBytes",written.size()),null,trace));
                 return view(saved);
             });
-        } catch(Exception failure) {
-            tx.executeWithoutResult(status->files.findById(reserved.getId()).ifPresent(StoredFile::failed));
+        } catch(IOException | RuntimeException failure) {
+            try {
+                tx.executeWithoutResult(status->files.lockOwned(reserved.getId(),actor)
+                        .filter(file->"UPLOADING".equals(file.getStatus())).ifPresent(this::failUpload));
+            } catch(RuntimeException cleanup) {
+                log.warn("Could not clean up failed upload {}",reserved.getId(),cleanup);
+            }
             if(failure instanceof ApiException api) throw api;
             throw unavailable();
         }

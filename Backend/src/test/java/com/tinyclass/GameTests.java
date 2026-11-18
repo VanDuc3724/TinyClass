@@ -78,9 +78,34 @@ class GameTests {
             var report=ok(t.get("/game-assignments/"+assignment.path("id").stringValue()+"/results"),200);assertThat(report.get(0).path("completedAttempts").longValue()).isEqualTo(3);
         }
     }
+    @Test void actionLimitIncludesRepeatedHintsAndAllowsAnIdempotentReplay() throws Exception {
+        try (var t = login(TEACHER); var p = login(PARENT)) {
+            var attempt = start(p, assign(t, game(t, "CHOICE"), Instant.now().minusSeconds(60)));
+            UUID id = UUID.fromString(attempt.path("id").stringValue());
+            String path = "/game-attempts/" + id + "/moves";
+            jdbc.update("""
+                    insert into game_moves(attempt_id,client_request_id,request_hash,result_version,result)
+                    select ?,gen_random_uuid(),repeat('0',64),version,'{}'::jsonb from generate_series(1,999) as actions(version)
+                    """, id);
+            jdbc.update("update game_attempts set version=999 where id=?", id);
+
+            var hint = Map.of("clientRequestId", UUID.randomUUID(), "version", 999, "action", "HINT");
+            var result = ok(p.post(path, hint), 200);
+            assertThat(result.path("version").longValue()).isEqualTo(1000);
+            assertThat(result.path("moveCount").longValue()).isZero();
+            assertThat(ok(p.post(path, hint), 200)).isEqualTo(result);
+
+            var rejected = p.post(path, Map.of("clientRequestId", UUID.randomUUID(), "version", 1000, "action", "HINT"));
+            assertThat(rejected.status()).isEqualTo(409);
+            assertThat(rejected.body().path("code").stringValue()).isEqualTo("GAME_MOVE_LIMIT");
+            assertThat(jdbc.queryForObject("select count(*) from game_moves where attempt_id=?", Long.class, id)).isEqualTo(1000);
+        }
+    }
     @Test void matchKeepsPairKeysPrivateAndCountsOnlyUnsolvedCards()throws Exception{
         try(var t=login(TEACHER);var p=login(PARENT)){
             var a=start(p,assign(t,game(t,"MATCH"),Instant.now().minusSeconds(60)));assertThat(a.toString()).doesNotContain("pairId");
+            var state = json.readTree(jdbc.queryForObject("select state::text from game_attempts where id=?", String.class, UUID.fromString(a.path("id").stringValue())));
+            assertThat(state.has("cards")).isFalse();
             for(int i=0;i<2;i++){String left=null,right=null;for(var c:a.path("left"))if(c.path("label").stringValue().equals("Hình "+i))left=c.path("id").stringValue();for(var c:a.path("right"))if(c.path("label").stringValue().equals("Bạn "+i))right=c.path("id").stringValue();a=move(p,a,"MATCH","leftId",left,"rightId",right);}
             assertThat(a.path("status").stringValue()).isEqualTo("COMPLETED");assertThat(a.path("stars").longValue()).isEqualTo(3);
         }
@@ -89,6 +114,7 @@ class GameTests {
         try(var t=login(TEACHER);var p=login(PARENT)){
             var a=start(p,assign(t,game(t,"MEMORY"),Instant.now().minusSeconds(60)));assertThat(a.toString()).doesNotContain("pairId","Hình","imageFileId");
             var state=json.readTree(jdbc.queryForObject("select state::text from game_attempts where id=?",String.class,UUID.fromString(a.path("id").stringValue())));var pairs=new LinkedHashMap<String,List<String>>();for(var c:state.path("cards"))pairs.computeIfAbsent(c.path("pairId").stringValue(),k->new ArrayList<>()).add(c.path("id").stringValue());var ids=new ArrayList<>(pairs.values());
+            assertThat(state.has("left")).isFalse();assertThat(state.has("right")).isFalse();
             a=move(p,a,"FLIP","cardId",ids.get(0).get(0));assertThat(a.path("cards").valueStream().filter(c->c.has("face")).count()).isEqualTo(1);
             a=move(p,a,"FLIP","cardId",ids.get(1).get(0));assertThat(a.path("mismatch").booleanValue()).isTrue();assertThat(a.path("wrongCount").longValue()).isEqualTo(1);
             a=ok(p.get("/game-attempts/"+a.path("id").stringValue()),200);assertThat(a.path("mismatch").booleanValue()).isTrue();
@@ -112,20 +138,96 @@ class GameTests {
     @Test void livePermissionsBlockFutureForeignAndUnverifiedParents()throws Exception{
         try(var t=login(TEACHER);var p=login(PARENT);var o=login(OTHER);var u=login(UNVERIFIED)){
             var assigned=assign(t,game(t,"CHOICE"),Instant.now().plusSeconds(3600));String a=assigned.path("id").stringValue();var list=ok(p.get("/family/children/"+child+"/games"),200);assertThat(list.get(0).path("locked").booleanValue()).isTrue();assertThat(list.toString()).doesNotContain("content","snapshot");
+            assertThat(ok(p.get(family(a)), 200).path("locked").booleanValue()).isTrue();
             assertThat(p.post(family(a)+"/attempts",Map.of("clientRequestId",UUID.randomUUID())).status()).isEqualTo(403);assertThat(o.get(family(a)).status()).isEqualTo(404);assertThat(u.get("/family/children/"+child+"/games").status()).isEqualTo(403);assertThat(p.get("/games").status()).isEqualTo(403);
+            jdbc.update("update game_assignments set available_at=clock_timestamp() where id=?", UUID.fromString(a));
+            assertThat(ok(p.get(family(a)), 200).path("locked").booleanValue()).isFalse();
+            assertThat(ok(p.get("/family/children/" + child + "/games"), 200).get(0).path("locked").booleanValue()).isFalse();
+            start(p, assigned);
+        }
+    }
+
+    @Test void classWithoutEligibleRecipientsCannotCreateAnAssignment() throws Exception {
+        try (var t = login(TEACHER)) {
+            var g = game(t, "CHOICE");
+            var input = Map.of("clientRequestId", UUID.randomUUID(), "gameId", g.path("id").stringValue(),
+                    "title", "Bé cùng chơi", "targetType", "CLASS", "classId", classroom,
+                    "availableAt", Instant.now().minusSeconds(60).toString());
+            var completed = ok(t.patch("/enrollments/" + enrollment,
+                    Map.of("version", 0, "status", "COMPLETED", "reason", "Bé đã hoàn thành")), 200);
+
+            var rejected = t.post("/game-assignments", input);
+            assertThat(rejected.status()).isEqualTo(409);
+            assertThat(rejected.body().path("code").stringValue()).isEqualTo("NO_RECIPIENTS");
+            assertThat(jdbc.queryForObject("select count(*) from game_assignments", Long.class)).isZero();
+            assertThat(jdbc.queryForObject("select count(*) from audit_events where action='GAME_ASSIGNED'", Long.class)).isZero();
+
+            ok(t.patch("/enrollments/" + enrollment, Map.of("version", completed.path("version").longValue(),
+                    "status", "ACTIVE", "reason", "Bé quay lại")), 200);
+            assertThat(ok(t.post("/game-assignments", input), 201).path("recipientCount").longValue()).isEqualTo(1);
         }
     }
     @Test void withdrawalBlocksAttemptsFilesAndRejoinNeedsExplicitGrantButKeepsHistory()throws Exception{
         try(var t=login(TEACHER);var p=login(PARENT)){
             var g=game(t,"CHOICE");var assigned=assign(t,g,Instant.now().minusSeconds(60));var completed=move(p,start(p,assigned),"ANSWER","optionId",answer(g));var active=start(p,assigned);
             ok(t.patch("/enrollments/"+enrollment,Map.of("version",0,"status","WITHDRAWN","reason","Gia đình nghỉ")),200);
+            String assignmentPath = "/game-assignments/" + assigned.path("id").stringValue();
+            var detail = ok(t.get(assignmentPath), 200);
+            assertThat(detail.path("snapshot")).isEqualTo(assigned.path("snapshot"));
+            assertThat(detail.path("recipientCount").longValue()).isEqualTo(1);
+            assertThat(detail.path("revokedCount").longValue()).isEqualTo(1);
             assertThat(p.get("/game-attempts/"+active.path("id").stringValue()).status()).isEqualTo(404);assertThat(p.post("/game-attempts/"+active.path("id").stringValue()+"/moves",Map.of("clientRequestId",UUID.randomUUID(),"version",0,"action","ANSWER","optionId",answer(g))).status()).isEqualTo(404);
             assertThat(collect(p).path("totalStars").longValue()).isEqualTo(3);assertThat(ok(p.get("/family/children/"+child+"/games/history"),200).get(0).path("id")).isEqualTo(completed.path("id"));
             ok(t.patch("/enrollments/"+enrollment,Map.of("version",1,"status","ACTIVE","reason","Bé quay lại")),200);assertThat(ok(p.get("/family/children/"+child+"/games"),200).size()).isZero();
-            ok(t.post("/game-assignments/"+assigned.path("id").stringValue()+"/recipients",Map.of("version",0,"studentIds",List.of(child),"reason","Cô mở lại trò chơi")),200);assertThat(ok(p.get("/game-attempts/"+active.path("id").stringValue()),200).path("id")).isEqualTo(active.path("id"));
+            var regranted = ok(t.post(assignmentPath+"/recipients",Map.of("version",0,"studentIds",List.of(child),"reason","Cô mở lại trò chơi")),200);
+            assertThat(regranted.path("revokedCount").longValue()).isZero();
+            assertThat(ok(p.get("/game-attempts/"+active.path("id").stringValue()),200).path("id")).isEqualTo(active.path("id"));
             jdbc.update("update student_guardians set status='REVOKED' where guardian_user_id=?",parentId);assertThat(p.get("/family/children/"+child+"/games/history").status()).isEqualTo(404);
         }
     }
+
+    @Test void classArchiveTemporarilyBlocksPlayAndRestoreKeepsExistingGrants() throws Exception {
+        try (var t = login(TEACHER); var p = login(PARENT)) {
+            var g = game(t, "CHOICE");
+            var assigned = assign(t, g, Instant.now().minusSeconds(60));
+            var revoked = assign(t, g, Instant.now().minusSeconds(60));
+            var attempt = start(p, assigned);
+            String attemptPath = "/game-attempts/" + attempt.path("id").stringValue();
+            String revokedPath = "/game-assignments/" + revoked.path("id").stringValue();
+            String classPath = "/classes/" + classroom;
+
+            var before = ok(t.get(classPath), 200);
+            var archived = ok(t.post(classPath + "/archive", Map.of("version", before.path("version").longValue())), 200);
+            assertThat(ok(p.get("/family/children/" + child + "/games"), 200).size()).isZero();
+            assertThat(p.get(attemptPath).status()).isEqualTo(404);
+            ok(t.post(revokedPath + "/revoke", Map.of("version", 0, "reason", "Cô thu hồi trò chơi")), 200);
+
+            ok(t.post(classPath + "/restore", Map.of("version", archived.path("version").longValue())), 200);
+            var games = ok(p.get("/family/children/" + child + "/games"), 200);
+            assertThat(games.size()).isEqualTo(1);
+            assertThat(games.get(0).path("id")).isEqualTo(assigned.path("id"));
+            assertThat(start(p, assigned).path("id")).isEqualTo(attempt.path("id"));
+        }
+    }
+
+    @Test void completedEnrollmentCanResumeAnExistingGrantWhenReactivated() throws Exception {
+        try (var t = login(TEACHER); var p = login(PARENT)) {
+            var g = game(t, "CHOICE");
+            var assigned = assign(t, g, Instant.now().minusSeconds(60));
+            var attempt = start(p, assigned);
+            String enrollmentPath = "/enrollments/" + enrollment;
+
+            var completed = ok(t.patch(enrollmentPath, Map.of("version", 0, "status", "COMPLETED", "reason", "Bé đã hoàn thành")), 200);
+            assertThat(p.get(family(assigned.path("id").stringValue())).status()).isEqualTo(404);
+            assertThat(p.get("/game-attempts/" + attempt.path("id").stringValue()).status()).isEqualTo(404);
+
+            ok(t.patch(enrollmentPath, Map.of("version", completed.path("version").longValue(), "status", "ACTIVE", "reason", "Bé quay lại")), 200);
+            var resumed = start(p, assigned);
+            assertThat(resumed.path("id")).isEqualTo(attempt.path("id"));
+            assertThat(move(p, resumed, "ANSWER", "optionId", answer(g)).path("status").stringValue()).isEqualTo("COMPLETED");
+        }
+    }
+
     @Test void assignmentSnapshotSurvivesPublishedEditsAndTemplateArchive()throws Exception{
         try(var t=login(TEACHER);var p=login(PARENT)){
             var g=game(t,"CHOICE");var assigned=assign(t,g,Instant.now().minusSeconds(60));String id=g.path("id").stringValue();var update=Map.of("version",1,"reason","Bổ sung câu hỏi mới","title","Mẫu thay đổi","gameType","CHOICE","content",content("CHOICE"));var edited=ok(t.put("/games/"+id,update),200);ok(t.post("/games/"+id+"/archive",Map.of("version",edited.path("version").longValue(),"reason","Cô lưu mẫu")),200);
@@ -163,6 +265,24 @@ class GameTests {
             assertThat(pending.get().get(10,TimeUnit.SECONDS).status()).isEqualTo(404);
             ok(t.patch("/enrollments/"+enrollment,Map.of("version",1,"status","ACTIVE","reason","Return")),200);
             assertThat(ok(p.get("/family/children/"+child+"/games"),200).size()).isZero();
+        }
+    }
+
+    @Test void playCanStartWhileAnAssignmentIsShareLocked() throws Exception {
+        try (var t = login(TEACHER); var p = login(PARENT); var worker = Executors.newSingleThreadExecutor()) {
+            var assigned = assign(t, game(t, "CHOICE"), Instant.now().minusSeconds(60));
+            UUID assignment = UUID.fromString(assigned.path("id").stringValue());
+            var attempt = new TransactionTemplate(transactions).execute(tx -> {
+                jdbc.queryForObject("select id from game_assignments where id=? for share", UUID.class, assignment);
+                var pending = worker.submit(() -> start(p, assigned));
+                await().atMost(java.time.Duration.ofSeconds(5)).until(pending::isDone);
+                return pending;
+            });
+            assertThat(attempt.get(5, TimeUnit.SECONDS).path("status").stringValue()).isEqualTo("IN_PROGRESS");
+            ok(t.post("/game-assignments/" + assignment + "/revoke",
+                    Map.of("version", assigned.path("version").longValue(), "reason", "Cô thu hồi trò chơi")), 200);
+            assertThat(p.post(family(assignment.toString()) + "/attempts", Map.of("clientRequestId", UUID.randomUUID())).status())
+                    .isEqualTo(404);
         }
     }
 

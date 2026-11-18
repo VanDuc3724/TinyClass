@@ -7,11 +7,44 @@ import static com.tinyclass.common.persistence.DomainStore.*;
 public final class GameEngine {
     private GameEngine() {}
     public static Map<String,Object> fresh(Map<String,Object> snapshot){
-        var state=new LinkedHashMap<String,Object>();state.put("moves",0);state.put("wrong",0);state.put("hints",0);state.put("position",0);
-        state.put("solved",new ArrayList<String>());state.put("hintKeys",new ArrayList<String>());state.put("open",new ArrayList<String>());
+        var state=new LinkedHashMap<String,Object>();state.put("moves",0);state.put("wrong",0);state.put("hints",0);
+        state.put("solved",new ArrayList<String>());state.put("hintKeys",new ArrayList<String>());
         var content=object(snapshot,"content");
-        if("CHOICE".equals(snapshot.get("gameType"))){var orders=new ArrayList<List<String>>();for(var q:objects(content,"questions")){var ids=new ArrayList<>(objects(q,"options").stream().map(o->text(o,"id")).toList());Collections.shuffle(ids);orders.add(ids);}state.put("orders",orders);}
-        else{var left=new ArrayList<Map<String,Object>>();var right=new ArrayList<Map<String,Object>>();var cards=new ArrayList<Map<String,Object>>();for(var p:objects(content,"pairs")){left.add(card(p,"left"));right.add(card(p,"right"));cards.add(card(p,"left"));cards.add(card(p,"right"));}Collections.shuffle(left);Collections.shuffle(right);Collections.shuffle(cards);state.put("left",left);state.put("right",right);state.put("cards",cards);}
+        switch(text(snapshot,"gameType")) {
+            case "CHOICE" -> {
+                var orders=new ArrayList<List<String>>();
+                for(var question:objects(content,"questions")) {
+                    var ids=new ArrayList<>(objects(question,"options").stream().map(option->text(option,"id")).toList());
+                    Collections.shuffle(ids);
+                    orders.add(ids);
+                }
+                state.put("position",0);
+                state.put("orders",orders);
+            }
+            case "MATCH" -> {
+                var left=new ArrayList<Map<String,Object>>();
+                var right=new ArrayList<Map<String,Object>>();
+                for(var pair:objects(content,"pairs")) {
+                    left.add(card(pair,"left"));
+                    right.add(card(pair,"right"));
+                }
+                Collections.shuffle(left);
+                Collections.shuffle(right);
+                state.put("left",left);
+                state.put("right",right);
+            }
+            case "MEMORY" -> {
+                var cards=new ArrayList<Map<String,Object>>();
+                for(var pair:objects(content,"pairs")) {
+                    cards.add(card(pair,"left"));
+                    cards.add(card(pair,"right"));
+                }
+                Collections.shuffle(cards);
+                state.put("cards",cards);
+                state.put("open",new ArrayList<String>());
+            }
+            default -> throw invalid();
+        }
         return state;
     }
     private static Map<String,Object> card(Map<String,Object> pair,String side){var c=new LinkedHashMap<String,Object>(object(pair,side));c.put("id",UUID.randomUUID().toString());c.put("pairId",text(pair,"id"));return c;}

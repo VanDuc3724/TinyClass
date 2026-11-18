@@ -500,7 +500,7 @@ paths:
         - "Storage"
       operationId: "teacherFilecontent"
       summary: "Stream an owned file (content)"
-      description: "Session and current resource access are checked before streaming. Resource support handles RFC 9110 ranges. Responses are private, no-cache with a SHA-256 ETag (If-None-Match gives 304 only after the same checks pass) and nosniff; family download also requires the live learnerDownloadAllowed flag. No public filesystem/Drive URL."
+      description: "Session and current resource access are checked before streaming. Resource support handles RFC 9110 ranges. Responses are private, no-store with a SHA-256 ETag (If-None-Match gives 304 only after the same checks pass) and nosniff; family download also requires the live learnerDownloadAllowed flag. No public filesystem/Drive URL."
       security:
         -
           sessionCookie: []
@@ -623,7 +623,7 @@ paths:
         - "Storage"
       operationId: "teacherFiledownload"
       summary: "Stream an owned file (download)"
-      description: "Session and current resource access are checked before streaming. Resource support handles RFC 9110 ranges. Responses are private, no-cache with a SHA-256 ETag (If-None-Match gives 304 only after the same checks pass) and nosniff; family download also requires the live learnerDownloadAllowed flag. No public filesystem/Drive URL."
+      description: "Session and current resource access are checked before streaming. Resource support handles RFC 9110 ranges. Responses are private, no-store with a SHA-256 ETag (If-None-Match gives 304 only after the same checks pass) and nosniff; family download also requires the live learnerDownloadAllowed flag. No public filesystem/Drive URL."
       security:
         -
           sessionCookie: []
@@ -3339,7 +3339,7 @@ paths:
         - "Family learning"
       operationId: "familyFilecontent"
       summary: "Stream the child's assigned file (content)"
-      description: "Session and current resource access are checked before streaming. Resource support handles RFC 9110 ranges. Responses are private, no-cache with a SHA-256 ETag (If-None-Match gives 304 only after the same checks pass) and nosniff; family download also requires the live learnerDownloadAllowed flag. No public filesystem/Drive URL."
+      description: "Session and current resource access are checked before streaming. Resource support handles RFC 9110 ranges. Responses are private, no-store with a SHA-256 ETag (If-None-Match gives 304 only after the same checks pass) and nosniff; family download also requires the live learnerDownloadAllowed flag. No public filesystem/Drive URL."
       security:
         -
           sessionCookie: []
@@ -3476,7 +3476,7 @@ paths:
         - "Family learning"
       operationId: "familyFiledownload"
       summary: "Stream the child's assigned file (download)"
-      description: "Session and current resource access are checked before streaming. Resource support handles RFC 9110 ranges. Responses are private, no-cache with a SHA-256 ETag (If-None-Match gives 304 only after the same checks pass) and nosniff; family download also requires the live learnerDownloadAllowed flag. No public filesystem/Drive URL."
+      description: "Session and current resource access are checked before streaming. Resource support handles RFC 9110 ranges. Responses are private, no-store with a SHA-256 ETag (If-None-Match gives 304 only after the same checks pass) and nosniff; family download also requires the live learnerDownloadAllowed flag. No public filesystem/Drive URL."
       security:
         -
           sessionCookie: []
@@ -7962,7 +7962,7 @@ paths:
         - "Submissions"
       operationId: "familyProductFileContent"
       summary: "Stream an authorized product/feedback file"
-      description: "Active verified guardian for this exact child/submission. File must be an attached product or linked teacher feedback audio. This historical access may remain after leaving a class and never unlocks original lesson files. Guardian revocation blocks every byte request. Product/feedback downloads use this access check; learnerDownloadAllowed applies to lesson assets, not the family own products."
+      description: "Active verified guardian for this exact child/submission. File must be an attached product or linked teacher feedback audio. This historical access may remain after leaving a class and never unlocks original lesson files. Guardian revocation blocks every byte request. Product/feedback downloads use this access check; learnerDownloadAllowed applies to lesson assets, not the family own products. Responses use private, no-store."
       security:
         -
           sessionCookie: []
@@ -8099,7 +8099,7 @@ paths:
         - "Submissions"
       operationId: "familyProductFileDownload"
       summary: "Download an authorized product/feedback file"
-      description: "Active verified guardian for this exact child/submission. File must be an attached product or linked teacher feedback audio. This historical access may remain after leaving a class and never unlocks original lesson files. Guardian revocation blocks every byte request. Product/feedback downloads use this access check; learnerDownloadAllowed applies to lesson assets, not the family own products."
+      description: "Active verified guardian for this exact child/submission. File must be an attached product or linked teacher feedback audio. This historical access may remain after leaving a class and never unlocks original lesson files. Guardian revocation blocks every byte request. Product/feedback downloads use this access check; learnerDownloadAllowed applies to lesson assets, not the family own products. Responses use private, no-store."
       security:
         -
           sessionCookie: []
@@ -8236,7 +8236,7 @@ paths:
         - "Submissions"
       operationId: "teacherProductFileContent"
       summary: "Stream an authorized product/feedback file"
-      description: "TEACHER owner of the sent product. File must be an attached SUBMISSION_ASSET for this child/item, or the review audio explicitly linked to this submission."
+      description: "TEACHER owner of the sent product. File must be an attached SUBMISSION_ASSET for this child/item, or the review audio explicitly linked to this submission. Responses use private, no-store."
       security:
         -
           sessionCookie: []
@@ -8366,7 +8366,7 @@ paths:
         - "Submissions"
       operationId: "teacherProductFileDownload"
       summary: "Download an authorized product/feedback file"
-      description: "TEACHER owner of the sent product. File must be an attached SUBMISSION_ASSET for this child/item, or the review audio explicitly linked to this submission."
+      description: "TEACHER owner of the sent product. File must be an attached SUBMISSION_ASSET for this child/item, or the review audio explicitly linked to this submission. Responses use private, no-store."
       security:
         -
           sessionCookie: []
@@ -10846,7 +10846,7 @@ paths:
         - "Student notes and progress"
       operationId: "teacherStudentNoteFileContent"
       summary: "View a current note attachment"
-      description: "TEACHER owner. Requires READY NOTE_ASSET, permanent binding to this note and current attachment membership. Teacher can inspect current attachments even on archived notes. Removed historical attachment bytes remain in the teacher file library. Supports Range and private, no-cache responses with ETag revalidation after the same checks; attachment download permission follows the shared note."
+      description: "TEACHER owner. Requires READY NOTE_ASSET, permanent binding to this note and current attachment membership. Teacher can inspect current attachments even on archived notes. Removed historical attachment bytes remain in the teacher file library. Responses use private, no-store and support Range and conditional ETag requests after authorization. Attachment download permission follows the shared note."
       security:
         -
           sessionCookie: []
@@ -10941,7 +10941,7 @@ paths:
         - "Student notes and progress"
       operationId: "teacherStudentNoteFileDownload"
       summary: "Download a current note attachment"
-      description: "TEACHER owner. Requires READY NOTE_ASSET, permanent binding to this note and current attachment membership. Teacher can inspect current attachments even on archived notes. Removed historical attachment bytes remain in the teacher file library. Supports Range and private, no-cache responses with ETag revalidation after the same checks; attachment download permission follows the shared note."
+      description: "TEACHER owner. Requires READY NOTE_ASSET, permanent binding to this note and current attachment membership. Teacher can inspect current attachments even on archived notes. Removed historical attachment bytes remain in the teacher file library. Responses use private, no-store and support Range and conditional ETag requests after authorization. Attachment download permission follows the shared note."
       security:
         -
           sessionCookie: []
@@ -11036,7 +11036,7 @@ paths:
         - "Student notes and progress"
       operationId: "familyStudentNoteFileContent"
       summary: "View a current note attachment"
-      description: "Verified PARENT with an active guardian link to this exact child. Rechecked on each request. Requires READY NOTE_ASSET, permanent binding to this note and current attachment membership. The note must currently be SHARED and non-archived. Private/archive/remove/revoke blocks old URLs; no public storage URL. Supports Range and private, no-cache responses with ETag revalidation after the same checks; attachment download permission follows the shared note."
+      description: "Verified PARENT with an active guardian link to this exact child. Rechecked on each request. Requires READY NOTE_ASSET, permanent binding to this note and current attachment membership. The note must currently be SHARED and non-archived. Private/archive/remove/revoke blocks old URLs; no public storage URL. Responses use private, no-store and support Range and conditional ETag requests after authorization. Attachment download permission follows the shared note."
       security:
         -
           sessionCookie: []
@@ -11138,7 +11138,7 @@ paths:
         - "Student notes and progress"
       operationId: "familyStudentNoteFileDownload"
       summary: "Download a current note attachment"
-      description: "Verified PARENT with an active guardian link to this exact child. Rechecked on each request. Requires READY NOTE_ASSET, permanent binding to this note and current attachment membership. The note must currently be SHARED and non-archived. Private/archive/remove/revoke blocks old URLs; no public storage URL. Supports Range and private, no-cache responses with ETag revalidation after the same checks; attachment download permission follows the shared note."
+      description: "Verified PARENT with an active guardian link to this exact child. Rechecked on each request. Requires READY NOTE_ASSET, permanent binding to this note and current attachment membership. The note must currently be SHARED and non-archived. Private/archive/remove/revoke blocks old URLs; no public storage URL. Responses use private, no-store and support Range and conditional ETag requests after authorization. Attachment download permission follows the shared note."
       security:
         -
           sessionCookie: []
@@ -14625,7 +14625,7 @@ paths:
         - "Games"
       operationId: "assignLearningGame"
       summary: "assignLearningGame"
-      description: "TEACHER owner only. Idempotent snapshot and active roster transaction."
+      description: "TEACHER owner only. Creates the snapshot and recipients in one idempotent transaction. Class assignments require at least one active student with an active enrollment, otherwise the API returns 409 NO_RECIPIENTS."
       security:
         -
           sessionCookie: []
@@ -15765,7 +15765,7 @@ paths:
                 type: "string"
                 format: "binary"
         "304":
-          description: "Unchanged ETag, returned only after the same current authorization checks. Private, no-cache revalidation."
+          description: "Unchanged ETag, returned only after the same current authorization checks. Responses use private, no-store."
         "400":
           description: "Invalid game configuration or move."
           content:
@@ -15866,7 +15866,7 @@ paths:
                 type: "string"
                 format: "binary"
         "304":
-          description: "Unchanged ETag, returned only after the same current authorization checks. Private, no-cache revalidation."
+          description: "Unchanged ETag, returned only after the same current authorization checks. Responses use private, no-store."
         "400":
           description: "Invalid game configuration or move."
           content:

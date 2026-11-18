@@ -6,8 +6,6 @@ import com.tinyclass.family.GuardianService;
 import com.tinyclass.communication.AnnouncementDtos.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.*;
-import java.nio.charset.StandardCharsets;
-import java.security.*;
 import java.util.*;
 import static com.tinyclass.common.persistence.DomainStore.*;
 
@@ -24,7 +22,7 @@ public class AnnouncementService {
     @Transactional
     public Map<String,Object> create(UUID teacher,CreateInput input,String trace){
         var classroom=lockClass(teacher,input.classId());
-        String hash=hash(db.json(Arrays.asList(input.classId(),input.title().strip(),input.body().strip())));
+        String hash=db.requestHash(Arrays.asList(input.classId(),input.title().strip(),input.body().strip()));
         var previous=db.rows("select id,request_hash from class_announcements where teacher_id=? and client_request_id=?",teacher,input.clientRequestId());
         if(!previous.isEmpty()){
             if(!hash.equals(previous.getFirst().get("requestHash")))throw conflict("ANNOUNCEMENT_REQUEST_REUSED","Mã gửi đã dùng cho nội dung khác. Đối chiếu thông báo đã lưu trước khi tạo mới.");
@@ -101,5 +99,4 @@ public class AnnouncementService {
     private Map<String,Object> lockClass(UUID teacher,UUID id){return db.one("select id,status from classes where id=? and teacher_id=? for update",id,teacher);}
     private void lock(UUID teacher,UUID id){var row=db.one("select class_id from class_announcements where id=? and teacher_id=?",id,teacher);lockClass(teacher,id(row,"classId"));db.one("select id from class_announcements where id=? for update",id);}
     private void audit(UUID teacher,String action,UUID id,Map<String,Object> before,Map<String,Object> after,String reason,String trace){db.audit(teacher,"ANNOUNCEMENT_"+action,"ANNOUNCEMENT",id,Map.of("before",before,"after",after),reason,trace);}
-    private static String hash(String value){try{return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8)));}catch(NoSuchAlgorithmException e){throw new IllegalStateException(e);}}
 }

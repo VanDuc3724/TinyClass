@@ -18,7 +18,7 @@ public class GamePlayService {
     @Transactional
     public Map<String,Object> preview(UUID actor,UUID game,GameDtos.Start input,String trace){
         db.one("select id from users where id=? and role='TEACHER' and status='ACTIVE' for update",actor);
-        var source=catalog.ownedGame(actor,game,true);String fingerprint=GameCatalogService.hash(db.json(List.of("PREVIEW",game)));
+        var source=catalog.ownedGame(actor,game,true);String fingerprint=db.requestHash(List.of("PREVIEW",game));
         var previous=started(actor,input.clientRequestId(),fingerprint);if(previous!=null)return view(previous);
         if("ARCHIVED".equals(source.get("status")))throw conflict("GAME_ARCHIVED","Khôi phục trò chơi trước khi bắt đầu chơi thử mới.");
         rules.validate(actor,catalog.input(source),true);
@@ -28,7 +28,7 @@ public class GamePlayService {
     @Transactional
     public Map<String,Object> start(UUID actor,UUID child,UUID assignment,GameDtos.Start input,String trace){
         var source=catalog.access(actor,child,assignment,true,true);
-        String fingerprint=GameCatalogService.hash(db.json(List.of("FAMILY",child,assignment)));
+        String fingerprint=db.requestHash(List.of("FAMILY",child,assignment));
         var previous=started(actor,input.clientRequestId(),fingerprint);if(previous!=null)return view(previous);
         var active=db.rows("select id from game_attempts where created_by=? and game_assignment_id=? and student_id=? and status='IN_PROGRESS' and not is_preview",actor,assignment,child);
         UUID attempt=active.isEmpty()?create(actor,id(source,"gameId"),assignment,child,false,GameEngine.object(source,"snapshot"),input.clientRequestId()):id(active.getFirst(),"id");
@@ -43,13 +43,14 @@ public class GamePlayService {
     @Transactional
     public Map<String,Object> move(UUID actor,UUID attempt,GameDtos.Move input,String trace){
         var reference=owned(actor,attempt);check(actor,reference,true);var row=db.one("select * from game_attempts where id=? and created_by=? for update",attempt,actor);
-        String fingerprint=GameCatalogService.hash(db.json(input));var previous=db.rows("select request_hash,result_version,result from game_moves where attempt_id=? and client_request_id=?",attempt,input.clientRequestId());
+        String fingerprint=db.requestHash(input);var previous=db.rows("select request_hash,result_version,result from game_moves where attempt_id=? and client_request_id=?",attempt,input.clientRequestId());
         if(!previous.isEmpty()){
             var p=previous.getFirst();if(!fingerprint.equals(p.get("requestHash")))throw conflict("GAME_MOVE_REUSED","Mã lựa chọn đã dùng cho nội dung khác.");
             return number(p,"resultVersion")==number(row,"version")?GameEngine.object(p,"result"):view(row);
         }
         version(row,input.version());if(!"IN_PROGRESS".equals(row.get("status")))throw conflict("GAME_FINISHED","Lượt này đã dừng hoặc hoàn thành. Gia đình có thể mở lượt mới.");
-        if(db.count("select count(*) from game_moves where attempt_id=?",attempt)>=1000)throw conflict("GAME_MOVE_LIMIT","Lượt chơi đã dài. Gia đình có thể bắt đầu lượt mới.");
+        // While in progress, the version increases once per recorded action, including repeat hints.
+        if(number(row,"version")>=1000)throw conflict("GAME_MOVE_LIMIT","Lượt chơi đã dài. Gia đình có thể bắt đầu lượt mới.");
         var snapshot=GameEngine.object(row,"snapshot");var state=GameEngine.object(row,"state");
         GameEngine.move(snapshot,state,input);boolean finished=GameEngine.finished(snapshot,state);var publicState=GameEngine.view(snapshot,state);
         db.update("update game_attempts set state=?::jsonb,status=?,correct_count=?,wrong_count=?,move_count=?,hint_count=?,stars=?,completed_at=case when ? then clock_timestamp() else null end,version=version+1,updated_at=clock_timestamp() where id=?",db.json(state),finished?"COMPLETED":"IN_PROGRESS",publicState.get("correctCount"),publicState.get("wrongCount"),publicState.get("moveCount"),publicState.get("hintCount"),publicState.get("stars"),finished,attempt);

@@ -7,7 +7,7 @@ Ngày **08/11/2026**. Người dùng đã duyệt triển khai bản đầu gồ
 1. Kho trò chơi: tìm kiếm/lọc loại và trạng thái, tạo mẫu, sửa, xuất bản, lưu trữ/khôi phục.
 2. Soạn tên/hướng dẫn, khoảng tuổi gợi ý và nội dung theo mẫu. Câu hỏi/thẻ dùng chữ hoặc emoji, ảnh và âm thanh từ kho học liệu của cô. Ảnh/âm thanh được kiểm tra quyền và MIME tại backend.
 3. Chơi thử dùng cùng bộ máy với gia đình, có thể chơi lại; kết quả thử không cộng vào hồ sơ bé.
-4. Giao bản đã xuất bản cho lớp đang hoạt động hoặc riêng bé, chọn thời điểm mở và hạn gợi ý. Có thể liên kết bài học/khóa đã xuất bản để gia đình tìm trò chơi trong Góc học.
+4. Giao bản đã xuất bản cho lớp đang hoạt động có ít nhất một bé đủ điều kiện hoặc giao riêng cho bé. Chọn thời điểm mở và hạn gợi ý. Có thể liên kết bài học/khóa đã xuất bản để gia đình tìm trò chơi trong Góc học.
 5. Mỗi lần giao giữ snapshot tên/hướng dẫn/nội dung/phiên bản. Sửa mẫu không thay đề của lần giao cũ. Lưu trữ mẫu dừng lần giao mới; cô thu hồi lần giao khi cần dừng quyền chơi bản đã giao.
 6. Xem danh sách bé đã nhận, lượt đang chơi/đã xong, số đúng/sai, gợi ý, thời gian lượt chơi và sao tốt nhất; xem lịch sử lượt theo bé. Kết quả thuộc giáo viên của lần giao.
 
@@ -20,7 +20,8 @@ Ngày **08/11/2026**. Người dùng đã duyệt triển khai bản đầu gồ
 - Lật thẻ: các thẻ ban đầu úp, chạm để lật; hai thẻ giống nhau được giữ, hai thẻ khác nhau hiện ngắn rồi úp lại. Backend chỉ trả mặt thẻ đã được phép lật hoặc đã ghép đúng.
 - Có hướng dẫn, âm thanh theo nội dung cô chọn, gợi ý và nút quay về. Tiến độ lưu sau từng thao tác; quay lại tiếp tục lượt đang chơi của chính phụ huynh đó.
 - Hoàn thành nhận 1–3 sao và lời động viên. Chơi lại tạo lượt mới. Bộ sưu tập lấy sao tốt nhất của mỗi lần giao, không cộng lại mãi từ một trò.
-- Lịch sử kết quả chỉ gồm thông tin tóm tắt, giữ khi rời lớp nếu guardian còn hiệu lực. Rời lớp/kết thúc/lưu trữ lớp chặn đề, thao tác và tệp của các lần giao qua lớp đó. Lần giao trực tiếp cho bé độc lập với lớp, dừng khi cô thu hồi lần giao hoặc lưu trữ bé. Bé quay lại lớp không tự nhận lại quyền cũ; cô có thể cấp lại có chủ đích. Thu hồi guardian chặn cả lịch sử của bé.
+- Lưu trữ lớp hoặc chuyển quan hệ tham gia sang `COMPLETED` tạm chặn đề, thao tác và tệp của lần giao qua lớp. Khi lớp và quan hệ tham gia cùng trở lại `ACTIVE`, bé dùng lại quyền còn hiệu lực và tiếp tục lượt đang chơi.
+- Rút lớp và kết thúc lớp vẫn thu hồi quyền đã cấp qua lớp. Cô có thể cấp lại cho bé quay lại sau khi rút lớp. Lần giao trực tiếp cho bé độc lập với lớp và dừng khi cô thu hồi lần giao hoặc lưu trữ hồ sơ bé. Lịch sử kết quả tóm tắt vẫn xem được sau khi rời lớp nếu liên kết giám hộ còn hiệu lực.
 
 ## Dữ liệu và kiểm tra
 

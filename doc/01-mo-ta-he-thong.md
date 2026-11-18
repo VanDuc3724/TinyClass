@@ -393,7 +393,7 @@ Học phí: giáo viên cấu hình mặc định của lớp rồi lập thỏa
 - Quan hệ tham gia `COMPLETED` vẫn cho xem nội dung cũ được cấp khi lớp còn `ACTIVE` hoặc `COMPLETED`. Để gửi mới trong lần giao lớp, hồ sơ bé, quan hệ tham gia và lớp đều phải đang hoạt động; lần giao riêng chỉ yêu cầu hồ sơ bé hoạt động cùng quyền nhận hợp lệ.
 - Khi bé rút lớp, thu hồi các quyền nhận nội dung có nguồn từ lớp đó. Gia đình vẫn có thể xem sản phẩm đã gửi, phản hồi đã chia sẻ và phí của chính bé ở phần lịch sử; quyền xem lại bài gốc cần được giao riêng nếu giáo viên muốn duy trì.
 - Khi tham gia lại, những lần giao cũ không tự phục hồi; giáo viên chọn cấp lại. Nội dung giao riêng cho bé có vòng đời độc lập với lớp.
-- Lưu trữ lớp ngừng việc truy cập nội dung lớp cho gia đình, nhưng giữ hồ sơ lịch sử. Giáo viên có thể khôi phục lớp và chọn khôi phục quyền nhận; không tự hồi sinh các quyền đã thu hồi.
+- Lưu trữ lớp tạm chặn gia đình truy cập nội dung của lớp và giữ hồ sơ lịch sử. Sau khi lớp trở lại hoạt động, quyền truy cập được kiểm tra theo trạng thái của hồ sơ bé, quan hệ tham gia và lần giao. Xem chính sách quyền chơi tại [spec Góc chơi](spec/07-games.md).
 - Lưu trữ hồ sơ bé ngừng giao mới và gửi sản phẩm mới; dữ liệu lịch sử vẫn giữ. Thu hồi liên kết phụ huynh mới là thao tác ngừng toàn bộ quyền với bé của tài khoản đó.
 - Ghi chú nội bộ của bé và nhận xét chia sẻ phải là các trường/bản ghi tách biệt để tránh lộ ghi chú riêng khi trả API.
 
@@ -629,7 +629,7 @@ Backend chia theo nghiệp vụ; mỗi module có controller/DTO, service, repos
 
 Ứng dụng quản lý metadata và quyền trong database; byte của video/tài liệu nằm trong kho đã chọn (LOCAL giữ byte ngay trong database, Drive giữ trong Drive của giáo viên). Một interface lưu tệp phía backend có hai adapter ở phạm vi yêu cầu hiện tại. Giáo viên chọn mặc định trong cài đặt và có thể chọn lại trên màn hình upload; phụ huynh dùng cùng một luồng xem bài ở cả hai trường hợp.
 
-**Máy chủ hệ thống (`LOCAL`):** từ V19 backend lưu byte trong bảng `file_chunks` của PostgreSQL, chia khối 1 MiB cạnh metadata; không có thư mục upload hay đường dẫn công khai. Byte và trạng thái sẵn sàng commit cùng giao dịch; đọc và Range stream từng khối sau khi kiểm tra quyền. Một bản sao lưu database chứa đủ học liệu và sản phẩm, đổi lại database lớn theo dung lượng tệp. Tệp không đưa vào Git. Ngày 04/11/2026 người dùng chọn phương án này thay cho thư mục riêng trên ổ đĩa.
+**Máy chủ hệ thống (`LOCAL`):** từ V19 backend lưu byte trong bảng `file_chunks` của PostgreSQL, chia khối 1 MiB cạnh metadata. Upload ghi từng khối trong giao dịch ngắn và chỉ chuyển READY khi đã lưu đủ byte. Backend kiểm tra quyền rồi mới stream các khối trong phạm vi yêu cầu. Một bản sao lưu database chứa cả học liệu và sản phẩm. Kích thước database tăng theo dung lượng tệp.
 
 **Google Drive cá nhân (`GOOGLE_DRIVE`):** giáo viên kết nối bằng [OAuth dành cho ứng dụng server](https://developers.google.com/identity/protocols/oauth2/web-server); backend dùng quyền đã cấp để upload/đọc trong folder do ứng dụng quản lý. Ưu tiên scope [`drive.file`](https://developers.google.com/workspace/drive/api/guides/api-specific-auth) cho tệp tạo qua ứng dụng; việc nhập tệp cũ từ Drive là tính năng bổ sung cần người dùng chọn/cấp quyền cho từng tệp. [Service account không có dung lượng sở hữu tệp riêng](https://developers.google.com/workspace/drive/api/guides/about-shareddrives), nên phương án Drive cá nhân dùng ủy quyền tài khoản giáo viên thay vì mặc định service account.
 
@@ -1050,7 +1050,7 @@ Các giá trị dưới đây đã áp dụng cho LOCAL; cần đối chiếu h�
 - Giáo viên chọn nơi lưu khi upload; phụ huynh không điều khiển kết nối Drive hoặc cờ tải học liệu. Tệp sản phẩm của gia đình được server lưu theo nơi mặc định giáo viên đã cấu hình.
 - Kiểm tra quyền khi tải/phát; tệp giáo viên dùng trong bài không tự trở thành công khai, tệp sản phẩm không tự được dùng như học liệu chia sẻ cả lớp.
 - Phục vụ video theo stream/Range, tránh nạp toàn bộ vào RAM. Bản đầu proxy qua backend ở cả LOCAL và Drive; kiểm tra quyền ở từng yêu cầu mới, không phát URL tải dài hạn cho gia đình. Dữ liệu đã truyền/buffer trước thu hồi không thể thu lại.
-- Preview inline và download attachment là hai hành động của ứng dụng; cờ chỉ xem chặn chức năng tải do hệ thống cung cấp, không bảo đảm ngăn lưu byte đã nhận. Response tệp dùng `private, no-cache` kèm ETag để trình duyệt kiểm tra lại quyền ở mỗi lần mở; đăng xuất yêu cầu xóa cache (quyết định 04/11/2026).
+- Preview inline và download attachment là hai hành động của ứng dụng; cờ chỉ xem chặn chức năng tải do hệ thống cung cấp, không bảo đảm ngăn lưu byte đã nhận. Response tệp dùng `private, no-store` để trình duyệt không lưu byte vào HTTP cache trên máy dùng chung. Backend kiểm tra phiên và quyền hiện tại trước khi xử lý yêu cầu có ETag.
 - Nếu sau này thêm nhúng liên kết ngoài hoặc URL ký object storage, phải review lại khả năng thu hồi/quyền tải; chúng không thuộc đường phục vụ mặc định của bản đầu.
 - LOCAL cần database đủ dung lượng cho tệp và bản sao lưu tách khỏi gói deploy. Drive cần theo dõi kết nối, dung lượng và lỗi API; mất quyền đọc báo “Tài liệu tạm thời không khả dụng”, giữ lịch sử và phần nháp thay vì xóa hồ sơ bài.
 - Dọn tệp rời chưa gắn tài nguyên sau khoảng thời gian đề xuất 24 giờ, có kiểm tra tham chiếu lại trước xóa. Tệp đã gắn lịch sử không bị dọn như tệp rời.

@@ -7,8 +7,6 @@ import com.tinyclass.storage.FileService;
 import com.tinyclass.teaching.StudentNoteDtos.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.*;
-import java.nio.charset.StandardCharsets;
-import java.security.*;
 import java.sql.Timestamp;
 import java.time.*;
 import java.util.*;
@@ -53,7 +51,7 @@ public class StudentNoteService {
     public Map<String,Object> create(UUID teacher,UUID child,CreateInput input,String trace) {
         var student=child(teacher,child,true);
         var data=data(input.title(),input.body(),input.observedOn(),input.visibility(),input.classId(),input.sessionId(),input.fileIds());
-        String hash=hash(db.json(Arrays.asList(child,data.title(),data.body(),data.observedOn(),data.visibility(),data.classId(),data.sessionId(),data.fileIds())));
+        String hash=db.requestHash(Arrays.asList(child,data.title(),data.body(),data.observedOn(),data.visibility(),data.classId(),data.sessionId(),data.fileIds()));
         var retried=db.rows("select id,create_hash from student_notes where teacher_id=? and client_request_id=?",teacher,input.clientRequestId());
         if(!retried.isEmpty()) {var found=retried.getFirst();if(!hash.equals(found.get("createHash")))throw conflict("REQUEST_REUSED","Mã lưu đã dùng cho nội dung khác. Tạo nhận xét mới nếu cần.");return teacherDetail(teacher,id(found,"id"));}
         if(!"ACTIVE".equals(student.get("status")))throw conflict("STUDENT_ARCHIVED","Khôi phục hồ sơ bé trước khi thêm nhận xét mới.");
@@ -157,5 +155,4 @@ public class StudentNoteService {
     private boolean same(Map<String,Object> before,Data data) {return Objects.equals(before.get("title"),data.title()) && Objects.equals(before.get("body"),data.body()) && Objects.equals(before.get("observedOn"),data.observedOn()) && Objects.equals(before.get("visibility"),data.visibility()) && Objects.equals(id(before,"classId"),data.classId()) && Objects.equals(id(before,"sessionId"),data.sessionId()) && db.rows("select file_id from student_note_attachments where student_note_id=? order by position",id(before,"id")).stream().map(r->id(r,"fileId")).toList().equals(data.fileIds());}
     private void audit(UUID teacher,UUID note,String action,Map<String,Object> before,Map<String,Object> after,String reason,String trace) {db.audit(teacher,"STUDENT_NOTE_"+action,"STUDENT_NOTE",note,Map.of("before",before,"after",after),reason,trace);}
     private static Timestamp stamp(Instant instant) {return Timestamp.from(instant);}
-    private static String hash(String value) {try{return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8)));}catch(NoSuchAlgorithmException failure){throw new IllegalStateException(failure);}}
 }

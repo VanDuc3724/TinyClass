@@ -6,8 +6,6 @@ import com.tinyclass.common.persistence.DomainStore;
 import com.tinyclass.family.GuardianService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.*;
-import java.nio.charset.StandardCharsets;
-import java.security.*;
 import java.sql.Timestamp;
 import java.time.*;
 import java.util.*;
@@ -23,7 +21,7 @@ public class PaymentService {
     @Transactional
     public Map<String,Object> record(UUID teacher,UUID invoice,String requestKey,RecordInput input,String trace){
         if(requestKey==null||!requestKey.matches("[A-Za-z0-9][A-Za-z0-9._:-]{7,99}"))throw problem("INVALID_IDEMPOTENCY_KEY","Yêu cầu ghi thu cần mã gửi hợp lệ. Đóng và mở lại biểu mẫu nếu chưa có mã.");
-        var row=ledger.lockInvoice(teacher,invoice);String fingerprint=hash(db.json(Arrays.asList(invoice,input.invoiceVersion(),input.amountVnd().longValueExact(),input.method(),input.paidAt(),clean(input.publicNote()),clean(input.internalNote()))));
+        var row=ledger.lockInvoice(teacher,invoice);String fingerprint=db.requestHash(Arrays.asList(invoice,input.invoiceVersion(),input.amountVnd().longValueExact(),input.method(),input.paidAt(),clean(input.publicNote()),clean(input.internalNote())));
         var previous=db.rows("select id,request_hash from payments where recorded_by=? and idempotency_key=?",teacher,requestKey);
         if(!previous.isEmpty()){
             if(!fingerprint.equals(previous.getFirst().get("requestHash")))throw conflict("PAYMENT_REQUEST_REUSED","Mã gửi đã dùng cho nội dung hoặc phiếu khác. Đối chiếu khoản thu đã lưu trước khi mở biểu mẫu mới.");
@@ -70,5 +68,4 @@ public class PaymentService {
     private void bump(UUID invoice){db.update("update invoices set updated_at=clock_timestamp(),version=version+1 where id=?",invoice);}
     private void requireIssued(Map<String,Object> invoice){if(!"ISSUED".equals(invoice.get("status")))throw conflict("PAYMENT_INVOICE_NOT_ISSUED","Chỉ ghi hoặc điều chỉnh khoản thu của phiếu đã phát hành còn hiệu lực.");}
     private void audit(UUID actor,String action,String entity,UUID id,Map<String,Object> before,Map<String,Object> after,String reason,String trace){db.audit(actor,action,entity,id,Map.of("before",before,"after",after),reason,trace);}
-    private static String hash(String value){try{return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8)));}catch(NoSuchAlgorithmException failure){throw new IllegalStateException(failure);}}
 }

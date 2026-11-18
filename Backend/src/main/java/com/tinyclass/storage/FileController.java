@@ -40,13 +40,12 @@ public class FileController {
         return response(service.content(user.id(),id),"download".equals(action));
     }
     /**
-     * Callers run every access check before this. no-cache (not no-store) lets the browser keep the bytes but revalidate
-     * each open, so a revoked link still fails; the SHA-256 is a stable ETag because a file id never gets new bytes.
+     * Callers run every access check before this. The no-store directive protects private files on shared devices.
      */
     public static ResponseEntity<Resource> response(FileService.Content content,boolean download) {
         var disposition=(download?ContentDisposition.attachment():ContentDisposition.inline()).filename(content.name(),StandardCharsets.UTF_8).build();
         var response=ResponseEntity.ok().contentType(MediaType.parseMediaType(content.mime())).contentLength(content.size())
-                .header(HttpHeaders.CONTENT_DISPOSITION,disposition.toString()).header(HttpHeaders.CACHE_CONTROL,"private, no-cache")
+                .header(HttpHeaders.CONTENT_DISPOSITION,disposition.toString()).header(HttpHeaders.CACHE_CONTROL,"private, no-store")
                 .header("X-Content-Type-Options","nosniff").header(HttpHeaders.ACCEPT_RANGES,"bytes")
                 .header("Content-Security-Policy","sandbox; default-src 'none'; style-src 'unsafe-inline'");
         if(content.checksum()!=null) response.eTag(content.checksum());

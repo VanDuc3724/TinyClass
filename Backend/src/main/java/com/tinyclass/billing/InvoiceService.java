@@ -1,14 +1,13 @@
 package com.tinyclass.billing;
 
 import com.tinyclass.billing.InvoiceDtos.*;
+import com.tinyclass.common.Hashes;
 import com.tinyclass.common.api.*;
 import com.tinyclass.common.persistence.DomainStore;
 import com.tinyclass.family.GuardianService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.*;
 import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
-import java.security.*;
 import java.time.*;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -138,7 +137,7 @@ public class InvoiceService {
         if("MANUAL_ADJUSTMENT".equals(a.get("fixedFeeAbsenceRule")))warnings.add("Thỏa thuận cho phép cô điều chỉnh khi bé nghỉ. Đối chiếu và nhập giảm trừ/khoản riêng trước khi phát hành.");
         long suggestedTotal=suggested.stream().mapToLong(l->number(l,"amountVnd")).sum();
         if(suggestedTotal>MAX)warnings.add("Các dòng gợi ý vượt giới hạn một phiếu. Chọn bớt dòng hoặc chia thành các phiếu phù hợp trước khi lưu.");
-        String key=hash(db.json(Arrays.asList(id(a,"id"),terms(a),from,to,candidates)));
+        String key=Hashes.sha256Hex(db.json(Arrays.asList(id(a,"id"),terms(a),from,to,candidates)));
         var result=new LinkedHashMap<String,Object>();result.put("agreementId",id(a,"id"));result.put("enrollmentId",enrollment);result.put("studentId",id(a,"studentId"));result.put("studentName",a.get("studentName"));result.put("className",a.get("className"));result.put("periodStart",from);result.put("periodEnd",to);result.put("termsSnapshot",snapshot(a));result.put("previewKey",key);result.put("candidates",candidates);result.put("suggestedLines",suggested);result.put("suggestedTotalVnd",suggestedTotal>MAX?null:suggestedTotal);result.put("warnings",warnings);return result;
     }
 
@@ -196,10 +195,9 @@ public class InvoiceService {
     private long integer(BigDecimal value,long min,long max){try{long n=value.longValueExact();if(n<min||n>max)throw new ArithmeticException();return n;}catch(ArithmeticException|NullPointerException invalid){throw problem("INVALID_INVOICE_NUMBER","Số tiền/số lượng cần là số nguyên trong giới hạn cho phép.");}}
     private void requireDraft(Map<String,Object> row){if(!"DRAFT".equals(row.get("status")))throw conflict("INVOICE_READ_ONLY","Chỉ sửa hoặc phát hành phiếu nháp. Phiếu đã công bố giữ nguyên nội dung.");}
     private void reason(String value){if(clean(value)==null)throw problem("REASON_REQUIRED","Nhập lý do thay đổi để đối chiếu lịch sử.");}
-    private String fingerprint(SaveInput i){return hash(db.json(Arrays.asList(i.agreementId(),i.periodStart(),i.periodEnd(),i.dueOn(),i.previewKey(),i.lines(),clean(i.publicNote()),clean(i.internalNote()),clean(i.adjustmentReason()),clean(i.reason()))));}
+    private String fingerprint(SaveInput i){return db.requestHash(Arrays.asList(i.agreementId(),i.periodStart(),i.periodEnd(),i.dueOn(),i.previewKey(),i.lines(),clean(i.publicNote()),clean(i.internalNote()),clean(i.adjustmentReason()),clean(i.reason())));}
     private void audit(UUID actor,String action,UUID id,Map<String,Object> before,Map<String,Object> after,String reason,String trace){db.audit(actor,"INVOICE_"+action,"INVOICE",id,Map.of("before",before,"after",after),reason,trace);}
     @SuppressWarnings("unchecked") private static List<Map<String,Object>> list(Map<String,Object> row,String key){return (List<Map<String,Object>>)row.get(key);}
     @SuppressWarnings("unchecked") private static List<String> strings(Map<String,Object> row,String key){return (List<String>)row.get(key);}
     @SuppressWarnings("unchecked") private static Map<String,Object> map(Map<String,Object> row,String key){return (Map<String,Object>)row.get(key);}
-    private static String hash(String value){try{return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8)));}catch(NoSuchAlgorithmException failure){throw new IllegalStateException(failure);}}
 }

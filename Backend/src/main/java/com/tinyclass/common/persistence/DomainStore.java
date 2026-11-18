@@ -1,5 +1,6 @@
 package com.tinyclass.common.persistence;
 
+import com.tinyclass.common.Hashes;
 import com.tinyclass.common.api.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -21,6 +22,7 @@ public class DomainStore {
     public int update(String sql,Object... args) { return jdbc.update(sql,args); }
     public long count(String sql,Object... args) { Long value=jdbc.queryForObject(sql,Long.class,args); return value==null?0:value; }
     public String json(Object value) { return json.writeValueAsString(value); }
+    public String requestHash(Object value) { return Hashes.sha256Hex(json(value)); }
     public void audit(UUID actor,String action,String type,UUID id,Map<String,Object> fields,String reason,String trace) {
         update("insert into audit_events(id,actor_id,action,entity_type,entity_id,changed_fields,reason,request_id) values(?,?,?,?,?,?::jsonb,?,?)",UUID.randomUUID(),actor,action,type,id,json(fields),reason,trace);
         events.publishEvent(new BusinessChange(actor,action,type,id));

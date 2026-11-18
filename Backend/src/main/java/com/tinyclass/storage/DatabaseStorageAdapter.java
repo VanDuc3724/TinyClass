@@ -14,11 +14,24 @@ import java.util.*;
 public class DatabaseStorageAdapter implements StorageAdapter {
     static final int CHUNK = 1024 * 1024;
     private static final ResultSetExtractor<byte[]> DATA = rows -> rows.next() ? rows.getBytes(1) : null;
+    private static final String INSERT_CHUNK = "INSERT INTO file_chunks(file_id,chunk_index,data) VALUES (?,?,?)";
+    private static final String INSERT_UPLOAD_CHUNK = """
+            WITH upload AS (
+                UPDATE files SET updated_at=statement_timestamp() WHERE id=? AND status='UPLOADING' RETURNING id
+            )
+            INSERT INTO file_chunks(file_id,chunk_index,data) SELECT id, ?, ? FROM upload
+            """;
     private final JdbcTemplate jdbc;
     public DatabaseStorageAdapter(JdbcTemplate jdbc) { this.jdbc = jdbc; }
     @Override public String provider() { return "LOCAL"; }
-    /** Joins the caller's transaction, so a failed upload rolls its chunks back with it. */
     @Override public Written write(StoredFile file, InputStream source, long limit) throws IOException {
+        return write(file, source, limit, INSERT_CHUNK);
+    }
+    /** Each statement renews the reservation and releases its connection before reading the next chunk. */
+    Written writeUpload(StoredFile file, InputStream source, long limit) throws IOException {
+        return write(file, source, limit, INSERT_UPLOAD_CHUNK);
+    }
+    private Written write(StoredFile file, InputStream source, long limit, String statement) throws IOException {
         MessageDigest digest;
         try { digest = MessageDigest.getInstance("SHA-256"); } catch (NoSuchAlgorithmException e) { throw new IllegalStateException(e); }
         long size = 0; int index = 0, read; byte[] buffer = new byte[CHUNK];
@@ -26,10 +39,12 @@ public class DatabaseStorageAdapter implements StorageAdapter {
             size += read;
             if (size > limit) throw new ApiException(HttpStatus.CONTENT_TOO_LARGE, "FILE_TOO_LARGE", "Tệp vượt quá giới hạn cho phép.");
             digest.update(buffer, 0, read);
-            jdbc.update("INSERT INTO file_chunks(file_id,chunk_index,data) VALUES (?,?,?)", file.getId(), index++, Arrays.copyOf(buffer, read));
+            if (jdbc.update(statement, file.getId(), index++, Arrays.copyOf(buffer, read)) != 1)
+                throw new IOException("Could not write file chunk");
         }
         return new Written(size, HexFormat.of().formatHex(digest.digest()));
     }
+    void deleteChunks(UUID file) { jdbc.update("DELETE FROM file_chunks WHERE file_id=?", file); }
     @Override public Resource read(StoredFile file) throws IOException {
         // octet_length comes from the TOAST pointer, so checking the size does not load the bytes.
         Long stored = jdbc.queryForObject("SELECT coalesce(sum(octet_length(data)),0) FROM file_chunks WHERE file_id=?", Long.class, file.getId());

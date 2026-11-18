@@ -1,13 +1,12 @@
 package com.tinyclass.teaching;
 
+import com.tinyclass.common.Hashes;
 import com.tinyclass.common.api.*;
 import com.tinyclass.common.persistence.DomainStore;
 import com.tinyclass.family.GuardianService;
 import com.tinyclass.teaching.ScheduleDtos.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
 import java.sql.Timestamp;
 import java.time.*;
 import java.time.temporal.ChronoUnit;
@@ -119,7 +118,7 @@ public class ScheduleService {
         serialize(teacher);
         var classroom=ownedClass(teacher,input.classId(),true); requireActive(classroom);
         if(input.clientRequestId()==null) throw problem("REQUEST_ID_REQUIRED","Thiếu mã yêu cầu tạo buổi học.");
-        String hash=hash(db.json(Arrays.asList(input.classId(),input.startsAt(),input.endsAt(),clean(input.title()),clean(input.location()),clean(input.lessonPlan()))));
+        String hash=db.requestHash(Arrays.asList(input.classId(),input.startsAt(),input.endsAt(),clean(input.title()),clean(input.location()),clean(input.lessonPlan())));
         var retried=db.rows("select id,request_hash from class_sessions where class_id=? and client_request_id=?",input.classId(),input.clientRequestId());
         if(!retried.isEmpty()) {
             var found=retried.getFirst();
@@ -240,7 +239,7 @@ public class ScheduleService {
             }
         }
         Collections.sort(signatures);
-        String key=hash(teacher+"|"+String.join("|",signatures));
+        String key=Hashes.sha256Hex(teacher+"|"+String.join("|",signatures));
         if(!preview && !signatures.isEmpty() && (!allow || !key.equals(expectedKey)))
             throw conflict("SCHEDULE_CONFLICT", "Có "+signatures.size()+" cặp buổi trùng giờ. Xem trước lại và xác nhận ngoại lệ trước khi lưu.");
         var result=new LinkedHashMap<String,Object>(); result.put("preview",preview);result.putAll(counts(changes));result.put("skipped",skipped);
@@ -299,8 +298,4 @@ public class ScheduleService {
     private static boolean overlaps(Instant a,Instant b,Instant c,Instant d) {return a.isBefore(d) && c.isBefore(b);}
     private static Instant instant(Map<String,Object> row,String key) {return (Instant)row.get(key);}
     private static Timestamp stamp(Instant instant) {return Timestamp.from(instant);}
-    private static String hash(String value) {
-        try {return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8)));}
-        catch(java.security.NoSuchAlgorithmException impossible) {throw new IllegalStateException(impossible);}
-    }
 }

@@ -91,7 +91,7 @@ class AccountsAndClassesTests {
             assertThat(client.write("POST", "/auth/logout", Map.of(), false).status()).isEqualTo(403);
             var logout = client.post("/auth/logout", Map.of());
             assertThat(logout.status()).isEqualTo(200);
-            assertThat(logout.headers().firstValue("Clear-Site-Data")).hasValue("\"cache\"");
+            assertThat(logout.headers().firstValue("Clear-Site-Data")).isEmpty();
             assertThat(client.get("/auth/me").status()).isEqualTo(401);
             assertThat(client.get("/classes").status()).isEqualTo(401);
         }
