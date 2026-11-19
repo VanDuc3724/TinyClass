@@ -56,4 +56,13 @@
       grid-template-columns: repeat(3, minmax(0, 1fr));
     }
   }
+  /* Wide screens: the child's corner and the two main entries share one row. */
+  @media (min-width: 1024px) {
+    .actions {
+      grid-template-columns: repeat(3, minmax(180px, 240px));
+    }
+    .childEntry {
+      grid-column: auto;
+    }
+  }
 }

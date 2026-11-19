@@ -104,7 +104,7 @@ export default function FamilyOverviewPanel({
           </div>
         )}
       </section>
-      <div className={styles.columns}>
+      <div className={styles.familyColumns}>
         <section
           className={`panel ${styles.summaryPanel}`}
           aria-label="Lịch sắp tới"

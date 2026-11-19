@@ -210,6 +210,16 @@
     gap: 4px 8px;
     margin-top: 8px;
   }
+  /* A seven-column week leaves ~100px per card: status labels wrap inside it instead of
+     pushing past the card edge. The label alone carries the status here. */
+  .compact .meta :global(.badge) {
+    max-width: 100%;
+    padding-inline: 8px;
+    white-space: normal;
+  }
+  .compact .meta :global(.badge) > span {
+    display: none;
+  }
   .compact.cancelled {
     background: var(--tc-surface-muted);
   }

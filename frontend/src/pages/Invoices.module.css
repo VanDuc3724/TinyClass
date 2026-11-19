@@ -9,6 +9,14 @@
     margin: 16px 0 0;
     gap: 16px;
   }
+  /* Drafts have no payment badge above the amounts; the summary padding is enough. */
+  .paymentSummary dl:first-child {
+    margin-top: 0;
+  }
+  /* Keep an invoice code on one line when a button label wraps. */
+  .code {
+    white-space: nowrap;
+  }
   .paymentSummary dt {
     color: var(--tc-text-muted);
     font-size: var(--tc-font-size-sm);
@@ -62,6 +70,15 @@
     margin: 0;
     color: var(--tc-text-muted);
   }
+  /* A 44px-tall hit area for the code link without moving the lines around it. */
+  .heading h2 a {
+    display: inline-block;
+    padding-block: 10px;
+    margin-block: -10px;
+  }
+  .heading h2 a:hover {
+    color: var(--tc-primary);
+  }
   .total {
     font-size: var(--tc-font-size-3xl);
     font-weight: 800;
@@ -99,11 +116,6 @@
   .line .heading {
     margin-bottom: 0;
     align-items: center;
-  }
-  .lineTotal {
-    font-weight: 800;
-    color: var(--tc-primary);
-    text-align: right;
   }
   .warning {
     background: var(--tc-warning-soft);
@@ -167,13 +179,17 @@
   }
   @media (max-width: 600px) {
     .card {
-      padding: 18px;
+      padding: 16px;
     }
     .grid,
     .lineGrid {
       grid-template-columns: minmax(0, 1fr);
     }
-    .actions > .button {
+    /* Paid and outstanding amounts are short; side by side they save a row per card. */
+    .paymentSummary .grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .actions > :global(.button) {
       flex: 1 1 140px;
     }
     .total {

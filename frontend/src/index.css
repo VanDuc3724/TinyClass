@@ -1,5 +1,6 @@
-@layer tokens, features, base, components, utilities;
+@layer tokens, elements, features, base, components, utilities;
 @import "./styles/fonts.css";
 @import "./styles/tokens.css" layer(tokens);
+@import "./styles/elements.css" layer(elements);
 @import "./styles/features.css" layer(features);
 @import "./styles/base.css" layer(base);

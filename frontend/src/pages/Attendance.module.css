@@ -162,9 +162,6 @@
     color: var(--tc-warning);
     border: 1px solid color-mix(in srgb, var(--tc-warning) 28%, transparent);
   }
-  .empty {
-    padding: 24px;
-  }
   .inactive {
     margin: 24px 0;
   }

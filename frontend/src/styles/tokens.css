@@ -26,7 +26,6 @@
   --tc-sidebar-active: rgb(255 255 255 / 18%);
   --tc-sidebar-muted: rgb(255 255 255 / 68%);
   --tc-sidebar-role-dot: #8ff0c6;
-  --tc-sidebar-role-dot: #8ff0c6;
   --tc-on-primary: #ffffff;
 
   /* Semantic tones: text/icon colour + pastel background */
@@ -38,7 +37,6 @@
   --tc-info-soft: #eef4ff;
   --tc-warning: #986100;
   --tc-warning-soft: #fff6de;
-  --tc-game-star-fill: #ffca45;
   --tc-game-star-fill: #ffca45;
   --tc-danger: #c43755;
   --tc-danger-hover: #a82a46;

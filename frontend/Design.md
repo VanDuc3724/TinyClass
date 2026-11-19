@@ -1,6 +1,6 @@
 # TinyClass — Quy chuẩn thiết kế giao diện
 
-Phiên bản: **1.3** · Ngày cập nhật: **17/11/2026**
+Phiên bản: **1.4** · Ngày cập nhật: **19/11/2026**
 Áp dụng cho: **frontend React + TypeScript + Vite**.  
 Tham chiếu nghiệp vụ: [Đặc tả hệ thống TinyClass](../doc/01-mo-ta-he-thong.md).
 
@@ -151,6 +151,8 @@ Nền trang `--tc-canvas` có sắc tím rất nhạt để thẻ trắng tách 
 
 Font mục tiêu là **Nunito** với bộ ký tự tiếng Việt, trọng lượng 400, 600, 700 và 800. Khi bổ sung tài nguyên font, dùng WOFF2 lưu cùng ứng dụng và `font-display: swap`; trong thời gian chưa có font, dùng chuỗi dự phòng ở biến `--tc-font`.
 
+Font được chia ba bộ (`latin`, `latin-ext`, `vietnamese`) trong `src/styles/fonts.css`. Khi `unicode-range` chồng nhau, trình duyệt xét `@font-face` khai báo sau trước, nên bộ `vietnamese` luôn đứng cuối: trang tiếng Việt chỉ tải `latin` + `vietnamese`; `latin-ext` chỉ tải khi có ký tự ngoài hai bộ này. Hai bộ thường dùng được `<link rel="preload" crossorigin>` từ plugin trong `vite.config.ts` lúc build, để tải song song với JavaScript thay vì chờ React vẽ chữ.
+
 | Kiểu chữ | Desktop | Điện thoại | Trọng lượng / chiều cao dòng |
 |---|---|---|---|
 | Tiêu đề trang | 32px | 24px | 800 / 1.3 |
@@ -162,6 +164,17 @@ Font mục tiêu là **Nunito** với bộ ký tự tiếng Việt, trọng lư�
 | Số liệu tổng quan | 36px | 30px | 800 / 1.2 |
 
 Khai báo cỡ chữ bằng `--tc-font-size-*` và bo góc bằng `--tc-radius-*`. Đặt mã màu hex trong `src/styles/tokens.css` rồi dùng biến ở các tệp khác. CSS Module đặt các quy tắc bên trong `@layer components`. Lệnh `npm run lint:css` kiểm tra các quy ước này.
+
+Thứ tự cascade layer khai báo ở `index.html` và `src/index.css`: **`tokens` < `elements` < `features` < `base` < `components` < `utilities`**. Layer sau luôn thắng layer trước, bất kể độ đặc hiệu của selector.
+
+| Layer | Tệp | Nội dung |
+|---|---|---|
+| `elements` | `src/styles/elements.css` | Mặc định theo phần tử: tài liệu, tiêu đề/đoạn văn, link, nút, ô nhập, bảng, giảm chuyển động. Không dùng class. |
+| `features` | `src/styles/features.css` | Bố cục trang dùng class toàn cục có từ trước CSS Modules. |
+| `base` | `src/styles/base.css` | Thành phần dùng chung: `.button`, `.panel`, `.field`, `.tabs`… |
+| `components` | `*.module.css` | Kiểu riêng của từng component. |
+
+Quy tắc theo phần tử đặt ở `elements`, không đặt ở `base`; nếu không, một reset như `p { margin: 0 }` sẽ vô hiệu mọi margin mà class ở `features` đặt cho đoạn văn. Class chỉ ghi đè thuộc tính mà class ở layer sau không đặt, và chỉ đặt kiểu biến thể (ví dụ `.button-google`) cùng layer với class gốc (`.button`). Không dùng biến bí danh cũ (`--green`, `--muted`…); dùng token `--tc-*`.
 
 - Dùng thang khoảng cách bội số 4px; khoảng cách giữa các khối là 24px, trên điện thoại là 16px.
 - Thẻ có padding 24px ở desktop và 16px trên điện thoại. Form dài giới hạn khoảng 760px để dễ đọc.
@@ -612,7 +625,10 @@ frontend/
 └── src/
     ├── styles/
     │   ├── tokens.css           # Biến màu, khoảng cách, kích thước
-    │   └── global.css           # Reset, typography, focus, lớp tiện ích chung
+    │   ├── fonts.css            # @font-face Nunito theo bộ ký tự
+    │   ├── elements.css         # Mặc định theo phần tử: chữ, điều khiển, bảng, focus
+    │   ├── features.css         # Bố cục trang dùng class toàn cục
+    │   └── base.css             # Thành phần dùng chung: nút, thẻ, trường nhập, tab…
     ├── components/
     │   ├── ui/                 # Button, Card, Badge, Avatar, Input, Modal...
     │   └── layout/             # Sidebar, Topbar, MobileDrawer, BottomNav
@@ -689,3 +705,15 @@ Ràng buộc giữ nguyên: sidebar 264px, vùng nhấn ≥ 44px, không cuộn 
 - Back/Forward đồng bộ ô tìm kiếm lớp/học sinh với URL. Kho học liệu và bộ chọn tệp chỉ báo rỗng sau khi tải thành công. Các trường soạn trò chơi có tên khớp DTO để lỗi máy chủ liên kết và focus đúng ô.
 
 Bằng chứng và giới hạn: [báo cáo review UI](../doc/verification/2026-11-17-ui-review.md).
+
+### 12.6. Tối ưu giao diện ngày 19/11/2026
+
+Rà toàn bộ màn hình bằng audit chạy trong trình duyệt (76 màn hình giáo viên/gia đình/công khai × 320, 375, 768, 1280, 1536px) và phân tích tĩnh cascade CSS. Giữ nguyên nghiệp vụ, nội dung và theme.
+
+- **Cascade:** reset phần tử tách khỏi `base.css` sang layer mới `elements` (mục 2.2). Trước đó reset nằm ở layer cao hơn `features`, nên 87 khai báo của features bị vô hiệu ngầm: margin tiêu đề/mô tả, màu link, cỡ chữ tiêu đề phụ, padding ô mật khẩu. Nay chúng hoạt động đúng thiết kế; giá trị lẻ được đưa về thang 4px.
+- **Mã chết:** bỏ 146 khai báo features bị base ghi đè cùng selector hoặc cùng phần tử, class không dùng (`.filter-bar`, `.peach`, một số class Module), biến bí danh và token khai báo trùng.
+- **Lỗi bố cục:** hồ sơ bé có khoảng cách giữa các thẻ; danh sách lớp của bé có kiểu như dòng lớp ở tổng quan. Thẻ buổi trong tuần 7 cột không tràn badge. Tổng quan gia đình bỏ hàng lưới trống thừa (≈72px → 24px); desktop đặt ba lối vào chính trên một hàng. Viền nút Google và nền ghi chú riêng hiển thị đúng. Thẻ phiếu trên điện thoại gọn hơn.
+- **Vùng nhấn:** link quay lại cao 44px, giữ tổng 48px trước tiêu đề. Cả thẻ số liệu là vùng nhấn (stretched link); link phụ của tổng quan, đăng nhập và mã phiếu đạt khoảng 44px.
+- **Font:** bộ `vietnamese` khai báo cuối và preload hai bộ thường dùng; trang tiếng Việt tải 2 thay vì 3 tệp.
+
+Bằng chứng, số đo và giới hạn: [báo cáo tối ưu giao diện](../doc/verification/2026-11-19-ui-optimization.md).

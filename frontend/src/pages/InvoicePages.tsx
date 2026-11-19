@@ -57,7 +57,10 @@ function InvoiceCard({ invoice, to }: { invoice: InvoiceSummary; to: string }) {
       </p>
       <PaymentSummary invoice={invoice} />
       <Link className="button button-ghost" to={to}>
-        Xem phiếu {invoice.invoiceCode}
+        {/* One flex item, so the label wraps before the code instead of inside it. */}
+        <span>
+          Xem phiếu <span className={styles.code}>{invoice.invoiceCode}</span>
+        </span>
       </Link>
     </article>
   );

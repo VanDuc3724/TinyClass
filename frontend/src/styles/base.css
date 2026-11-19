@@ -1,219 +1,3 @@
-:root {
-  font-family: var(--tc-font);
-  color: var(--tc-text);
-  background: var(--tc-canvas);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  --green: var(--tc-primary);
-  --muted: var(--tc-text-muted);
-  --border: var(--tc-border);
-  --surface: var(--tc-surface);
-}
-* {
-  box-sizing: border-box;
-}
-body {
-  margin: 0;
-  min-width: 320px;
-  font-size: var(--tc-font-size-md);
-  line-height: 1.6;
-  background: var(--tc-canvas);
-}
-button,
-input,
-select,
-textarea {
-  font: inherit;
-}
-button,
-a,
-input,
-textarea,
-select,
-summary {
-  -webkit-tap-highlight-color: transparent;
-}
-button,
-summary {
-  cursor: pointer;
-}
-button {
-  color: inherit;
-}
-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.55;
-}
-a {
-  color: inherit;
-  text-decoration: none;
-}
-button,
-a {
-  touch-action: manipulation;
-}
-:focus-visible {
-  outline: 3px solid var(--tc-focus);
-  outline-offset: 3px;
-}
-h1,
-h2,
-h3,
-p {
-  margin: 0;
-}
-h1 {
-  font-size: var(--tc-font-size-4xl);
-  line-height: 1.3;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  overflow-wrap: anywhere;
-  text-wrap: balance;
-}
-h2 {
-  font-size: var(--tc-font-size-xl);
-  line-height: 1.4;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-}
-h3 {
-  font-size: var(--tc-font-size-lg);
-  line-height: 1.4;
-  font-weight: 700;
-}
-p {
-  line-height: 1.6;
-}
-svg {
-  flex-shrink: 0;
-}
-fieldset {
-  border: 0;
-  padding: 0;
-  margin: 0;
-  min-width: 0;
-}
-
-/* ---------- Form controls ---------- */
-input,
-select,
-textarea {
-  color: var(--tc-text);
-  border: 1px solid var(--tc-control-border);
-  background-color: var(--tc-surface);
-  border-radius: var(--tc-radius-md);
-  padding: 10px 14px;
-  width: 100%;
-  min-width: 0;
-  min-height: var(--tc-control-height);
-  font-size: var(--tc-font-size-md);
-  font-weight: 500;
-  transition:
-    border-color var(--tc-motion-fast) var(--tc-ease),
-    box-shadow var(--tc-motion-fast) var(--tc-ease),
-    background-color var(--tc-motion-fast) var(--tc-ease);
-}
-input::placeholder,
-textarea::placeholder {
-  color: var(--tc-text-muted);
-  opacity: 1;
-}
-textarea {
-  resize: vertical;
-  min-height: 120px;
-  line-height: 1.6;
-}
-/* One chevron for every single-value select, so filters look the same in every browser. */
-select:not([multiple]) {
-  appearance: none;
-  padding-right: 42px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%236d687d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 14px center;
-  background-size: 18px;
-  text-overflow: ellipsis;
-}
-input:hover:not(:disabled, :focus, [type="checkbox"], [type="radio"]),
-select:hover:not(:disabled, :focus),
-textarea:hover:not(:disabled, :focus) {
-  border-color: var(--tc-control-hover);
-}
-/* Focus is drawn by a 2px primary edge plus a soft halo, which reads clearly on white. */
-input:focus,
-textarea:focus,
-select:focus {
-  border-color: var(--tc-primary);
-  box-shadow:
-    0 0 0 1px var(--tc-primary),
-    var(--tc-ring);
-  outline: none;
-}
-input:disabled,
-select:disabled,
-textarea:disabled {
-  background-color: var(--tc-surface-muted);
-  color: var(--tc-text-muted);
-  cursor: not-allowed;
-}
-input[type="checkbox"],
-input[type="radio"] {
-  width: 20px;
-  height: 20px;
-  min-height: 0;
-  padding: 0;
-  accent-color: var(--tc-primary);
-  cursor: pointer;
-}
-input[type="checkbox"]:focus,
-input[type="radio"]:focus {
-  box-shadow: none;
-}
-input[type="checkbox"]:focus-visible,
-input[type="radio"]:focus-visible {
-  outline: 3px solid var(--tc-focus);
-  outline-offset: 2px;
-}
-input[type="file"] {
-  padding: 5px 6px;
-  color: var(--tc-text-muted);
-  font-size: var(--tc-font-size-sm);
-  cursor: pointer;
-}
-input[type="file"]::file-selector-button {
-  margin-right: 12px;
-  min-height: 32px;
-  padding: 4px 14px;
-  border: 1px solid var(--tc-primary-border);
-  border-radius: var(--tc-radius-sm);
-  background: var(--tc-primary-soft);
-  color: var(--tc-primary);
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background var(--tc-motion-fast) var(--tc-ease);
-}
-input[type="file"]:hover::file-selector-button {
-  background: var(--tc-primary-soft-hover);
-}
-progress {
-  accent-color: var(--tc-primary);
-}
-[aria-invalid="true"] {
-  border-color: var(--tc-danger);
-}
-[aria-invalid="true"]:focus {
-  border-color: var(--tc-danger);
-  box-shadow:
-    0 0 0 1px var(--tc-danger),
-    0 0 0 4px rgb(196 55 85 / 16%);
-}
-::selection {
-  background: var(--tc-primary-soft);
-  color: var(--tc-primary);
-}
-
 /* ---------- Text helpers ---------- */
 .muted {
   color: var(--tc-text-muted);
@@ -346,6 +130,17 @@ progress {
 }
 .button-danger:hover:not(:disabled) {
   background: var(--tc-danger-hover);
+}
+/* Lives beside .button so its border wins over the transparent default (same layer, later rule). */
+.button-google {
+  background: var(--tc-surface);
+  color: var(--tc-text);
+  border-color: var(--tc-border-strong);
+  box-shadow: var(--tc-shadow-xs);
+}
+.button-google:hover:not(:disabled) {
+  background: var(--tc-surface-muted);
+  border-color: var(--tc-control-border);
 }
 .icon-button {
   display: inline-flex;
@@ -573,36 +368,6 @@ progress {
   position: relative;
   overflow-x: auto;
 }
-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: var(--tc-font-size-sm);
-  font-variant-numeric: tabular-nums;
-}
-td,
-th {
-  padding: 16px 24px;
-  min-height: 56px;
-  border-bottom: 1px solid var(--tc-border);
-  text-align: left;
-}
-th {
-  background: var(--tc-surface-muted);
-  color: var(--tc-text-muted);
-  font-size: var(--tc-font-size-sm);
-  font-weight: 700;
-  padding-block: 12px;
-}
-td {
-  color: var(--tc-text);
-  transition: background-color var(--tc-motion-fast) var(--tc-ease);
-}
-tbody tr:hover > td {
-  background: var(--tc-surface-hover);
-}
-tbody tr:last-child > td {
-  border-bottom: 0;
-}
 
 /* ---------- Icon tiles & badges ---------- */
 .stat-icon {
@@ -616,10 +381,6 @@ tbody tr:last-child > td {
 .mint {
   color: var(--tc-primary);
   background: var(--tc-primary-soft);
-}
-.peach {
-  color: var(--tc-accent);
-  background: var(--tc-accent-soft);
 }
 .sand {
   color: var(--tc-info);
@@ -789,8 +550,14 @@ video.media-preview {
   margin-top: 24px;
 }
 .editor-section,
-.lesson-detail {
+.lesson-detail,
+.course-detail {
   padding: 24px;
+}
+/* The picked file's name and size, read before choosing where to store it. */
+.chosen-file {
+  margin: -8px 0 20px;
+  overflow-wrap: anywhere;
 }
 
 /* ---------- Cards ---------- */
@@ -872,6 +639,59 @@ button.file-card:hover {
   font-size: var(--tc-font-size-md);
   overflow-wrap: anywhere;
 }
+/* "Chỉ cô xem": a tinted surface keeps the private note apart from shared profile data. */
+.private-note {
+  padding: 24px;
+  background: var(--tc-surface-muted);
+}
+/* Class history on a student profile: same row anatomy as the dashboard class list. */
+.recent-classes {
+  padding: 0 24px 8px;
+}
+.recent-class {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 80px;
+  padding: 16px 0;
+  border-top: 1px solid var(--tc-border);
+}
+.recent-class > div {
+  flex: 1;
+  min-width: 0;
+}
+.recent-class h3 {
+  font-size: var(--tc-font-size-md);
+  overflow-wrap: anywhere;
+  transition: color var(--tc-motion-fast) var(--tc-ease);
+}
+.recent-class p {
+  color: var(--tc-text-muted);
+  font-size: var(--tc-font-size-sm);
+}
+.recent-class > svg {
+  color: var(--tc-text-muted);
+  transition:
+    transform var(--tc-motion-fast) var(--tc-ease),
+    color var(--tc-motion-fast) var(--tc-ease);
+}
+.recent-class:hover h3,
+.recent-class:hover > svg {
+  color: var(--tc-primary);
+}
+.recent-class:hover > svg {
+  transform: translateX(3px);
+}
+.class-mark {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: var(--tc-radius-md);
+  color: var(--tc-primary);
+  background: var(--tc-primary-soft);
+}
 .student-profile-heading > div:nth-child(2) {
   flex: 1;
   min-width: 0;
@@ -927,8 +747,25 @@ button.file-card:hover {
 }
 @media (max-width: 767px) {
   .editor-section,
-  .lesson-detail {
+  .lesson-detail,
+  .course-detail {
     padding: 16px;
+  }
+  .recent-classes {
+    padding-inline: 16px;
+  }
+  .recent-class {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .recent-class > div {
+    flex-basis: calc(100% - 60px);
+  }
+  .recent-class > .badge {
+    margin-left: 56px;
+  }
+  .recent-class > svg {
+    display: none;
   }
   .student-table {
     display: block;
@@ -990,12 +827,10 @@ button.file-card:hover {
     white-space: normal;
     overflow-wrap: anywhere;
   }
-  h1,
   .detail-hero-text h1,
   .student-profile-heading h1 {
     font-size: var(--tc-font-size-2xl);
   }
-  h2,
   .section-heading h2 {
     font-size: var(--tc-font-size-lg);
   }
@@ -1005,6 +840,7 @@ button.file-card:hover {
   }
   .section-heading,
   .details-panel,
+  .private-note,
   .editor-panel,
   .class-card-content,
   .class-detail-hero,
@@ -1035,20 +871,10 @@ button.file-card:hover {
   .student-profile-heading .muted {
     font-size: var(--tc-font-size-sm);
   }
-  .filter-bar {
-    flex-wrap: wrap;
-  }
-  .filter-bar > select {
-    width: 100%;
-  }
   .pagination {
     align-items: flex-start;
   }
   .panel > .pagination {
-    padding: 16px;
-  }
-  td,
-  th {
     padding: 16px;
   }
 }
@@ -1059,14 +885,5 @@ button.file-card:hover {
   }
   .form-actions > .button {
     flex: 1;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation: none !important;
-    transition: none !important;
-    scroll-behavior: auto !important;
   }
 }

@@ -19,8 +19,9 @@
 | [Lịch dạy](10-lich-day.md) | Lịch tuần, xem trước/sinh buổi, trùng giờ, đổi/hủy, lịch sử và lịch gia đình |
 | [Tối ưu và độ ổn định 17/11](verification/2026-11-17-optimization.md) | Phân trang media, gộp truy vấn tiến độ, khôi phục màn hình lỗi và kiểm tra stream |
 | [Review giao diện 17/11](verification/2026-11-17-ui-review.md) | Bố cục mobile, bảng trò chơi, bộ lọc, điều hướng/focus và trạng thái dữ liệu |
+| [Tối ưu giao diện 19/11](verification/2026-11-19-ui-optimization.md) | Sửa thứ tự cascade CSS, dọn mã chết, lỗi bố cục/vùng nhấn trên 76 màn hình và giảm tải font |
 
 Đọc spec để hiểu hệ thống phải làm gì, plan để chọn công việc và xác định khi nào hoàn thành. Những đề xuất chưa duyệt nằm ở [sổ quyết định](spec/06-decisions.md); thông tin đã xác nhận và dữ kiện đã quan sát được ghi tách biệt.
 
-TC-001–008 và TC-010/012/013/014/015/016/017/018/019/020/021/022/023/024/025/029 đã hoàn thành theo phạm vi từng task. Google thật và học bù tạm hoãn theo người dùng; luồng LOCAL không cần Google. Xem [hướng dẫn chạy local](../README.md), [OpenAPI](spec/openapi.yaml), [góc chơi](18-goc-choi.md) và [báo cáo mới nhất](verification/2026-11-17-ui-review.md). Các bước G4 cần chốt phạm vi phát hành và các tích hợp còn thiếu. Drive và vận hành thật theo backlog.
+TC-001–008 và TC-010/012/013/014/015/016/017/018/019/020/021/022/023/024/025/029 đã hoàn thành theo phạm vi từng task. Google thật và học bù tạm hoãn theo người dùng; luồng LOCAL không cần Google. Xem [hướng dẫn chạy local](../README.md), [OpenAPI](spec/openapi.yaml), [góc chơi](18-goc-choi.md) và [báo cáo mới nhất](verification/2026-11-19-ui-optimization.md). Các bước G4 cần chốt phạm vi phát hành và các tích hợp còn thiếu. Drive và vận hành thật theo backlog.
 

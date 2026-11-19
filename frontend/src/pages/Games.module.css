@@ -1,8 +1,7 @@
 @layer components {
   .toolbar,
   .actions,
-  .tags,
-  .inline {
+  .tags {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
@@ -151,25 +150,6 @@
     font-size: var(--tc-font-size-sm);
   }
   .assetChoice small {
-    color: var(--tc-text-muted);
-  }
-  .metrics {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 20px;
-    margin-bottom: 24px;
-  }
-  .metric {
-    padding: 20px;
-    min-width: 0;
-  }
-  .metric strong {
-    display: block;
-    font-size: var(--tc-font-size-3xl);
-    margin-bottom: 6px;
-    color: var(--tc-primary);
-  }
-  .metric p {
     color: var(--tc-text-muted);
   }
   .stars {
@@ -632,16 +612,6 @@
     .tile,
     .linked {
       padding: 16px;
-    }
-    .metrics {
-      gap: 12px;
-      grid-template-columns: 1fr;
-    }
-    .metric {
-      padding: 16px;
-    }
-    .metric strong {
-      font-size: var(--tc-font-size-2xl);
     }
     .playPanel {
       padding: 16px;

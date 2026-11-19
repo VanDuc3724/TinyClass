@@ -361,7 +361,10 @@ export function UploadModal({
     <Modal title="Thêm tài liệu mới" onClose={onClose} busy={busy}>
       <form onSubmit={submit}>
         <ErrorNotice error={error} />
-        <Field label="Tệp tài liệu">
+        <Field
+          label="Tệp tài liệu"
+          hint="Ảnh tối đa 10 MB · âm thanh 20 MB · PDF 50 MB · video 200 MB."
+        >
           <input
             type="file"
             required
@@ -371,13 +374,10 @@ export function UploadModal({
           />
         </Field>
         {chosen && (
-          <p className="muted">
+          <p className="muted chosen-file">
             {chosen.name} · {bytes(chosen.size)}
           </p>
         )}
-        <p className="field-hint">
-          Ảnh tối đa 10 MB · âm thanh 20 MB · PDF 50 MB · video 200 MB.
-        </p>
         <Field label="Nơi lưu">
           <select name="connection" disabled={busy}>
             {connections

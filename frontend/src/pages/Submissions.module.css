@@ -214,6 +214,19 @@
   .reviewForm h2 {
     margin-bottom: 16px;
   }
+  /* The explanation belongs to the title; space it from the first field instead. */
+  .reviewForm h2:has(+ :global(.muted)) {
+    margin-bottom: 4px;
+  }
+  .reviewForm h2 + :global(.muted) {
+    margin-bottom: 20px;
+  }
+  /* In the narrow sticky column the two decisions wrap; give each wrapped row the full width. */
+  @media (min-width: 1200px) {
+    .reviewForm :global(.form-actions) > button {
+      flex: 1 1 auto;
+    }
+  }
   .reviewForm button {
     min-height: 48px;
   }

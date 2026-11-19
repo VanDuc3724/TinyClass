@@ -46,9 +46,6 @@
     color: var(--tc-success);
     font-size: var(--tc-font-size-sm);
   }
-  .muted {
-    color: var(--tc-text-muted);
-  }
   .actions {
     margin-top: var(--tc-space-4);
   }
